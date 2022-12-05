@@ -1,0 +1,542 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="Module" type="Module"/>
+
+    <xs:complexType name="SourceLocation">
+        <xs:attribute name="startLine" type="xs:positiveInteger"/>
+        <xs:attribute name="endLine" type="xs:positiveInteger"/>
+        <xs:attribute name="startOffset" type="xs:positiveInteger"/>
+        <xs:attribute name="endOffset" type="xs:positiveInteger"/>
+    </xs:complexType>
+
+    <xs:complexType name="SourceFile">
+        <xs:attribute name="path" type="xs:anyURI"/>
+        <xs:attribute name="name" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="Metadata">
+        <xs:all>
+            <xs:element name="File" type="SourceFile"/>
+            <xs:element name="Location" type="SourceLocation"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="Module">
+        <xs:all>
+            <xs:element name="Metadata" type="Metadata"/>
+            <xs:element name="ModuleHeader" type="ModuleHeader"/>
+            <xs:element name="ModuleBody" type="ModuleMembers"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="ModuleHeader">
+        <xs:all>
+            <xs:element name="ModifierList" type="ModuleModifierList"/>
+            <xs:element name="Extends" type="xs:string"/>
+            <xs:element name="Implements" type="ModuleNameList"/>
+        </xs:all>
+    </xs:complexType>
+
+    <!--    -->
+    <!--    -->
+    <!-- MODULE MEMBER ELEMENTS -->
+    <!--    -->
+    <!--    -->
+    <xs:complexType name="ModuleMembers">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="Constructor" type="Constructor"/>
+            <xs:element name="Initializer" type="Initializer"/>
+            <xs:element name="Field" type="Field"/>
+            <xs:element name="Property" type="Property"/>
+            <xs:element name="Unit" type="Unit"/>
+            <xs:element name="Module" type="Module"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="Constructor">
+        <xs:all>
+            <xs:element name="ParameterList" type="ParameterList"/>
+            <xs:element name="Body" type="StatementBlock"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="Initializer">
+        <xs:all>
+            <xs:element name="Body" type="StatementBlock"/>
+        </xs:all>
+        <xs:attribute name="isStatic" type="xs:boolean"/>
+    </xs:complexType>
+
+    <xs:complexType name="Field">
+        <xs:all>
+            <xs:element name="ModifierList" type="FieldModifierList"/>
+            <xs:element name="Body" type="StatementBlock"/>
+        </xs:all>
+        <xs:attribute name="type" type="xs:string"/>
+        <xs:attribute name="name" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="Property">
+        <xs:all>
+            <xs:element name="ModifierList" type="PropertyModifierList"/>
+            <xs:element name="AccessorDeclarations" type="PropertyAccessors"/>
+        </xs:all>
+        <xs:attribute name="type" type="xs:string"/>
+        <xs:attribute name="identifier" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="Unit">
+        <xs:all>
+            <xs:element name="ModifierList" type="FieldModifierList"/>
+            <xs:element name="ParameterList" type="ParameterList"/>
+            <xs:element name="Body" type="StatementBlock"/>
+        </xs:all>
+        <xs:attribute name="type" type="xs:string"/>
+        <xs:attribute name="name" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="Parameter">
+        <xs:all>
+            <xs:element name="DefaultValue" type="xs:string"/>
+        </xs:all>
+        <xs:attribute name="type" type="xs:string"/>
+        <xs:attribute name="identifier" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="ParameterList">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="Parameter" type="Parameter"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="PropertyAccessors">
+        <xs:all>
+            <xs:element name="Getter" type="AccessorDeclaration"/>
+            <xs:element name="Setter" type="AccessorDeclaration"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="AccessorDeclaration">
+        <xs:all minOccurs="0">
+            <xs:element name="Body" type="StatementBlock"/>
+        </xs:all>
+    </xs:complexType>
+
+    <!--    -->
+    <!--    -->
+    <!-- STATEMENT ELEMENTS -->
+    <!--    -->
+    <!--    -->
+    <xs:complexType name="Statement">
+        <xs:choice>
+            <xs:element name="Expression" type="Expression"/>
+            <xs:element name="LoopStatement" type="LoopStatement"/>
+            <xs:element name="IfStatement" type="IfStatement"/>
+            <xs:element name="SwitchStatement" type="SwitchStatement"/>
+            <xs:element name="ReturnStatement" type="ReturnStatement"/>
+            <xs:element name="ThrowStatement" type="ThrowStatement"/>
+            <xs:element name="TryStatement" type="TryStatement"/>
+            <xs:element name="BreakStatement"/>
+            <xs:element name="ContinueStatement"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="StatementBlock">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="Statement" type="Statement"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="LoopStatement">
+        <xs:choice>
+            <xs:element name="ForStatement" type="ForStatement"/>
+            <xs:element name="WhileStatement" type="WhileStatement"/>
+            <xs:element name="DoStatement" type="DoStatement"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="ForStatement">
+        <xs:sequence>
+            <xs:element name="Signature" type="ForSignature"/>
+            <xs:element name="Body" type="StatementBlock"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ForSignature">
+        <xs:choice>
+            <xs:element name="BasicForStatement" type="BasicForSignature"/>
+            <xs:element name="EnhancedForStatement" type="EnhancedForSignature"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="BasicForSignature">
+        <xs:sequence>
+            <xs:element name="Initializer" type="ForInit"/>
+            <xs:element name="Expression" type="Expression"/>
+            <xs:element name="Update" type="StatementExpressionList"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ForInit">
+        <xs:choice>
+            <xs:element name="StatementExpressionList" type="StatementExpressionList"/>
+            <xs:element name="LocalVariableDeclaration" type="LocalVariableDeclaration"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="StatementExpressionList">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="Item" type="StatementExpression"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="StatementExpression">
+        <xs:choice>
+            <xs:element name="Assignment" type="Assignment"/>
+            <xs:element name="UnaryExpression" type="UnaryExpression"/>
+            <xs:element name="MethodInvocation" type="UnitCallExpression"/> <!-- Method call or constructor call -->
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="Assignment">
+        <xs:attribute name="identifier" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="LocalVariableDeclaration">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="VariableDeclarator" type="VariableDeclarator"/>
+        </xs:choice>
+        <xs:attribute name="isFinal" type="xs:boolean"/>
+        <xs:attribute name="type" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="VariableDeclarator">
+        <xs:all minOccurs="0">
+            <!-- TODO VariableInitializer can also be array init. -->
+            <xs:element name="VariableInitializer" type="Expression"/>
+        </xs:all>
+        <xs:attribute type="xs:string" name="identifier"/>
+    </xs:complexType>
+
+    <xs:complexType name="EnhancedForSignature">
+        <xs:sequence>
+            <xs:element name="LocalVariableDeclaration" type="LocalVariableDeclaration"/>
+            <xs:element name="Expression" type="Expression"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="WhileStatement">
+        <xs:sequence>
+            <xs:element name="Condition" type="Condition"/>
+            <xs:element name="Body" type="StatementBlock"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="DoStatement">
+        <xs:sequence>
+            <xs:element name="Body" type="StatementBlock"/>
+            <xs:element name="Condition" type="Condition"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="IfStatement">
+        <xs:sequence>
+            <xs:element name="If" type="IfBlock"/>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="ElseIf" type="IfBlock"/>
+            </xs:choice>
+            <xs:choice minOccurs="0">
+                <xs:element name="Else" type="StatementBlock"/>
+            </xs:choice>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="IfBlock">
+        <xs:sequence>
+            <xs:element name="Condition" type="Condition"/>
+            <xs:element name="Body" type="StatementBlock"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="SwitchStatement">
+        <xs:sequence>
+            <xs:element name="Subject" type="Expression"/>
+            <xs:element name="SwitchBlock" type="SwitchBlock"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="SwitchBlock">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="SwitchRule" type="SwitchRule"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="SwitchRule">
+        <xs:sequence>
+            <xs:element name="Pattern" type="SwitchPattern"/>
+            <xs:element name="Body" type="SwitchBody"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="SwitchPattern">
+        <xs:choice>
+<!--            TODO: Elaborate on switch case patterns "ConditionalExpression" and pattern matching types -->
+            <xs:element name="ConditionalExpression"/>
+            <xs:element name="Default" minOccurs="0"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="SwitchBody">
+        <xs:choice>
+            <xs:element name="Expression" type="Expression"/>
+            <xs:element name="SwitchBody" type="StatementBlock"/>
+            <xs:element name="ThrowStatement" type="ThrowStatement"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="ReturnStatement">
+        <xs:sequence>
+            <xs:element name="ReturnValue" type="Expression"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ThrowStatement">
+        <xs:sequence>
+            <xs:element name="Throws" type="Expression"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="TryStatement">
+        <xs:sequence>
+            <xs:element name="TryBody" type="StatementBlock"/>
+            <xs:element name="CatchClauseList" type="CatchClauseList"/>
+            <xs:element name="FinallyClause" type="StatementBlock" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="CatchClauseList">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="CatchClause" type="CatchClause"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="CatchClause">
+        <xs:sequence>
+            <xs:element name="CatchTypeList" type="ModuleNameList"/>
+            <xs:element name="Body" type="StatementBlock"/>
+        </xs:sequence>
+        <xs:attribute name="identifier" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="Condition">
+        <xs:sequence>
+            <xs:element name="Condition" type="Expression"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!--    -->
+    <!--    -->
+    <!-- EXPRESSION ELEMENTS -->
+    <!--    -->
+    <!--    -->
+    <xs:complexType name="Expression">
+        <xs:choice>
+            <xs:element name="LiteralExpression" type="LiteralExpression"/>
+            <xs:element name="AccessExpression" type="AccessExpression"/>
+            <xs:element name="FunctionCallExpression" type="UnitCallExpression"/>
+            <xs:element name="ConditionalExpression" type="ConditionalExpression"/>
+            <xs:element name="NullConditionalExpression" type="NullConditionalExpression"/>
+            <xs:element name="UnaryExpression" type="UnaryExpression"/>
+            <xs:element name="BinaryExpression" type="BinaryExpression"/>
+            <xs:element name="LambdaExpression" type="LambdaExpression"/>
+            <xs:element name="AnonymousClassExpression" type="AnonymousModuleExpression"/>
+            <xs:element name="SwitchExpression" type="SwitchExpression"/>
+            <xs:element name="IfExpression" type="IfExpression"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="LiteralExpression">
+        <xs:all>
+            <xs:element name="Literal" type="xs:string"/> <!-- We do not care about type. -->
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="AccessExpression">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="CallStack" type="ModuleNameList"/>
+        </xs:choice>
+        <xs:attribute name="identifier" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="UnitCallExpression">
+<!--        TODO: How to handle Main.Static.method()???, aka the call stack.-->
+        <xs:sequence>
+             <xs:element name="ArgumentList" type="ArgumentList"/>
+        </xs:sequence>
+        <xs:attribute name="identifier" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="ArgumentList">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="Argument" type="Expression"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="ConditionalExpression">
+        <xs:sequence>
+            <xs:element name="Condition" type="Condition"/>
+            <xs:element name="OnTrue" type="Expression"/>
+            <xs:element name="OnFalse" type="Expression"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="NullConditionalExpression">
+        <xs:sequence>
+            <xs:element name="Base" type="Expression"/>
+            <xs:element name="NullSafeExpression" type="Expression"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="UnaryExpression">
+<!--        TODO: Doing nothing yet with pre and post unary operators. Because might not even be important? Needs a check -->
+        <xs:sequence>
+            <xs:element name="Expression" type="Expression"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="BinaryExpression">
+        <xs:sequence>
+            <xs:element name="LeftSide" type="Expression"/>
+            <xs:element name="Operator" type="binaryOperator"/>
+            <xs:element name="RightSide" type="Expression"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="LambdaExpression">
+        <xs:sequence>
+            <xs:element name="ParameterList" type="ParameterList"/>
+            <xs:element name="Body" type="LambdaBody"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="LambdaBody">
+        <xs:choice>
+            <xs:element name="Expression" type="Expression"/>
+            <xs:element name="Body" type="StatementBlock"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="AnonymousModuleExpression">
+        <xs:sequence>
+            <xs:element name="ArgumentList" type="ArgumentList"/>
+            <xs:element name="Body" type="ModuleMembers"/>
+        </xs:sequence>
+        <xs:attribute name="moduleIdentifier" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="SwitchExpression">
+        <xs:sequence>
+            <xs:element name="Expression" type="SwitchStatement"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="IfExpression">
+        <xs:sequence>
+            <xs:element name="Expression" type="IfStatement"/>
+        </xs:sequence>
+    </xs:complexType>
+
+
+    <!--    -->
+    <!--    -->
+    <!-- HELPER ELEMENTS -->
+    <!--    -->
+    <!--    -->
+    <xs:complexType name="ModuleModifierList">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="Item" type="moduleModifier"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="FieldModifierList">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="Item" type="fieldModifier"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="PropertyModifierList">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="Item" type="propertyModifier"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="UnitModifierList">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="Item" type="methodModifier"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="ModuleNameList">
+        <xs:choice maxOccurs="unbounded">
+            <xs:element name="Name" type="xs:string"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:simpleType name="moduleModifier">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="public"/>
+            <xs:enumeration value="protected"/>
+            <xs:enumeration value="private"/>
+            <xs:enumeration value="static"/>
+            <xs:enumeration value="abstract"/>
+            <xs:enumeration value="final"/>
+            <xs:enumeration value="open"/>
+            <xs:enumeration value="sealed"/>
+            <xs:enumeration value="data"/>
+            <xs:enumeration value="inner"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="fieldModifier">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="public"/>
+            <xs:enumeration value="protected"/>
+            <xs:enumeration value="private"/>
+            <xs:enumeration value="static"/>
+            <xs:enumeration value="final"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="propertyModifier">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="public"/>
+            <xs:enumeration value="protected"/>
+            <xs:enumeration value="private"/>
+            <xs:enumeration value="static"/>
+            <xs:enumeration value="sealed"/>
+            <xs:enumeration value="override"/>
+            <xs:enumeration value="abstract"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="methodModifier">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="public"/>
+            <xs:enumeration value="protected"/>
+            <xs:enumeration value="private"/>
+            <xs:enumeration value="abstract"/>
+            <xs:enumeration value="static"/>
+            <xs:enumeration value="final"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="binaryOperator">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="arithmetic"/>
+            <xs:enumeration value="assign"/>
+            <xs:enumeration value="operatorAssign"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+
+</xs:schema>
