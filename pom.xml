@@ -58,6 +58,18 @@
             <artifactId>antlr4-runtime</artifactId>
             <version>${antlr4.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/jakarta.platform/jakarta.jakartaee-api -->
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+            <version>10.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.massfords</groupId>
+            <artifactId>jaxb-visitor</artifactId>
+            <version>3.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -139,6 +151,34 @@
                         <id>antlr</id>
                         <goals>
                             <goal>antlr4</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.evolvedbinary.maven.jvnet</groupId>
+                <artifactId>jaxb30-maven-plugin</artifactId>
+                <version>0.15.0</version>
+                <configuration>
+                    <schemaDirectory>
+                        ${basedir}/src/main/resources
+                    </schemaDirectory>
+                    <args>
+                        <arg>-Xvisitor</arg>
+                        <arg>-Xvisitor-package:nl.utwente.student.visitor</arg>
+                    </args>
+                    <plugins>
+                        <plugin>
+                            <groupId>com.massfords</groupId>
+                            <artifactId>jaxb-visitor</artifactId>
+                            <version>3.0.0</version>
+                        </plugin>
+                    </plugins>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
                         </goals>
                     </execution>
                 </executions>

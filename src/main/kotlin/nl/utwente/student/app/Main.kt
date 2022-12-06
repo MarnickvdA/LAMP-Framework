@@ -13,5 +13,3 @@ internal class Main {
         if (args.isNotEmpty()) println("Program arguments: ${args.joinToString()}")
     }
 }
-
-class X

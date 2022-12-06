@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jaxb:bindings
+        xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+        jaxb:version="3.0">
+    <jaxb:bindings schemaLocation="./metamodel-schema.xsd">
+        <jaxb:schemaBindings>
+            <jaxb:package name="nl.utwente.student.metamodel"/>
+        </jaxb:schemaBindings>
+    </jaxb:bindings>
+</jaxb:bindings>
+
