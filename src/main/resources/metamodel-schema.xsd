@@ -1,12 +1,15 @@
 <?xml version="1.0"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="https://www.utwente.nl"
+           xmlns="https://www.utwente.nl"
+           elementFormDefault="qualified">
     <xs:element name="Module" type="Module"/>
 
     <xs:complexType name="SourceLocation">
         <xs:attribute name="startLine" type="xs:positiveInteger"/>
         <xs:attribute name="endLine" type="xs:positiveInteger"/>
-        <xs:attribute name="startOffset" type="xs:positiveInteger"/>
-        <xs:attribute name="endOffset" type="xs:positiveInteger"/>
+        <xs:attribute name="startOffset" type="xs:nonNegativeInteger"/>
+        <xs:attribute name="endOffset" type="xs:nonNegativeInteger"/>
     </xs:complexType>
 
     <xs:complexType name="SourceFile">
@@ -23,7 +26,7 @@
 
     <xs:complexType name="ElementWithMetadata">
         <xs:sequence>
-            <xs:element name="Metadata" type="Metadata"/>
+            <xs:element name="Metadata" type="SourceLocation"/>
         </xs:sequence>
     </xs:complexType>
 
@@ -37,10 +40,12 @@
 
     <xs:complexType name="ModuleHeader">
         <xs:all>
-            <xs:element name="ModifierList" type="ModuleModifierList"/>
-            <xs:element name="Extends" type="xs:string"/>
-            <xs:element name="Implements" type="ModuleNameList"/>
+            <xs:element minOccurs="0" name="ModifierList" type="ModuleModifierList"/>
+            <xs:element minOccurs="0" name="Extends" type="xs:string"/>
+            <xs:element minOccurs="0" name="Implements" type="ModuleNameList"/>
         </xs:all>
+        <xs:attribute name="moduleType" type="typeDeclarator"/>
+        <xs:attribute name="identifier" type="xs:string"/>
     </xs:complexType>
 
     <!--    -->
@@ -49,7 +54,7 @@
     <!--    -->
     <!--    -->
     <xs:complexType name="ModuleBody">
-        <xs:choice maxOccurs="unbounded">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element name="Constructor" type="Constructor"/>
             <xs:element name="Initializer" type="Initializer"/>
             <xs:element name="Field" type="Field"/>
@@ -559,7 +564,7 @@
     <!--    -->
     <!--    -->
     <xs:complexType name="ModuleModifierList">
-        <xs:choice maxOccurs="unbounded">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element name="Item" type="moduleModifier"/>
         </xs:choice>
     </xs:complexType>
@@ -641,6 +646,15 @@
             <xs:enumeration value="arithmetic"/>
             <xs:enumeration value="assign"/>
             <xs:enumeration value="operatorAssign"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="typeDeclarator">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="class"/>
+            <xs:enumeration value="enum"/>
+            <xs:enumeration value="interface"/>
+            <xs:enumeration value="record"/>
         </xs:restriction>
     </xs:simpleType>
 </xs:schema>

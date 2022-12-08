@@ -29,6 +29,13 @@ Using the command `mvn jaxb30:generate`, we can generate the Metamodel classes a
 The generated metamodel code is located at `target/generated-sources/xjc/nl.utwente.student.metamodel`.
 The generated visitor is located at `target/generated-sources/xjc/nl.utwente.student.visitor`.
 
+## Transformations
+### Java
+ANTLR Visitor code generation: 
+```
+antlr -o target/generated-sources/antlr4 -lib src/main/resources/grammars/java -visitor -listener -package nl.utwente.student.visitor.java -Werror
+```
+
 ### Application Flow
 
 ```
