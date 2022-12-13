@@ -1,0 +1,181 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="https://www.utwente.nl/v2"
+           xmlns="https://www.utwente.nl/v2"
+           elementFormDefault="qualified">
+
+    <xs:element name="Module">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Scope" type="ModuleScope"/>
+            </xs:sequence>
+            <xs:attribute name="filePath" type="xs:anyURI"/>
+            <xs:attribute name="fileName" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="ModuleScope">
+        <xs:sequence>
+            <xs:element name="Modifiers" type="ModifierList"/>
+            <xs:element name="Members" type="ModuleMemberList"/>
+        </xs:sequence>
+        <xs:attribute name="moduleType" type="moduleType"/>
+        <xs:attribute name="id" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="ModuleMember">
+        <xs:choice>
+            <xs:element name="Unit" type="Unit"/>
+            <xs:element name="Property" type="Property"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="Unit">
+        <xs:sequence>
+            <xs:element name="Parameters" type="ParameterList"/>
+            <xs:element name="Modifiers" type="ModifierList"/>
+            <xs:element name="Scope" type="UnitScope"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="UnitScope">
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="Expression" type="Expression"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="Property">
+        <xs:sequence>
+            <xs:element name="Identifier" type="xs:string"/>
+            <xs:element name="Modifiers" type="ModifierList"/>
+            <xs:element minOccurs="0" name="Value" type="xs:string"/>
+<!--            TODO update value to something else? -->
+            <xs:element minOccurs="0" name="Getter" type="Unit"/>
+            <xs:element minOccurs="0" name="Setter" type="Unit"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!--    -->
+    <!--    -->
+    <!--    -->
+    <!--    -->
+    <!--    -->
+
+    <xs:complexType name="Expression">
+        <xs:sequence>
+            <xs:element name="Scope" type="ExpressionScope"/>
+        </xs:sequence>
+        <xs:attribute name="startLine" type="xs:positiveInteger"/>
+        <xs:attribute name="endLine" type="xs:positiveInteger"/>
+        <xs:attribute name="startOffset" type="xs:nonNegativeInteger"/>
+        <xs:attribute name="endOffset" type="xs:nonNegativeInteger"/>
+    </xs:complexType>
+
+    <xs:complexType name="ExpressionScope">
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="Expression" type="Expression"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="Loop">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="ConditionalSequence">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="LogicalSequence">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Jump">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Declaration">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="AccessCall">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Catch">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!--    -->
+    <!--    -->
+    <!--    -->
+    <!--    -->
+    <!--    -->
+
+    <xs:complexType name="ModuleMemberList">
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="Member" type="ModuleMember"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ParameterList">
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="Parameter" type="Property"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ModifierList">
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="Modifier" type="modifierType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!--    -->
+    <!--    -->
+    <!--    -->
+    <!--    -->
+    <!--    -->
+
+    <xs:simpleType name="moduleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="class"/>
+            <xs:enumeration value="enum"/>
+            <xs:enumeration value="interface"/>
+            <xs:enumeration value="record"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="modifierType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="public"/>
+            <xs:enumeration value="protected"/>
+            <xs:enumeration value="private"/>
+            <xs:enumeration value="static"/>
+            <xs:enumeration value="final"/>
+            <xs:enumeration value="open"/>
+            <xs:enumeration value="sealed"/>
+            <xs:enumeration value="abstract"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

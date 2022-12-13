@@ -87,10 +87,12 @@
     <orderEntry type="library" scope="PROVIDED" name="Maven: jakarta.resource:jakarta.resource-api:2.1.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: jakarta.authorization:jakarta.authorization-api:2.1.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: jakarta.batch:jakarta.batch-api:2.1.1" level="project" />
-    <orderEntry type="library" name="Maven: com.massfords:jaxb-visitor:3.0.0" level="project" />
-    <orderEntry type="library" name="Maven: jakarta.annotation:jakarta.annotation-api:2.1.1" level="project" />
+    <orderEntry type="library" name="Maven: jakarta.annotation:jakarta.annotation-api:2.1.0" level="project" />
     <orderEntry type="library" name="Maven: jakarta.xml.bind:jakarta.xml.bind-api:3.0.1" level="project" />
     <orderEntry type="library" name="Maven: com.sun.activation:jakarta.activation:2.0.1" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: com.sun.xml.bind:jaxb-impl:3.0.2" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: com.sun.xml.bind:jaxb-core:3.0.2" level="project" />
+    <orderEntry type="library" name="Maven: com.massfords:jaxb-visitor:3.0.0" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jaxb:codemodel:3.0.2" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jaxb:jaxb-xjc:3.0.2" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jaxb:jaxb-core:3.0.2" level="project" />
