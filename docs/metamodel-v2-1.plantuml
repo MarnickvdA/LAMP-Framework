@@ -1,0 +1,112 @@
+@startuml
+class Module
+class Metadata
+class Scope
+class ModuleScope
+class Unit
+class UnitBody
+class Property
+class Expression
+class ExpressionScope
+
+class Loop
+class Conditional
+class LogicalSequence
+class Jump
+class Declaration
+class Assignment
+class Lambda
+class UnitCall
+
+class ModuleReferenceList
+class ModifierList
+class ParameterList
+class ArgumentList
+
+enum ModuleType {
+    CLASS
+    ENUM
+    INTERFACE
+    RECORD
+}
+
+enum ModifierType {
+    PUBLIC
+    PROTECTED
+    PRIVATE
+    STATIC
+    FINAL
+    OPEN
+    SEALED
+    ABSTRACT
+}
+
+Module : # packageName
+Module : # filePath
+Module : # fileName
+Module *-- ModuleReferenceList : imports >
+Module *-- ModuleScope
+
+Scope <|-- ModuleScope
+Scope <|-- Unit
+Scope <|-- Property
+Scope <|-- ExpressionScope
+
+ModuleScope : # id
+ModuleScope *-- ModuleType : moduleType >
+ModuleScope *-- ModifierList
+ModuleScope *-- ModuleReferenceList : extends >
+ModuleScope *-- ModuleReferenceList : implements >
+ModuleScope *-- Scope : members >
+
+Unit : # id
+Unit *-- ParameterList
+Unit *-- ModifierList
+Unit *-- UnitBody
+
+UnitBody "1" *-- "many" Expression
+
+Property : # id
+Property *-- ModifierList
+Property *-- Unit : getter >
+Property *-- Unit : setter >
+
+Expression *-- ExpressionScope
+Expression *-- Metadata
+
+ExpressionScope *-- "many" Expression
+
+Expression <|-- Loop
+Expression <|-- Conditional
+Expression <|-- LogicalSequence
+Expression <|-- Jump
+Expression <|-- Declaration
+Expression <|-- Assignment
+Expression <|-- Lambda
+Expression <|-- UnitCall
+
+Loop *-- Expression : evaluations >
+
+Conditional *-- Expression : ifExpr >
+Conditional *-- Expression : elseExpr >
+
+LogicalSequence "2" *-- "many" Expression : operands >
+
+Declaration *-- ModifierList : modifiers >
+
+Lambda *-- ArgumentList : arguments >
+
+UnitCall : # reference
+UnitCall *-- ArgumentList : arguments >
+
+ModuleReferenceList : # List<String> references
+ModifierList : # List<ModifierType> modifiers
+ArgumentList : # List<Expression> arguments
+ParameterList : # List<Property> parameters
+
+Metadata : # startLine
+Metadata : # endLine
+Metadata : # startOffset
+Metadata : # endOffset
+
+@enduml
