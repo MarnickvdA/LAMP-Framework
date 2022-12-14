@@ -5,22 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d630933d-6250-4de4-bc33-fb5f4db8d499" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_sun_xml_bind_jaxb_core_3_0_2.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_sun_xml_bind_jaxb_impl_3_0_2.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/Java2MetamodelTransformer.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/utils/Log.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/utils/Utils.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/v1/metamodel-bindings-v1.xjb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/v2/metamodel-schema-v2.xsd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__jakarta_annotation_jakarta_annotation_api_2_1_1.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__jakarta_annotation_jakarta_annotation_api_2_1_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/metamodel-v2-1.plantuml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/metamodel-v2.plantuml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/parsers/JavaProjectParserV1.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformerV2.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LAMP-Framework.iml" beforeDir="false" afterPath="$PROJECT_DIR$/LAMP-Framework.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/model/Module.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/model/JavaFile.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/parsers/JavaProjectParser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/parsers/JavaProjectParser.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/Java2XMLTransformer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/Java2XMLTransformer.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/metamodel-bindings.xjb" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/v2/metamodel-bindings-v2.xjb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/metamodel-schema.xsd" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/v1/metamodel-schema-v1.xsd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/metamodel.plantuml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/app/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/app/Main.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/model/JavaFile.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/model/JavaFile.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/parsers/JavaProjectParser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/parsers/JavaProjectParserV2.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/Java2MetamodelTransformer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformerV1.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/Java2XMLTransformer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformerV0.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/metamodel-bindings.xjb" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/metamodel-bindings.xjb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/metamodel-schema-v2.xsd" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/metamodel-schema-v2.xsd" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,8 +30,8 @@
         <option value="JUnit5 Test Class" />
         <option value="Kotlin Interface" />
         <option value="Kotlin Data Class" />
-        <option value="Kotlin Class" />
         <option value="Class" />
+        <option value="Kotlin Class" />
       </list>
     </option>
   </component>
@@ -71,6 +68,7 @@
     "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
     "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
     "last_directory_selection": "/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/src/test/kotlin/nl/utwente/student/app",
+    "last_opened_file_path": "/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/docs",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -79,20 +77,23 @@
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "configurable.group.appearance"
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
 }]]></component>
   <component name="ReadonlyStatusHandler">
     <option name="SHOW_DIALOG" value="false" />
   </component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/docs" />
+    </key>
     <key name="CreateTestDialog.Recents.Supers">
       <recent name="" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources" />
       <recent name="$PROJECT_DIR$/src/main/resources/v2" />
       <recent name="$PROJECT_DIR$/src/main/resources/v1" />
-      <recent name="$PROJECT_DIR$/src/main/resources" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/src/main/resources/grammars/java" />
     </key>
@@ -104,6 +105,9 @@
     </key>
     <key name="CreateTestDialog.RecentsKey">
       <recent name="nl.utwente.student.app" />
+    </key>
+    <key name="CopyKotlinDeclarationDialog.RECENTS_KEY">
+      <recent name="nl.utwente.student.parsers" />
     </key>
   </component>
   <component name="RunManager" selected="Kotlin.Run File">
@@ -145,7 +149,8 @@
       <workItem from="1669805216555" duration="13204000" />
       <workItem from="1669971423483" duration="23633000" />
       <workItem from="1670324337115" duration="25814000" />
-      <workItem from="1670422719304" duration="97356000" />
+      <workItem from="1670422719304" duration="98643000" />
+      <workItem from="1670948285692" duration="19767000" />
     </task>
     <servers />
   </component>

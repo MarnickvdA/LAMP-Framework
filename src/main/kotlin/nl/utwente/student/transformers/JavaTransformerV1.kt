@@ -13,7 +13,7 @@ import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.RuleNode
 import org.antlr.v4.runtime.tree.TerminalNode
 
-class Java2MetamodelTransformer(private val javaFile: JavaFile) : JavaParserBaseVisitor<Any?>() {
+class JavaTransformerV1(private val javaFile: JavaFile) : JavaParserBaseVisitor<Any?>() {
     private val imports = mutableMapOf<String, String>()
 
     fun transform(): List<Module> {

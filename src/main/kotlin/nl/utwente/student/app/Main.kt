@@ -1,6 +1,6 @@
 package nl.utwente.student.app
 
-import nl.utwente.student.parsers.JavaProjectParser
+import nl.utwente.student.parsers.JavaProjectParserV1
 
 fun main(args: Array<String>) {
     Main().run(*args)
@@ -12,6 +12,7 @@ internal class Main {
             return println("Program terminated without results. Try --path or --projectUrl as program arguments.")
         }
 
-        JavaProjectParser().executeWithArgs(args)
+        JavaProjectParserV1().executeWithArgs(args)
+//        JavaProjectParserV2().executeWithArgs(args)
     }
 }

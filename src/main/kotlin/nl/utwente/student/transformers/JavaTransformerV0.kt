@@ -11,7 +11,7 @@ import org.w3c.dom.Text
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 
-class Java2XMLTransformer(val file: File): JavaParserBaseVisitor<List<Node?>?>() {
+class JavaTransformerV0(val file: File): JavaParserBaseVisitor<List<Node?>?>() {
     private lateinit var currentDoc: Document
     private var moduleName = "?"
     private var packageName = "?"

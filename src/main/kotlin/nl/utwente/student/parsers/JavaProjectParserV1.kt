@@ -3,14 +3,14 @@ package nl.utwente.student.parsers
 import jakarta.xml.bind.JAXBContext
 import jakarta.xml.bind.JAXBException
 import jakarta.xml.bind.Marshaller
-import nl.utwente.student.metamodel.Module
+import nl.utwente.student.metamodel.v1.Module
 import nl.utwente.student.model.JavaFile
 import org.antlr.v4.runtime.*
 import org.eclipse.jgit.api.Git
 import java.io.*
 import java.nio.file.Paths.get
 
-class JavaProjectParser {
+class JavaProjectParserV1 {
 
     @Throws(RuntimeException::class)
     fun executeWithArgs(args: Array<out String>) {
@@ -29,7 +29,7 @@ class JavaProjectParser {
 
         val file = get(System.getProperty("user.dir"), path).toFile()
         val javaFile = JavaFile.parse(file)
-        val modules = javaFile.extractModulesFromAST()
+        val modules = javaFile.extractModulesFromASTv1()
 
         modules.forEach { module -> writeToXML(module, this.getOutputFile(module)) }
     }
@@ -55,7 +55,7 @@ class JavaProjectParser {
             .forEach {
                 val javaFile = JavaFile.parse(it)
 
-                val modules = javaFile.extractModulesFromAST()
+                val modules = javaFile.extractModulesFromASTv1()
 
                 // Phase 4: Write documents to files
                 modules.parallelStream().forEach { module -> writeToXML(module, this.getProjectOutputFile(module)) }

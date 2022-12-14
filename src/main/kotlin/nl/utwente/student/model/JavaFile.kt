@@ -1,7 +1,8 @@
 package nl.utwente.student.model
 
-import nl.utwente.student.metamodel.Module
-import nl.utwente.student.transformers.Java2MetamodelTransformer
+import nl.utwente.student.metamodel.v1.Module
+import nl.utwente.student.transformers.JavaTransformerV1
+import nl.utwente.student.transformers.JavaTransformerV2
 import nl.utwente.student.visitor.java.JavaLexer
 import nl.utwente.student.visitor.java.JavaParser
 import org.antlr.v4.runtime.CharStreams
@@ -28,11 +29,11 @@ class JavaFile private constructor(val file: File, val parseTree: ParseTree) {
             }
         }
     }
+    fun extractModulesFromASTv1(): List<Module> {
+        return JavaTransformerV1(this).transform()
+    }
 
-    private val modules = mutableListOf<Module>()
-    fun extractModulesFromAST(): List<Module> {
-        val transformer = Java2MetamodelTransformer(this)
-        this.modules.addAll(transformer.transform())
-        return this.modules
+    fun extractModulesFromASTv2(): List<nl.utwente.student.metamodel.v2.Module> {
+        return JavaTransformerV2(this).transform()
     }
 }
