@@ -44,3 +44,4 @@ buildNumber.properties
 ### LAMP Framework ###
 /input/
 /projects/
+/gen/
