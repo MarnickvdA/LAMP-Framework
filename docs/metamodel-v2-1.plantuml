@@ -4,7 +4,6 @@ class Metadata
 class Scope
 class ModuleScope
 class Unit
-class UnitBody
 class Property
 class Expression
 class ExpressionScope
@@ -62,9 +61,8 @@ ModuleScope *-- Scope : members >
 Unit : # id
 Unit *-- ParameterList
 Unit *-- ModifierList
-Unit *-- UnitBody
 
-UnitBody "1" *-- "many" Expression
+Unit *-- ExpressionScope
 
 Property : # id
 Property *-- ModifierList
@@ -92,12 +90,12 @@ Conditional *-- Expression : elseExpr >
 
 LogicalSequence "2" *-- "many" Expression : operands >
 
-Declaration *-- ModifierList : modifiers >
-
 Lambda *-- ArgumentList : arguments >
 
 UnitCall : # reference
 UnitCall *-- ArgumentList : arguments >
+
+Declaration "1" *-- "1" Scope : scope >
 
 ModuleReferenceList : # List<String> references
 ModifierList : # List<ModifierType> modifiers

@@ -47,7 +47,7 @@
                 <xs:sequence>
                     <xs:element name="Parameters" type="ParameterList"/>
                     <xs:element name="Modifiers" type="ModifierList"/>
-                    <xs:element name="Body" type="UnitBody"/>
+                    <xs:element name="Body" type="ExpressionScope"/>
                 </xs:sequence>
                 <!-- TODO Include parameters in ID to handle function overloads. -->
                 <xs:attribute name="id" type="xs:string"/>
@@ -144,9 +144,6 @@
     <xs:complexType name="Declaration">
         <xs:complexContent>
             <xs:extension base="Expression">
-                <xs:sequence>
-                    <xs:element name="Modifiers" type="ModifierList"/>
-                </xs:sequence>
                 <xs:attribute name="id" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>

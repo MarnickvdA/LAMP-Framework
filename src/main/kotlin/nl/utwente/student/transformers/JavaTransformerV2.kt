@@ -129,6 +129,12 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
         moduleScope.id = this.visitIdentifier(ctx?.identifier()) as String
         moduleScope.moduleType = ModuleType.CLASS
 
+        // TODO(Extends)
+
+        // TODO(Implements)
+
+        // TODO(Members)
+
 
         return moduleScope
     }
