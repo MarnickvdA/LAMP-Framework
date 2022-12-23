@@ -1,12 +1,12 @@
 @startuml
 class Module
-class Metadata
 class Scope
 class ModuleScope
 class Unit
 class Property
 class Expression
-class ExpressionScope
+class BlockScope
+class Metadata
 
 class Loop
 class Conditional
@@ -16,11 +16,6 @@ class Declaration
 class Assignment
 class Lambda
 class UnitCall
-
-class ModuleReferenceList
-class ModifierList
-class ParameterList
-class ArgumentList
 
 enum ModuleType {
     CLASS
@@ -40,39 +35,40 @@ enum ModifierType {
     ABSTRACT
 }
 
-Module : # packageName
-Module : # filePath
-Module : # fileName
-Module *-- ModuleReferenceList : imports >
+Module : # packageName: String
+Module : # filePath: String
+Module : # fileName: String
+Module : # imports: List<String>
 Module *-- ModuleScope
 
 Scope <|-- ModuleScope
 Scope <|-- Unit
 Scope <|-- Property
-Scope <|-- ExpressionScope
+Scope <|-- BlockScope
 
-ModuleScope : # id
+ModuleScope : # id: String
+ModuleScope : # extends: List<String>
+ModuleScope : # implements: List<String>
+ModuleScope : # members: List<Scope>
+ModuleScope "1" *-- "*" ModifierType : modifiers >
 ModuleScope *-- ModuleType : moduleType >
-ModuleScope *-- ModifierList
-ModuleScope *-- ModuleReferenceList : extends >
-ModuleScope *-- ModuleReferenceList : implements >
-ModuleScope *-- Scope : members >
 
-Unit : # id
-Unit *-- ParameterList
-Unit *-- ModifierList
+Unit : # id: String
+Unit : # parameters: List<Property>
+Unit : # modifiers: List<ModifierType>
+Unit : # body: BlockScope
+Unit : # metadata: Metadata
 
-Unit *-- ExpressionScope
+Property : # id: String
+Property : # modifiers: List<ModifierType>
+Property : # value: Expression
+Property : # getter: Unit
+Property : # setter: Unit
 
-Property : # id
-Property *-- ModifierList
-Property *-- Unit : getter >
-Property *-- Unit : setter >
+BlockScope "1" *-- "*" Expression : expressions >
 
-Expression *-- ExpressionScope
-Expression *-- Metadata
-
-ExpressionScope *-- "many" Expression
+Expression : # nestedScope: BlockScope
+Expression : # metadata: Metadata
 
 Expression <|-- Loop
 Expression <|-- Conditional
@@ -82,25 +78,29 @@ Expression <|-- Declaration
 Expression <|-- Assignment
 Expression <|-- Lambda
 Expression <|-- UnitCall
+Expression <|-- Catch
 
-Loop *-- Expression : evaluations >
+Catch : # exception: Property
 
-Conditional *-- Expression : ifExpr >
-Conditional *-- Expression : elseExpr >
+Loop : # evaluations: List<Expression>
 
-LogicalSequence "2" *-- "many" Expression : operands >
+Conditional : # condition: Expression
+Conditional : # elseExpr: Expression
 
-Lambda *-- ArgumentList : arguments >
+LogicalSequence : # operands: List<Expression>
 
-UnitCall : # reference
-UnitCall *-- ArgumentList : arguments >
+Lambda : # parameters: List<Property>
 
-Declaration "1" *-- "1" Scope : scope >
+UnitCall : # reference: String
+UnitCall : # arguments: List<Expression>
 
-ModuleReferenceList : # List<String> references
-ModifierList : # List<ModifierType> modifiers
-ArgumentList : # List<Expression> arguments
-ParameterList : # List<Property> parameters
+Declaration : # value: Scope
+
+Assignment : # reference: Expression
+
+Unit *-- Metadata
+Property *-- Metadata
+Expression *-- Metadata
 
 Metadata : # startLine
 Metadata : # endLine

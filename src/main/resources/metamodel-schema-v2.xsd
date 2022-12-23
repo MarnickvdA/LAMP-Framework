@@ -7,7 +7,10 @@
     <xs:element name="Module">
         <xs:complexType>
             <xs:sequence>
-                <xs:element minOccurs="0" name="Imports" type="ModuleReferenceList"/>
+                <xs:sequence id="imports" minOccurs="0" maxOccurs="unbounded">
+                    <xs:element name="Import" type="xs:string"/> <!-- e.g. nl.utwente.student.AClass -->
+                </xs:sequence>
+                <xs:element name="Metadata" type="Metadata"/>
                 <xs:element name="ModuleScope" type="ModuleScope"/>
             </xs:sequence>
             <xs:attribute name="packageName" type="xs:string"/>
@@ -30,10 +33,18 @@
         <xs:complexContent>
             <xs:extension base="Scope">
                 <xs:sequence>
-                    <xs:element minOccurs="0" name="Modifiers" type="ModifierList"/>
-                    <xs:element minOccurs="0" name="Extends" type="ModuleReferenceList"/>
-                    <xs:element minOccurs="0" name="Implements" type="ModuleReferenceList"/>
-                    <xs:element minOccurs="0" name="Members" type="Scope"/>
+                    <xs:sequence id="moduleModifiers" minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="Modifier" type="modifierType"/>
+                    </xs:sequence>
+                    <xs:sequence id="extends" minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="Extends" type="xs:string"/> <!-- e.g. nl.utwente.student.AClass -->
+                    </xs:sequence>
+                    <xs:sequence id="implements" minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="Implements" type="xs:string"/> <!-- e.g. nl.utwente.student.AClass -->
+                    </xs:sequence>
+                    <xs:sequence id="members" minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="Member" type="Scope"/>
+                    </xs:sequence>
                 </xs:sequence>
                 <xs:attribute name="moduleType" type="moduleType"/>
                 <xs:attribute name="id" type="xs:string"/>
@@ -45,9 +56,15 @@
         <xs:complexContent>
             <xs:extension base="Scope">
                 <xs:sequence>
-                    <xs:element name="Parameters" type="ParameterList"/>
-                    <xs:element name="Modifiers" type="ModifierList"/>
-                    <xs:element name="Body" type="ExpressionScope"/>
+                    <xs:sequence id="parameters" minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="Parameter" type="Property"/>
+                    </xs:sequence>
+                    <xs:sequence id="unitModifiers" minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="Modifier" type="modifierType"/>
+                    </xs:sequence>
+                    <xs:element minOccurs="0" name="Body" type="BlockScope"/>
+                    <!-- Metadata about the source location of the expression. -->
+                    <xs:element name="Metadata" type="Metadata"/>
                 </xs:sequence>
                 <!-- TODO Include parameters in ID to handle function overloads. -->
                 <xs:attribute name="id" type="xs:string"/>
@@ -55,21 +72,19 @@
         </xs:complexContent>
     </xs:complexType>
 
-    <xs:complexType name="UnitBody">
-        <xs:sequence minOccurs="0" maxOccurs="unbounded">
-            <xs:element name="Expression" type="Expression"/>
-        </xs:sequence>
-    </xs:complexType>
-
     <xs:complexType name="Property">
         <xs:complexContent>
             <xs:extension base="Scope">
                 <xs:sequence>
-                    <xs:element name="Modifiers" type="ModifierList"/>
+                    <xs:sequence id="modifiers" minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="Modifier" type="modifierType"/>
+                    </xs:sequence>
+                    <!-- Metadata about the source location of the expression. -->
+                    <xs:element name="Metadata" type="Metadata"/>
+                    <xs:element minOccurs="0" name="Value" type="Expression"/>
                     <xs:element minOccurs="0" name="Getter" type="Unit"/>
                     <xs:element minOccurs="0" name="Setter" type="Unit"/>
                 </xs:sequence>
-                <!-- TODO add a check if property is defined? -->
                 <xs:attribute name="id" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
@@ -84,14 +99,17 @@
     <xs:complexType name="Expression">
         <xs:sequence>
             <!-- Simple expressions do not have an inner scope -->
-            <xs:element minOccurs="0" name="Scope" type="ExpressionScope"/>
+            <xs:element minOccurs="0" name="NestedScope" type="BlockScope"/>
 
             <!-- Metadata about the source location of the expression. -->
             <xs:element name="Metadata" type="Metadata"/>
         </xs:sequence>
+
+        <!-- Information about the origin of this expression -->
+        <xs:attribute name="context" type="xs:string"/>
     </xs:complexType>
 
-    <xs:complexType name="ExpressionScope">
+    <xs:complexType name="BlockScope">
         <xs:complexContent>
             <xs:extension base="Scope">
                 <!-- Functions as a block of expressions -->
@@ -112,12 +130,23 @@
         </xs:complexContent>
     </xs:complexType>
 
+    <xs:complexType name="Catch">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+                <xs:sequence>
+                    <xs:element name="Exception" type="Property"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+
     <xs:complexType name="Conditional">
         <xs:complexContent>
             <xs:extension base="Expression">
                 <xs:sequence>
-                    <xs:element name="IfExpr" type="Expression"/>
-                    <xs:element name="ElseExpr"
+                    <xs:element name="Condition" type="Expression"/>
+                    <xs:element minOccurs="0" name="ElseExpr"
                                 type="Expression"/> <!-- Elseif will be nested within ElseExpr as another conditional -->
                 </xs:sequence>
             </xs:extension>
@@ -144,6 +173,9 @@
     <xs:complexType name="Declaration">
         <xs:complexContent>
             <xs:extension base="Expression">
+                <xs:sequence>
+                    <xs:element name="Value" type="Scope"/>
+                </xs:sequence>
                 <xs:attribute name="id" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
@@ -153,7 +185,9 @@
     <xs:complexType name="Assignment">
         <xs:complexContent>
             <xs:extension base="Expression">
-                <xs:attribute name="reference" type="xs:string"/>
+                <xs:sequence>
+                    <xs:element name="reference" type="Expression"/>
+                </xs:sequence>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -162,7 +196,9 @@
         <xs:complexContent>
             <xs:extension base="Expression">
                 <xs:sequence>
-                    <xs:element name="Arguments" type="ArgumentList"/>
+                    <xs:sequence minOccurs="0" maxOccurs="unbounded" id="lambdaParams">
+                        <xs:element name="Parameter" type="Property"/>
+                    </xs:sequence>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
@@ -172,41 +208,13 @@
         <xs:complexContent>
             <xs:extension base="Expression">
                 <xs:sequence>
-                    <xs:element name="Arguments" type="ArgumentList"/>
+                    <xs:sequence minOccurs="0" maxOccurs="unbounded" id="unitCallArgs">
+                        <xs:element name="Argument" type="Expression"/>
+                    </xs:sequence>
                 </xs:sequence>
                 <xs:attribute name="reference" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
-    </xs:complexType>
-
-    <!--    -->
-    <!--    -->
-    <!--    -->
-    <!--    -->
-    <!--    -->
-
-    <xs:complexType name="ModuleReferenceList">
-        <xs:sequence minOccurs="0" maxOccurs="unbounded">
-            <xs:element name="ModuleReference" type="xs:string"/> <!-- e.g. nl.utwente.student.AClass -->
-        </xs:sequence>
-    </xs:complexType>
-
-    <xs:complexType name="ParameterList">
-        <xs:sequence minOccurs="0" maxOccurs="unbounded">
-            <xs:element name="Parameter" type="Property"/>
-        </xs:sequence>
-    </xs:complexType>
-
-    <xs:complexType name="ModifierList">
-        <xs:sequence minOccurs="0" maxOccurs="unbounded">
-            <xs:element name="Modifier" type="modifierType"/>
-        </xs:sequence>
-    </xs:complexType>
-
-    <xs:complexType name="ArgumentList">
-        <xs:sequence minOccurs="0" maxOccurs="unbounded">
-            <xs:element name="Argument" type="Expression"/>
-        </xs:sequence>
     </xs:complexType>
 
     <!--    -->

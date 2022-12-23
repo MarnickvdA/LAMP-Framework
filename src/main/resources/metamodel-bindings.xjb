@@ -10,19 +10,31 @@
         <jaxb:schemaBindings>
             <jaxb:package name="nl.utwente.student.metamodel.v2"/>
         </jaxb:schemaBindings>
-        <jaxb:bindings node="//xs:complexType[@name='ModuleReferenceList']//xs:sequence">
-            <jaxb:property name="references"/>
+        <jaxb:bindings node="//xs:sequence[@id='imports']">
+            <jaxb:property name="imports"/>
         </jaxb:bindings>
-        <jaxb:bindings node="//xs:complexType[@name='ParameterList']//xs:sequence">
-            <jaxb:property name="parameters"/>
-        </jaxb:bindings>
-        <jaxb:bindings node="//xs:complexType[@name='ModifierList']//xs:sequence">
+        <jaxb:bindings node="//xs:sequence[@id='moduleModifiers']">
             <jaxb:property name="modifiers"/>
         </jaxb:bindings>
-        <jaxb:bindings node="//xs:complexType[@name='ArgumentList']//xs:sequence">
-            <jaxb:property name="arguments"/>
+        <jaxb:bindings node="//xs:sequence[@id='extends']">
+            <jaxb:property name="extensions"/>
         </jaxb:bindings>
-        <jaxb:bindings node="//xs:complexType[@name='ExpressionScope']//xs:sequence">
+        <jaxb:bindings node="//xs:sequence[@id='implements']">
+            <jaxb:property name="implementations"/>
+        </jaxb:bindings>
+        <jaxb:bindings node="//xs:sequence[@id='members']">
+            <jaxb:property name="members"/>
+        </jaxb:bindings>
+        <jaxb:bindings node="//xs:sequence[@id='parameters']">
+            <jaxb:property name="parameters"/>
+        </jaxb:bindings>
+        <jaxb:bindings node="//xs:sequence[@id='unitModifiers']">
+            <jaxb:property name="modifiers"/>
+        </jaxb:bindings>
+        <jaxb:bindings node="//xs:sequence[@id='modifiers']">
+            <jaxb:property name="modifiers"/>
+        </jaxb:bindings>
+        <jaxb:bindings node="//xs:complexType[@name='BlockScope']//xs:sequence">
             <jaxb:property name="expressions"/>
         </jaxb:bindings>
         <jaxb:bindings node="//xs:complexType[@name='Loop']//xs:sequence">
@@ -30,6 +42,12 @@
         </jaxb:bindings>
         <jaxb:bindings node="//xs:complexType[@name='LogicalSequence']//xs:sequence">
             <jaxb:property name="operands"/>
+        </jaxb:bindings>
+        <jaxb:bindings node="//xs:sequence[@id='lambdaParams']">
+            <jaxb:property name="parameters"/>
+        </jaxb:bindings>
+        <jaxb:bindings node="//xs:sequence[@id='unitCallArgs']">
+            <jaxb:property name="arguments"/>
         </jaxb:bindings>
     </jaxb:bindings>
 

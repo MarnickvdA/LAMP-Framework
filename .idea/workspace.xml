@@ -6,9 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="d630933d-6250-4de4-bc33-fb5f4db8d499" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docs/metamodel-v2-1.plantuml" beforeDir="false" afterPath="$PROJECT_DIR$/docs/metamodel-v2-1.plantuml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/metamodel-v2-1.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/app/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/app/Main.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/parsers/JavaProjectParserV2.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/parsers/JavaProjectParserV2.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformerV2.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformerV2.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/metamodel-bindings.xjb" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/metamodel-bindings.xjb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/metamodel-schema-v2.xsd" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/metamodel-schema-v2.xsd" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -40,9 +43,6 @@
       </MavenGeneralSettings>
     </option>
   </component>
-  <component name="OptimizeOnSaveOptions">
-    <option name="myRunOnSave" value="true" />
-  </component>
   <component name="ProjectId" id="2IDMjJJi0qdmBsuqoxGwcGmix3D" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -51,27 +51,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary&quot;: &quot;JUnit5&quot;,
-    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5&quot;: &quot;&quot;,
-    &quot;last_directory_selection&quot;: &quot;/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/src/test/kotlin/nl/utwente/student/app&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/docs&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
+    "last_directory_selection": "/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/src/test/kotlin/nl/utwente/student/app",
+    "last_opened_file_path": "/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/docs",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "actions.on.save"
   }
-}</component>
+}]]></component>
   <component name="ReadonlyStatusHandler">
     <option name="SHOW_DIALOG" value="false" />
   </component>
@@ -106,7 +106,7 @@
     <configuration name="Run File" type="JetRunConfigurationType">
       <option name="MAIN_CLASS_NAME" value="nl.utwente.student.app.MainKt" />
       <module name="LAMP-Framework" />
-      <option name="PROGRAM_PARAMETERS" value="--path /input/Example.java" />
+      <option name="PROGRAM_PARAMETERS" value="--path /input/AllInOne17.java" />
       <shortenClasspath name="NONE" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -127,6 +127,9 @@
     </list>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="SvnConfiguration">
+    <configuration>$USER_HOME$/.subversion</configuration>
+  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="d630933d-6250-4de4-bc33-fb5f4db8d499" name="Changes" comment="" />
@@ -143,7 +146,8 @@
       <workItem from="1670324337115" duration="25814000" />
       <workItem from="1670422719304" duration="98643000" />
       <workItem from="1670948285692" duration="19767000" />
-      <workItem from="1671440816500" duration="3251000" />
+      <workItem from="1671440816500" duration="6397000" />
+      <workItem from="1671460712272" duration="54783000" />
     </task>
     <servers />
   </component>

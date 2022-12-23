@@ -31,7 +31,7 @@ class JavaProjectParserV2 {
         val javaFile = JavaFile.parse(file)
         val modules = javaFile.extractModulesFromASTv2()
 
-        modules.forEach { module -> writeToXML(module, this.getOutputFile(module)) }
+        modules.forEach { module -> writeToXML(module, this.getOutputLocation(module, "input")) }
     }
 
     private fun executeWithGitHttpUrl(url: String) {
@@ -58,34 +58,26 @@ class JavaProjectParserV2 {
                 val modules = javaFile.extractModulesFromASTv2()
 
                 // Phase 4: Write documents to files
-                modules.parallelStream().forEach { module -> writeToXML(module, this.getProjectOutputFile(module)) }
+                modules.parallelStream().forEach { module ->
+                    writeToXML(
+                        module,
+                        this.getOutputLocation(
+                            module,
+                            module.filePath.split("LAMP-Framework/projects/")[1].split("/")[0]
+                        )
+                    )
+                }
             }
     }
 
 
-    private fun getOutputFile(module: Module): File {
-        val fileName = "${module.packageName}.${module.moduleScope.id}.xml"
+    private fun getOutputLocation(module: Module, projectName: String): File {
+        val fileName = "${module.packageName}.${module.moduleScope?.id}.xml"
 
         val path = get(
             System.getProperty("user.dir"),
             "out",
-            "input",
-        ).toFile()
-
-        // Make folders if they do not exist yet.
-        path.mkdirs()
-
-        return get(path.absolutePath, fileName).toFile()
-    }
-
-    private fun getProjectOutputFile(module: Module): File {
-        val projectName = module.filePath.split("LAMP-Framework/projects/")[1].split("/")[0]
-        val fileName = "${module.packageName}.${module.moduleScope.id}.xml"
-
-        val path = get(
-            System.getProperty("user.dir"),
-            "out",
-            projectName
+            projectName,
         ).toFile()
 
         // Make folders if they do not exist yet.
@@ -95,7 +87,15 @@ class JavaProjectParserV2 {
     }
 
     private fun writeToXML(module: Module, toFile: File) {
-        println("Writing ${module.fileName} to ${toFile.name}.")
+        if (module.moduleScope == null) {
+            System.err.println(
+                "Cannot write module in ${module.fileName} at lines " +
+                        "${module.metadata.startLine} to ${module.metadata.endLine}"
+            )
+            return
+        }
+
+        println("${module.fileName}: Writing module ${module.moduleScope?.id} to ${toFile.name}.")
         try {
             val jaxbMarshaller: Marshaller = JAXBContext.newInstance(Module::class.java.packageName).createMarshaller()
             jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
