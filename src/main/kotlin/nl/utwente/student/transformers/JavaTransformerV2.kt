@@ -206,6 +206,48 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
         return property
     }
 
+    override fun visitConstDeclaration(ctx: JavaParser.ConstDeclarationContext?): List<Property>? {
+        return ctx?.constantDeclarator()?.mapNotNull(this::visitConstantDeclarator)
+    }
+
+    override fun visitConstantDeclarator(ctx: JavaParser.ConstantDeclaratorContext?): Property {
+        return Property().also {
+            it.addMetadata(ctx)
+            it.id = this.visitIdentifier(ctx?.identifier())
+            it.value = this.visitVariableInitializer(ctx?.variableInitializer())
+        }
+    }
+
+    private fun visitInterfaceMethod(ctx: ParserRuleContext?,
+                                     modifierCtx: List<JavaParser.InterfaceMethodModifierContext>?,
+                                     bodyCtx: JavaParser.InterfaceCommonBodyDeclarationContext?): Unit {
+        return Unit().also {
+            it.addMetadata(ctx)
+            modifierCtx?.mapNotNull(this::visitInterfaceMethodModifier)?.let { m -> it.modifiers.addAll(m) }
+            it.addParameters(this.visitFormalParameters(bodyCtx?.formalParameters()))
+            it.id = this.visitIdentifier(bodyCtx?.identifier())
+            it.body = this.visitMethodBody(bodyCtx?.methodBody())
+        }
+    }
+
+    override fun visitInterfaceMethodDeclaration(ctx: JavaParser.InterfaceMethodDeclarationContext?): Unit {
+        return visitInterfaceMethod(ctx, ctx?.interfaceMethodModifier(), ctx?.interfaceCommonBodyDeclaration())
+    }
+
+    override fun visitInterfaceMethodModifier(ctx: JavaParser.InterfaceMethodModifierContext?): ModifierType? {
+        return when {
+            ctx?.PUBLIC() != null -> ModifierType.PUBLIC
+            ctx?.ABSTRACT() != null -> ModifierType.ABSTRACT
+            ctx?.DEFAULT() != null -> ModifierType.DEFAULT
+            ctx?.STATIC() != null -> ModifierType.STATIC
+            else -> null
+        }
+    }
+
+    override fun visitGenericInterfaceMethodDeclaration(ctx: JavaParser.GenericInterfaceMethodDeclarationContext?): Unit {
+        return visitInterfaceMethod(ctx, ctx?.interfaceMethodModifier(), ctx?.interfaceCommonBodyDeclaration())
+    }
+
     override fun visitTypeList(ctx: JavaParser.TypeListContext?): List<String> {
         val list = mutableListOf<String>()
 
@@ -427,24 +469,24 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
         } else null
     }
 
-    override fun visitFormalParameter(ctx: JavaParser.FormalParameterContext?): Property? {
+    private fun visitParameter(ctx: ParserRuleContext?,
+                               idCtx: JavaParser.VariableDeclaratorIdContext?,
+                               modifierCtx: List<JavaParser.VariableModifierContext>?): Property? {
         if (ctx == null) return null
 
         return Property().also {
             it.addMetadata(ctx)
-            it.id = this.visitVariableDeclaratorId(ctx.variableDeclaratorId())
-            this.visitModifiers(ctx.variableModifier())?.let { m -> it.modifiers.addAll(m) }
+            it.id = this.visitVariableDeclaratorId(idCtx)
+            this.visitModifiers(modifierCtx)?.let { m -> it.modifiers.addAll(m) }
         }
     }
 
-    override fun visitLastFormalParameter(ctx: JavaParser.LastFormalParameterContext?): Property? {
-        if (ctx == null) return null
+    override fun visitFormalParameter(ctx: JavaParser.FormalParameterContext?): Property? {
+        return visitParameter(ctx, ctx?.variableDeclaratorId(), ctx?.variableModifier())
+    }
 
-        return Property().also {
-            it.addMetadata(ctx)
-            it.id = this.visitVariableDeclaratorId(ctx.variableDeclaratorId())
-            this.visitModifiers(ctx.variableModifier())?.let { m -> it.modifiers.addAll(m) }
-        }
+    override fun visitLastFormalParameter(ctx: JavaParser.LastFormalParameterContext?): Property? {
+        return visitParameter(ctx, ctx?.variableDeclaratorId(), ctx?.variableModifier())
     }
 
     override fun visitLocalVariableDeclaration(ctx: JavaParser.LocalVariableDeclarationContext?): Expression {

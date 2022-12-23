@@ -242,6 +242,7 @@
             <xs:enumeration value="open"/>
             <xs:enumeration value="sealed"/>
             <xs:enumeration value="abstract"/>
+            <xs:enumeration value="default"/>
         </xs:restriction>
     </xs:simpleType>
 </xs:schema>

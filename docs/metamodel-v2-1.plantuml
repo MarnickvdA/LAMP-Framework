@@ -33,6 +33,7 @@ enum ModifierType {
     OPEN
     SEALED
     ABSTRACT
+    DEFAULT
 }
 
 Module : # packageName: String
