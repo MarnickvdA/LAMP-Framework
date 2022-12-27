@@ -7,11 +7,6 @@
     <list default="true" id="d630933d-6250-4de4-bc33-fb5f4db8d499" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/metamodel-v2-1.plantuml" beforeDir="false" afterPath="$PROJECT_DIR$/docs/metamodel-v2-1.plantuml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/parsers/JavaProjectParserV2.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/parsers/JavaProjectParserV2.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformerV2.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformerV2.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/metamodel-schema-v1.xsd" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/metamodel-schema-v1.xsd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/metamodel-schema-v2.xsd" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/metamodel-schema-v2.xsd" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -148,7 +143,7 @@
       <workItem from="1670948285692" duration="19767000" />
       <workItem from="1671440816500" duration="6397000" />
       <workItem from="1671460712272" duration="56125000" />
-      <workItem from="1671805284325" duration="16979000" />
+      <workItem from="1671805284325" duration="17826000" />
     </task>
     <servers />
   </component>

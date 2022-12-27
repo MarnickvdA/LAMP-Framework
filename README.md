@@ -1,5 +1,9 @@
-# Language-Agnostic Multi-Paradigm Code Quality Assurance Framework
+# LAMP Framework 💡
+### A Language-Agnostic Multi-Paradigm Code Quality Assurance Framework
 This git repository contains the prototype of the LAMP Framework.
+This framework is created as proof for the concepts described in my thesis written to receive my MSc grade in Computer Science from the University of Twente.
+See the paper ["Language-agnostic multi-paradigm code quality assurance framework"](https://ceur-ws.org/Vol-3245/) published in CEUR-WS Vol. 3245 to read about the preliminary research done to design this framework.
+The final version of this framework and thesis is still a work in progress.
 
 ### System requirements
 **System libraries**:
