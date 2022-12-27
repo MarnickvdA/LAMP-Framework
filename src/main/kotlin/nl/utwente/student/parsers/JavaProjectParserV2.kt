@@ -72,7 +72,7 @@ class JavaProjectParserV2 {
 
 
     private fun getOutputLocation(module: Module, projectName: String): File {
-        val fileName = "${module.packageName}.${module.moduleScope?.id}.xml"
+        val fileName = "${module.packageName}.${module.moduleScope?.identifier?.value}.xml"
 
         val path = get(
             System.getProperty("user.dir"),
@@ -95,7 +95,7 @@ class JavaProjectParserV2 {
             return
         }
 
-        println("${module.fileName}: Writing module ${module.moduleScope?.id} to ${toFile.name}.")
+        println("${module.fileName}: Writing module ${module.moduleScope?.identifier?.value} to ${toFile.name}.")
         try {
             val jaxbMarshaller: Marshaller = JAXBContext.newInstance(Module::class.java.packageName).createMarshaller()
             jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)

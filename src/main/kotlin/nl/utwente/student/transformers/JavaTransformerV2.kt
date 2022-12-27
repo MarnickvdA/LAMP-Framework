@@ -116,7 +116,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
 
     override fun visitClassDeclaration(ctx: JavaParser.ClassDeclarationContext?): ModuleScope {
         val moduleScope = ModuleScope()
-        moduleScope.id = this.visitIdentifier(ctx?.identifier())
+        moduleScope.identifier = this.visitIdentifier(ctx?.identifier())
         moduleScope.moduleType = ModuleType.CLASS
 
         ctx?.EXTENDS()?.let {
@@ -135,11 +135,11 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
 
     override fun visitRecordDeclaration(ctx: JavaParser.RecordDeclarationContext?): ModuleScope {
         val moduleScope = ModuleScope()
-        moduleScope.id = this.visitIdentifier(ctx?.identifier())
+        moduleScope.identifier = this.visitIdentifier(ctx?.identifier())
         moduleScope.moduleType = ModuleType.RECORD
 
         val unit = Unit().addMetadata(ctx)
-        unit.id = "constructor"
+        unit.identifier = createIdentifier("constructor", ctx?.identifier())
 
         ctx?.recordHeader()?.recordComponentList()?.recordComponent()
             ?.map { this.visitRecordComponent(it) }
@@ -158,7 +158,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
 
     override fun visitInterfaceDeclaration(ctx: JavaParser.InterfaceDeclarationContext?): ModuleScope {
         val moduleScope = ModuleScope()
-        moduleScope.id = this.visitIdentifier(ctx?.identifier())
+        moduleScope.identifier = this.visitIdentifier(ctx?.identifier())
         moduleScope.moduleType = ModuleType.INTERFACE
 
         ctx?.EXTENDS()?.let {
@@ -173,7 +173,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
 
     override fun visitEnumDeclaration(ctx: JavaParser.EnumDeclarationContext?): ModuleScope {
         val moduleScope = ModuleScope()
-        moduleScope.id = this.visitIdentifier(ctx?.identifier())
+        moduleScope.identifier = this.visitIdentifier(ctx?.identifier())
         moduleScope.moduleType = ModuleType.ENUM
 
         ctx?.enumConstants()?.enumConstant()
@@ -192,7 +192,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
 
     override fun visitEnumConstant(ctx: JavaParser.EnumConstantContext?): Property {
         val enumConstant = Property().addMetadata(ctx)
-        enumConstant.id = this.visitIdentifier(ctx?.identifier())
+        enumConstant.identifier = this.visitIdentifier(ctx?.identifier())
         // TODO(Do something with the optional class body? It extends the outer enum class)
         // TODO(How to handle the expressionList of enum constants? Can an enum even be seen as 1 Property, or multiple?)
 
@@ -201,7 +201,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
 
     override fun visitRecordComponent(ctx: JavaParser.RecordComponentContext?): Property {
         val property = Property().addMetadata(ctx)
-        property.id = this.visitIdentifier(ctx?.identifier())
+        property.identifier = this.visitIdentifier(ctx?.identifier())
 
         return property
     }
@@ -213,19 +213,21 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     override fun visitConstantDeclarator(ctx: JavaParser.ConstantDeclaratorContext?): Property {
         return Property().also {
             it.addMetadata(ctx)
-            it.id = this.visitIdentifier(ctx?.identifier())
+            it.identifier = this.visitIdentifier(ctx?.identifier())
             it.value = this.visitVariableInitializer(ctx?.variableInitializer())
         }
     }
 
-    private fun visitInterfaceMethod(ctx: ParserRuleContext?,
-                                     modifierCtx: List<JavaParser.InterfaceMethodModifierContext>?,
-                                     bodyCtx: JavaParser.InterfaceCommonBodyDeclarationContext?): Unit {
+    private fun visitInterfaceMethod(
+        ctx: ParserRuleContext?,
+        modifierCtx: List<JavaParser.InterfaceMethodModifierContext>?,
+        bodyCtx: JavaParser.InterfaceCommonBodyDeclarationContext?
+    ): Unit {
         return Unit().also {
             it.addMetadata(ctx)
             modifierCtx?.mapNotNull(this::visitInterfaceMethodModifier)?.let { m -> it.modifiers.addAll(m) }
             it.addParameters(this.visitFormalParameters(bodyCtx?.formalParameters()))
-            it.id = this.visitIdentifier(bodyCtx?.identifier())
+            it.identifier = this.visitIdentifier(bodyCtx?.identifier())
             it.body = this.visitMethodBody(bodyCtx?.methodBody())
         }
     }
@@ -275,8 +277,17 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
         return ctx?.text
     }
 
-    override fun visitIdentifier(ctx: JavaParser.IdentifierContext?): String? {
-        return ctx?.text
+    override fun visitIdentifier(ctx: JavaParser.IdentifierContext?): Identifier? {
+        return createIdentifier(ctx?.text, ctx)
+    }
+
+    private fun createIdentifier(text: String?, ctx: ParserRuleContext?): Identifier? {
+        return ctx?.let {
+            Identifier().addMetadata(ctx).also {
+                it.value = text
+                it.context = "java:Identifier"
+            }
+        }
     }
 
     private fun visitClassBodyDeclarations(ctxList: List<JavaParser.ClassBodyDeclarationContext>?): Collection<Scope>? {
@@ -291,18 +302,31 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     }
 
     override fun visitClassBodyDeclaration(ctx: JavaParser.ClassBodyDeclarationContext?): List<Scope>? {
+        val modifiers = this.visitModifiers(ctx?.modifier()) ?: emptyList()
+
         return if (ctx?.block() != null) {
             val initializer = Unit().addMetadata(ctx)
-            initializer.id = "initializer"
+            initializer.identifier = createIdentifier("initializer", ctx)
             ctx.STATIC()?.let { initializer.modifiers.add(ModifierType.STATIC) }
             initializer.body = this.visitBlock(ctx.block())
+            initializer.modifiers.addAll(modifiers)
             listOf(initializer)
         } else if (ctx?.memberDeclaration() != null) {
-            when (val moduleMember = super.visitClassBodyDeclaration(ctx)) {
+            val members = when (val moduleMember = super.visitClassBodyDeclaration(ctx)) {
                 is List<*> -> moduleMember.filterIsInstance<Scope>()
                 is Scope -> listOf(moduleMember)
                 else -> null
             }
+
+            members?.forEach {
+                when (it) {
+                    is ModuleScope -> it.modifiers.addAll(modifiers)
+                    is Unit -> it.modifiers.addAll(modifiers)
+                    is Property -> it.modifiers.addAll(modifiers)
+                }
+            }
+
+            members
         } else {
             null // in case of ';'
         }
@@ -337,7 +361,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
 
     override fun visitMethodDeclaration(ctx: JavaParser.MethodDeclarationContext?): Unit {
         val method = Unit().addMetadata(ctx)
-        method.id = this.visitIdentifier(ctx?.identifier())
+        method.identifier = this.visitIdentifier(ctx?.identifier())
         method.body = this.visitMethodBody(ctx?.methodBody())
         this.visitFormalParameters(ctx?.formalParameters()).let { method.addParameters(it) }
 
@@ -354,7 +378,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
         this.visitReceiverParameter(ctx?.receiverParameter()).let { id ->
             list.add(Property().also { p ->
                 p.addMetadata(ctx?.receiverParameter())
-                p.id = id
+                p.identifier = id
             })
         }
 
@@ -366,14 +390,14 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
         return list
     }
 
-    override fun visitReceiverParameter(ctx: JavaParser.ReceiverParameterContext?): String? {
+    override fun visitReceiverParameter(ctx: JavaParser.ReceiverParameterContext?): Identifier? {
         if (ctx == null) return null
 
         val idList = mutableListOf<String>()
-        ctx.identifier()?.mapNotNull { this.visitIdentifier(it) }?.let { idList.addAll(it) }
+        ctx.identifier()?.mapNotNull { this.visitIdentifier(it) }?.forEach { idList.add(it.value) }
         idList.add("this")
 
-        return idList.joinToString(".")
+        return createIdentifier(idList.joinToString("."), ctx)
     }
 
     override fun visitFormalParameterList(ctx: JavaParser.FormalParameterListContext?): List<Property>? {
@@ -427,7 +451,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
      */
     override fun visitConstructorDeclaration(ctx: JavaParser.ConstructorDeclarationContext?): Unit {
         val constructor = Unit().addMetadata(ctx)
-        constructor.id = "constructor"
+        constructor.identifier = createIdentifier("constructor", ctx?.identifier())
         constructor.body = this.visitBlock(ctx?.block())
 
         this.visitFormalParameters(ctx?.formalParameters()).let { constructor.addParameters(it) }
@@ -453,30 +477,32 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
 
     override fun visitVariableDeclarator(ctx: JavaParser.VariableDeclaratorContext?): Property {
         val property = Property().addMetadata(ctx)
-        property.id = this.visitVariableDeclaratorId(ctx?.variableDeclaratorId())
+        property.identifier = this.visitVariableDeclaratorId(ctx?.variableDeclaratorId())
         property.value = this.visitVariableInitializer(ctx?.variableInitializer())
 
         return property
     }
 
-    override fun visitVariableDeclaratorId(ctx: JavaParser.VariableDeclaratorIdContext?): String? {
+    override fun visitVariableDeclaratorId(ctx: JavaParser.VariableDeclaratorIdContext?): Identifier? {
         return this.visitIdentifier(ctx?.identifier())
     }
 
     override fun visitVariableInitializer(ctx: JavaParser.VariableInitializerContext?): Expression? {
         return if (ctx?.expression() != null) {
             this.visitExpression(ctx.expression())
-        } else null
+        } else null // TODO add array initializer
     }
 
-    private fun visitParameter(ctx: ParserRuleContext?,
-                               idCtx: JavaParser.VariableDeclaratorIdContext?,
-                               modifierCtx: List<JavaParser.VariableModifierContext>?): Property? {
+    private fun visitParameter(
+        ctx: ParserRuleContext?,
+        idCtx: JavaParser.VariableDeclaratorIdContext?,
+        modifierCtx: List<JavaParser.VariableModifierContext>?
+    ): Property? {
         if (ctx == null) return null
 
         return Property().also {
             it.addMetadata(ctx)
-            it.id = this.visitVariableDeclaratorId(idCtx)
+            it.identifier = this.visitVariableDeclaratorId(idCtx)
             this.visitModifiers(modifierCtx)?.let { m -> it.modifiers.addAll(m) }
         }
     }
@@ -489,13 +515,13 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
         return visitParameter(ctx, ctx?.variableDeclaratorId(), ctx?.variableModifier())
     }
 
-    override fun visitLocalVariableDeclaration(ctx: JavaParser.LocalVariableDeclarationContext?): Expression {
+    override fun visitLocalVariableDeclaration(ctx: JavaParser.LocalVariableDeclarationContext?): Expression? {
         val modifiers = this.visitModifiers(ctx?.variableModifier())
 
         return if (ctx?.VAR() != null) {
             val varDeclaration = Property().addMetadata(ctx)
 
-            varDeclaration.id = this.visitIdentifier(ctx.identifier())
+            varDeclaration.identifier = this.visitIdentifier(ctx.identifier())
             varDeclaration.value = this.visitExpression(ctx.expression())
             modifiers?.let { varDeclaration.modifiers.addAll(it) }
 
@@ -505,17 +531,30 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
                 it.value = varDeclaration
             }
         } else {
-            return Expression().addMetadata(ctx).also {
-                it.context = "java:MultiVariableDeclaration"
-                it.addAll(this.visitVariableDeclarators(ctx?.variableDeclarators())?.map {
-                    Declaration().addMetadata(ctx?.variableDeclarators()).also { d -> d.value = it }
-                })
+            val declarations = this.visitVariableDeclarators(ctx?.variableDeclarators())?.mapIndexed { i, p ->
+                Declaration().addMetadata(ctx?.variableDeclarators()?.variableDeclarator(i))
+                    .also { d ->
+                        d.value = p
+                        d.context = "java:VariableDeclaration"
+                    }
+            }
+
+            return if ((declarations?.size ?: 0) > 1) {
+                return Expression().addMetadata(ctx).also {
+                    it.addAll(declarations)
+
+                    it.context = "java:MultiVariableDeclaration"
+                }
+            } else {
+                declarations?.get(0)
             }
         }
     }
 
     override fun visitLocalTypeDeclaration(ctx: JavaParser.LocalTypeDeclarationContext?): Declaration? {
         val module = super.visitLocalTypeDeclaration(ctx) as? ModuleScope
+
+        // TODO Fix local enum declaration, it is broken atm.
 
         return module?.let {
             this.visitModuleModifierList(ctx?.classOrInterfaceModifier())?.let { m -> it.modifiers.addAll(m) }
@@ -530,9 +569,19 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
         if (ctx == null) return null
 
         val expression: Expression? = when {
-            ctx.blockLabel != null -> Expression().also {
-                it.context = "java:BlockStatement"
-                it.nestedScope = visitBlock(ctx.block())
+            ctx.blockLabel != null -> {
+                return visitBlock(ctx.block())?.let {
+                    if (it.expressions?.isEmpty() == true) {
+                        null
+                    } else if (it.expressions?.size == 1) {
+                        it.expressions[0]
+                    } else {
+                        Expression().also { exp ->
+                            exp.context = "java:BlockStatement"
+                            exp.nestedScope = it
+                        }
+                    }
+                }
             }
 
             ctx.ASSERT() != null -> this.visitAssertStatement(ctx)
@@ -614,14 +663,14 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     }
 
     override fun visitForControl(ctx: JavaParser.ForControlContext?): Expression {
-        val forControl = Expression().also { it.context = "java:ForControl" }
+        val forControl = Expression().addMetadata(ctx).also { it.context = "java:ForControl" }
 
         this.visitEnhancedForControl(ctx?.enhancedForControl()).let { forControl.add(it) }
         this.visitForInit(ctx?.forInit())?.let { forControl.add(it) }
         this.visitExpression(ctx?.expression())?.let { forControl.add(it) }
 
         // TODO Document that we flatten the expression list here.
-        this.visitExpressionList(ctx?.expressionList()).let { forControl.addAll(it.nestedScope?.expressions) }
+        this.visitExpressionList(ctx?.expressionList()).let { forControl.addAll(it?.nestedScope?.expressions) }
 
         return forControl
     }
@@ -638,10 +687,9 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
         if (ctx == null) return null
 
         val declaration = Declaration().addMetadata(ctx).also { it.context = "java:EnhancedForControl" }
-        val property = Property()
+        val property = Property().addMetadata(ctx)
         this.visitModifiers(ctx.variableModifier())?.let { property.modifiers.addAll(it) }
-        property.id = this.visitVariableDeclaratorId(ctx.variableDeclaratorId())
-        declaration.id = property.id
+        property.identifier = this.visitVariableDeclaratorId(ctx.variableDeclaratorId())
         declaration.value = property
 
         this.visitExpression(ctx.expression())?.let { e -> declaration.add(e) }
@@ -686,7 +734,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
         val exception = Property().also {
             it.addMetadata(ctx)
             this.visitModifiers(ctx?.variableModifier())?.let { m -> it.modifiers.addAll(m) }
-            it.id = this.visitIdentifier(ctx?.identifier())
+            it.identifier = this.visitIdentifier(ctx?.identifier())
         }
 
         return Catch().also {
@@ -742,17 +790,17 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     }
 
     override fun visitResource(ctx: JavaParser.ResourceContext?): Declaration {
-        val property = Property()
+        val property = Property().addMetadata(ctx)
         this.visitModifiers(ctx?.variableModifier())?.let { property.modifiers.addAll(it) }
 
-        property.id = this.visitVariableDeclaratorId(ctx?.variableDeclaratorId())
+        property.identifier = this.visitVariableDeclaratorId(ctx?.variableDeclaratorId())
             ?: this.visitIdentifier(ctx?.identifier())
         property.value = this.visitExpression(ctx?.expression())
 
         return Declaration().also {
             it.addMetadata(ctx)
+            it.context = "java:TryResourceDeclaration"
             it.value = property
-            it.id = property.id
         }
     }
 
@@ -785,10 +833,9 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
                 .also { it?.context = "java:ConstantSwitchLabel" }
 
             ctx?.enumConstantName != null -> Expression().also { it.context = "java:EnumConstantSwitchLabel" }
-            ctx?.varName != null -> Declaration().also {
+            ctx?.varName != null -> this.visitIdentifier(ctx.varName)?.also {
                 it.addMetadata(ctx)
                 it.context = "java:DeclarationSwitchLabel"
-                it.id = this.visitIdentifier(ctx.varName)
             }
 
             else -> Expression().also { it.context = "java:DefaultSwitchLabel" } // default label
@@ -905,12 +952,14 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
         // TODO(Test extensively. This pattern matching clause could be prone to wrong identification.)
 
         val expression = when {
+            ctx.lambdaExpression() != null -> this.visitLambdaExpression(ctx.lambdaExpression())
+            ctx.switchExpression() != null -> this.visitSwitchExpression(ctx.switchExpression())
             ctx.primary() != null -> this.visitPrimary(ctx.primary())
             ctx.bop != null && ctx.bop.equals(".") -> this.visitCallExpression(ctx)
             ctx.expression().size == 2 && ctx.text.contains("[") -> this.visitArrayAccessExpression(ctx)
             ctx.methodCall() != null -> this.visitMethodCall(ctx.methodCall())
             ctx.creator() != null -> this.visitCreator(ctx.creator())
-            ctx.INSTANCEOF() == null && ctx.typeType() != null -> this.visitExpression(ctx.expression().firstOrNull())
+            ctx.INSTANCEOF() != null && ctx.typeType() != null -> this.visitExpression(ctx.expression().firstOrNull())
             ctx.postfix != null || ctx.prefix != null -> this.visitUnaryExpression(ctx)
             ctx.expression().size == 2
                     && (ctx.bop != null || (ctx.text.contains("<") || ctx.text.contains(">")))
@@ -918,12 +967,10 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
 
             ctx.INSTANCEOF() != null -> this.visitTypeCheck(ctx)
             ctx.expression().size == 3 && ctx.bop.text == "?" -> this.visitConditionalExpression(ctx)
-            ctx.lambdaExpression() != null -> this.visitLambdaExpression(ctx.lambdaExpression())
-            ctx.switchExpression() != null -> this.visitSwitchExpression(ctx.switchExpression())
             ctx.expression()?.size == 1 && ctx.identifier() != null -> this.visitMethodReference(ctx)
             ctx.typeType() != null || ctx.classType() != null -> this.visitMethodReference(ctx)
             else -> Expression()
-        } as? Expression
+        }
 
         return expression?.addMetadata(ctx)?.also {
             it.context = it.context ?: "java:UnknownExpression"
@@ -933,16 +980,17 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     override fun visitPrimary(ctx: JavaParser.PrimaryContext?): Expression? {
         return when {
             ctx == null -> null
+            ctx.identifier() != null -> this.visitIdentifier(ctx.identifier())
             ctx.expression() != null -> this.visitExpression(ctx.expression())
             else -> Expression().also {
-                it.context = "java:Literal" // LITERAL
+                it.context = "java:Literal"
             }
         }
     }
 
     override fun visitLiteral(ctx: JavaParser.LiteralContext?): Expression {
         return Expression().also {
-            it.context = "java:Literal" // LITERAL
+            it.context = "java:Literal"
         }
     }
 
@@ -967,14 +1015,14 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
                 it.context = "java:ConstructorReference"
                 it.reference = this.visitIdentifier(ctx.innerCreator().identifier())
 
-                this.visitExpressionList(ctx.innerCreator().classCreatorRest().arguments().expressionList())
-                    .let { list -> list.nestedScope?.expressions?.let { args -> it.arguments.addAll(args) } }
+                this.visitArguments(ctx.innerCreator().classCreatorRest().arguments())
+                    ?.let { list -> it.arguments.addAll(list) }
 
                 it.nestedScope = this.createAnonymousClass(ctx.innerCreator().classCreatorRest(), it.reference)
             }
 
             ctx.SUPER() != null -> UnitCall().also {
-                it.reference = "super"
+                it.reference = createIdentifier("super", ctx)
                 it.context = "SuperCall"
                 // TODO(Do something with the superSuffix)
             }
@@ -1000,7 +1048,10 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
         return call
     }
 
-    private fun createAnonymousClass(ctx: JavaParser.ClassCreatorRestContext?, moduleReference: String): BlockScope? {
+    private fun createAnonymousClass(
+        ctx: JavaParser.ClassCreatorRestContext?,
+        moduleReference: Identifier?
+    ): BlockScope? {
         var scope: BlockScope? = null
 
         this.visitClassBodyDeclarations(ctx?.classBody()?.classBodyDeclaration())?.let { members ->
@@ -1009,7 +1060,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
             // Anonymous class // TODO(Check how this anonymous class will work out.)
             scope!!.expressions.add(Declaration().addMetadata(ctx).also { d ->
                 d.value = ModuleScope().also { m ->
-                    m.id = moduleReference + ctx?.start.hashCode()
+                    m.identifier = moduleReference.also { it?.value = it?.value + ctx?.start.hashCode() }
                     m.members.addAll(members)
                 }
             })
@@ -1023,13 +1074,13 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
         call.context = "java:MethodCall"
         call.reference = when {
             ctx?.identifier() != null -> this.visitIdentifier(ctx.identifier())
-            ctx?.THIS() != null -> "this"
-            ctx?.SUPER() != null -> "super"
+            ctx?.THIS() != null -> createIdentifier("this", ctx)
+            ctx?.SUPER() != null -> createIdentifier("super", ctx)
             else -> null
         }
 
         this.visitExpressionList(ctx?.expressionList()).let {
-            it.nestedScope?.expressions?.let { args ->
+            it?.nestedScope?.expressions?.let { args ->
                 call.arguments.addAll(args)
             }
         }
@@ -1046,20 +1097,30 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
         }
     }
 
-    override fun visitCreator(ctx: JavaParser.CreatorContext?): BlockScope? {
+    override fun visitCreator(ctx: JavaParser.CreatorContext?): UnitCall {
         // TODO Implement creator element that can handle initializing of arrays of classes
         val ref = this.visitCreatedName(ctx?.createdName())
 
+        val call = UnitCall().addMetadata(ctx)
+
         return when {
             ctx?.nonWildcardTypeArguments() != null || ctx?.classCreatorRest() != null
-            -> createAnonymousClass(ctx.classCreatorRest(), ref ?: "Unknown")
+            -> call.also {
+                it.context = "java:ClassCreator"
+                it.reference = ref
+                this.visitArguments(ctx.classCreatorRest().arguments())?.let { args -> it.arguments.addAll(args) }
+                it.nestedScope = createAnonymousClass(ctx.classCreatorRest(), ref)
+            }
 
-            else -> BlockScope() // TODO handle array creator
+            else -> call.also { it.context = "java:ArrayCreator" } // TODO handle array creator
         }
     }
 
-    override fun visitCreatedName(ctx: JavaParser.CreatedNameContext?): String? {
-        return ctx?.identifier()?.map { this.visitIdentifier(it) }?.joinToString(".")
+    override fun visitCreatedName(ctx: JavaParser.CreatedNameContext?): Identifier? {
+        return createIdentifier(
+            ctx?.identifier()?.mapNotNull { this.visitIdentifier(it)?.value }?.joinToString("."),
+            ctx
+        )
     }
 
     private fun visitTypeCheck(ctx: JavaParser.ExpressionContext): Expression {
@@ -1078,8 +1139,8 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
             }
         } else {
             // We ignore + - in pre and post.
-            Expression().also { it.context = "java:UnaryExpression" }
-        }
+            Expression()
+        }.also { it.context = "java:UnaryExpression" }
     }
 
     private fun visitBinaryExpression(ctx: JavaParser.ExpressionContext): Expression? {
@@ -1120,7 +1181,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     }
 
     override fun visitLambdaExpression(ctx: JavaParser.LambdaExpressionContext?): Lambda {
-        val lambda = Lambda().addMetadata(ctx)
+        val lambda = Lambda().addMetadata(ctx).also { it.context = "java:LambdaExpression" }
         this.visitLambdaParameters(ctx?.lambdaParameters()).let { lambda.addParameters(it) }
         this.visitLambdaBody(ctx?.lambdaBody()).let { lambda.add(it) }
 
@@ -1132,7 +1193,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
 
         ctx?.identifier()?.mapNotNull { this.visitIdentifier(it) }?.forEachIndexed { i, id ->
             params.add(Property().also { p ->
-                p.id = id
+                p.identifier = id
                 p.addMetadata(ctx.identifier(i))
             })
         }
@@ -1156,7 +1217,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     override fun visitLambdaLVTIParameter(ctx: JavaParser.LambdaLVTIParameterContext?): Property {
         return Property().also {
             it.addMetadata(ctx)
-            it.id = this.visitIdentifier(ctx?.identifier())
+            it.identifier = this.visitIdentifier(ctx?.identifier())
             (this.visitModifiers(ctx?.variableModifier()))?.let { m -> it.modifiers.addAll(m) }
         }
     }
@@ -1176,26 +1237,34 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     private fun visitMethodReference(ctx: JavaParser.ExpressionContext): Expression {
         // TODO Implement method references: expression::, typeType::, classType::
         return Lambda().also {
+            it.context = "java:LambdaExpression"
             it.addMetadata(ctx)
-            it.add(UnitCall().also { uc ->
-                uc.reference = ctx.text // TODO How to handle the UnitCall reference
+            it.add(UnitCall().addMetadata(ctx).also { uc ->
+                uc.reference = createIdentifier(ctx.text, ctx) // TODO How to handle the UnitCall reference
             })
         }
     }
 
-    override fun visitExpressionList(ctx: JavaParser.ExpressionListContext?): Expression {
+    override fun visitExpressionList(ctx: JavaParser.ExpressionListContext?): Expression? {
+        if (ctx == null) {
+            return null
+        }
+
         val expr = Expression().also {
             it.addMetadata(ctx)
             it.context = "java:ExpressionList"
         }
 
-        ctx?.expression()
+        ctx.expression()
             ?.mapNotNull { this.visitExpression(it) }
             ?.let { expr.addAll(it) }
 
         return expr
     }
 
+    override fun visitArguments(ctx: JavaParser.ArgumentsContext?): List<Expression>? {
+        return this.visitExpressionList(ctx?.expressionList())?.nestedScope?.expressions
+    }
 
     private fun Unit.addMetadata(ctx: ParserRuleContext?): Unit {
         return if (ctx != null) this.also { metadata = getSourceMetadata(ctx) } else this
@@ -1225,7 +1294,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     private fun Unit.addParameters(properties: List<Property?>?) {
         properties?.filterNotNull()?.let {
             if (it.isNotEmpty()) {
-                this.parameters.addAll(it.filter { p -> p.id != null })
+                this.parameters.addAll(it.filter { p -> p.identifier != null })
             }
         }
     }
@@ -1233,7 +1302,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     private fun Lambda.addParameters(properties: List<Property?>?) {
         properties?.filterNotNull()?.let {
             if (it.isNotEmpty()) {
-                this.parameters.addAll(it.filter { p -> p.id != null })
+                this.parameters.addAll(it.filter { p -> p.identifier != null })
             }
         }
     }

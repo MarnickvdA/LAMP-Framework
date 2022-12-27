@@ -285,7 +285,6 @@
 
     <xs:complexType name="VariableDeclarator">
         <xs:all minOccurs="0">
-            <!-- TODO VariableInitializer can also be array init. -->
             <xs:element name="VariableInitializer" type="Expression"/>
         </xs:all>
         <xs:attribute type="xs:string" name="identifier"/>
@@ -556,7 +555,6 @@
     <xs:complexType name="UnaryExpression">
         <xs:complexContent>
             <xs:extension base="Expression">
-                <!--        TODO: Doing nothing yet with pre and post unary operators. Because might not even be important? Needs a check -->
                 <xs:sequence>
                     <xs:element name="Expression" type="Expression"/>
                 </xs:sequence>

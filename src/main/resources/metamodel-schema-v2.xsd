@@ -7,10 +7,10 @@
     <xs:element name="Module">
         <xs:complexType>
             <xs:sequence>
+                <xs:element name="Metadata" type="Metadata"/>
                 <xs:sequence id="imports" minOccurs="0" maxOccurs="unbounded">
                     <xs:element name="Import" type="xs:string"/> <!-- e.g. nl.utwente.student.AClass -->
                 </xs:sequence>
-                <xs:element name="Metadata" type="Metadata"/>
                 <xs:element name="ModuleScope" type="ModuleScope"/>
             </xs:sequence>
             <xs:attribute name="packageName" type="xs:string"/>
@@ -33,6 +33,7 @@
         <xs:complexContent>
             <xs:extension base="Scope">
                 <xs:sequence>
+                    <xs:element name="Identifier" type="Identifier"/>
                     <xs:sequence id="moduleModifiers" minOccurs="0" maxOccurs="unbounded">
                         <xs:element name="Modifier" type="modifierType"/>
                     </xs:sequence>
@@ -47,7 +48,6 @@
                     </xs:sequence>
                 </xs:sequence>
                 <xs:attribute name="moduleType" type="moduleType"/>
-                <xs:attribute name="id" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -56,18 +56,16 @@
         <xs:complexContent>
             <xs:extension base="Scope">
                 <xs:sequence>
-                    <xs:sequence id="parameters" minOccurs="0" maxOccurs="unbounded">
-                        <xs:element name="Parameter" type="Property"/>
-                    </xs:sequence>
+                    <xs:element name="Metadata" type="Metadata"/>
+                    <xs:element name="Identifier" type="Identifier"/>
                     <xs:sequence id="unitModifiers" minOccurs="0" maxOccurs="unbounded">
                         <xs:element name="Modifier" type="modifierType"/>
                     </xs:sequence>
+                    <xs:sequence id="parameters" minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="Parameter" type="Property"/>
+                    </xs:sequence>
                     <xs:element minOccurs="0" name="Body" type="BlockScope"/>
-                    <!-- Metadata about the source location of the expression. -->
-                    <xs:element name="Metadata" type="Metadata"/>
                 </xs:sequence>
-                <!-- TODO Include parameters in ID to handle function overloads. -->
-                <xs:attribute name="id" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -76,16 +74,15 @@
         <xs:complexContent>
             <xs:extension base="Scope">
                 <xs:sequence>
+                    <xs:element name="Metadata" type="Metadata"/>
+                    <xs:element name="Identifier" type="Identifier"/>
                     <xs:sequence id="modifiers" minOccurs="0" maxOccurs="unbounded">
                         <xs:element name="Modifier" type="modifierType"/>
                     </xs:sequence>
-                    <!-- Metadata about the source location of the expression. -->
-                    <xs:element name="Metadata" type="Metadata"/>
                     <xs:element minOccurs="0" name="Value" type="Expression"/>
                     <xs:element minOccurs="0" name="Getter" type="Unit"/>
                     <xs:element minOccurs="0" name="Setter" type="Unit"/>
                 </xs:sequence>
-                <xs:attribute name="id" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -98,11 +95,11 @@
 
     <xs:complexType name="Expression">
         <xs:sequence>
-            <!-- Simple expressions do not have an inner scope -->
-            <xs:element minOccurs="0" name="NestedScope" type="BlockScope"/>
-
             <!-- Metadata about the source location of the expression. -->
             <xs:element name="Metadata" type="Metadata"/>
+
+            <!-- Simple expressions do not have an inner scope -->
+            <xs:element minOccurs="0" name="NestedScope" type="BlockScope"/>
         </xs:sequence>
 
         <!-- Information about the origin of this expression -->
@@ -176,7 +173,6 @@
                 <xs:sequence>
                     <xs:element name="Value" type="Scope"/>
                 </xs:sequence>
-                <xs:attribute name="id" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -186,7 +182,7 @@
         <xs:complexContent>
             <xs:extension base="Expression">
                 <xs:sequence>
-                    <xs:element name="reference" type="Expression"/>
+                    <xs:element name="Reference" type="Expression"/>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
@@ -211,8 +207,16 @@
                     <xs:sequence minOccurs="0" maxOccurs="unbounded" id="unitCallArgs">
                         <xs:element name="Argument" type="Expression"/>
                     </xs:sequence>
+                    <xs:element name="Reference" type="Identifier"/>
                 </xs:sequence>
-                <xs:attribute name="reference" type="xs:string"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Identifier">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+                <xs:attribute name="value" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>

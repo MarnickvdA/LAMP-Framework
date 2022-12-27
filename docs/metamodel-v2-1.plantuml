@@ -6,7 +6,6 @@ class Unit
 class Property
 class Expression
 class BlockScope
-class Metadata
 
 class Loop
 class Conditional
@@ -41,27 +40,26 @@ Module : # filePath: String
 Module : # fileName: String
 Module : # imports: List<String>
 Module *-- ModuleScope
-Module *-- Metadata
 
 Scope <|-- ModuleScope
 Scope <|-- Unit
 Scope <|-- Property
 Scope <|-- BlockScope
 
-ModuleScope : # id: String
+ModuleScope : # identifier: Identifier
 ModuleScope : # extends: List<String>
 ModuleScope : # implements: List<String>
 ModuleScope : # members: List<Scope>
 ModuleScope "1" *-- "*" ModifierType : modifiers >
 ModuleScope *-- ModuleType : moduleType >
 
-Unit : # id: String
+Unit : # identifier: Identifier
 Unit : # parameters: List<Property>
 Unit : # modifiers: List<ModifierType>
 Unit : # body: BlockScope
 Unit : # metadata: Metadata
 
-Property : # id: String
+Property : # identifier: Identifier
 Property : # modifiers: List<ModifierType>
 Property : # value: Expression
 Property : # getter: Unit
@@ -81,6 +79,9 @@ Expression <|-- Assignment
 Expression <|-- Lambda
 Expression <|-- UnitCall
 Expression <|-- Catch
+Expression <|-- Identifier
+
+Identifier : # value: String
 
 Catch : # exception: Property
 
@@ -93,20 +94,11 @@ LogicalSequence : # operands: List<Expression>
 
 Lambda : # parameters: List<Property>
 
-UnitCall : # reference: String
+UnitCall : # reference: Expression
 UnitCall : # arguments: List<Expression>
 
 Declaration : # value: Scope
 
 Assignment : # reference: Expression
-
-Unit *-- Metadata
-Property *-- Metadata
-Expression *-- Metadata
-
-Metadata : # startLine
-Metadata : # endLine
-Metadata : # startOffset
-Metadata : # endOffset
 
 @enduml

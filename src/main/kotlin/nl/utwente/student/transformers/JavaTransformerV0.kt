@@ -122,7 +122,6 @@ class JavaTransformerV0(val file: File): JavaParserBaseVisitor<List<Node?>?>() {
     }
 
     override fun visitClassDeclaration(ctx: JavaParser.ClassDeclarationContext?): List<Node?>? {
-        // TODO(Handle Inner Classes, creating new module header for them etc.)
         val moduleHeader = currentDoc.getElementsByTagName("ModuleHeader").item(0) as Element
         moduleName = ctx?.identifier()?.text.toString()
         moduleHeader.setAttribute("identifier", moduleName)
@@ -336,7 +335,7 @@ class JavaTransformerV0(val file: File): JavaParserBaseVisitor<List<Node?>?>() {
         field.setAttribute("name", identifier.wholeText)
 
         val body = currentDoc.createElement("Body")
-//        body.appendChild(this.visitVariableInitializer(ctx?.variableInitializer())) TODO implement
+//        body.appendChild(this.visitVariableInitializer(ctx?.variableInitializer()))
 
         return field.returnValue()
     }
@@ -346,7 +345,7 @@ class JavaTransformerV0(val file: File): JavaParserBaseVisitor<List<Node?>?>() {
     }
 
     override fun visitArrayInitializer(ctx: JavaParser.ArrayInitializerContext?): List<Node?>? {
-        return null // TODO implement array initializer
+        return null
     }
 
     override fun visitClassOrInterfaceType(ctx: JavaParser.ClassOrInterfaceTypeContext?): List<Node?>? {

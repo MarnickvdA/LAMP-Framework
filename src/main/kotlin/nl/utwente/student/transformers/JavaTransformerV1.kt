@@ -69,7 +69,6 @@ class JavaTransformerV1(private val javaFile: JavaFile) : JavaParserBaseVisitor<
             val varName = (it as String).split(".").last()
 
             if (varName == "*") {
-                // TODO: Be able to resolve dependencies.
                 imports[it] = it
             } else {
                 imports[varName] = it
@@ -952,15 +951,13 @@ class JavaTransformerV1(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     override fun visitExpression(ctx: JavaParser.ExpressionContext?): Any? {
         if (ctx == null) return null
 
-        // TODO Test extensively. This pattern matching clause could be prone to wrong identification.
-
         val expression = when {
             ctx.primary() != null -> this.visitPrimary(ctx.primary())
             ctx.bop != null && ctx.bop.equals(".") -> this.visitCallExpression(ctx)
             ctx.expression().size == 2 && ctx.text.contains("[") -> this.visitArrayAccessExpression(ctx)
             ctx.methodCall() != null -> this.visitMethodCall(ctx.methodCall())
             ctx.creator() != null -> this.visitCreator(ctx.creator())
-            // TODO Add: '(' annotation* typeType ('&' typeType)* ')' expression
+            // Add: '(' annotation* typeType ('&' typeType)* ')' expression
             ctx.postfix != null || ctx.prefix != null -> this.visitUnaryExpression(ctx)
             ctx.expression().size == 2
                     && (ctx.bop != null || (ctx.text.contains("<") || ctx.text.contains(">")))
@@ -993,7 +990,7 @@ class JavaTransformerV1(private val javaFile: JavaFile) : JavaParserBaseVisitor<
             ctx.literal() != null -> this.visitLiteral(ctx.literal())
             ctx.identifier() != null -> createLiteral(this.visitIdentifier(ctx.identifier()) as String)
             ctx.typeTypeOrVoid() != null -> createLiteral(this.visitTypeTypeOrVoid(ctx.typeTypeOrVoid()) as String + ".class")
-            // TODO Add: nonWildcardTypeArguments (explicitGenericInvocationSuffix | THIS arguments)
+            // Add: nonWildcardTypeArguments (explicitGenericInvocationSuffix | THIS arguments)
             else -> this.createUnsupportedExpression(ctx)
         }
     }
@@ -1003,7 +1000,7 @@ class JavaTransformerV1(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     }
 
     private fun visitCallExpression(ctx: JavaParser.ExpressionContext): Expression {
-        // TODO Add: expression chain / expression group
+        // Add: expression chain / expression group
         return createUnsupportedExpression(ctx)
     }
 
@@ -1078,7 +1075,7 @@ class JavaTransformerV1(private val javaFile: JavaFile) : JavaParserBaseVisitor<
             ?.forEach {
                 val param = Parameter()
                 param.identifier = it
-                param.type = "" // TODO need a type?
+                param.type = "" // need a type?
             }
 
         (this.visitFormalParameterList(ctx?.formalParameterList()) as ParameterList?)
@@ -1124,7 +1121,7 @@ class JavaTransformerV1(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     }
 
     private fun visitMethodReference(ctx: JavaParser.ExpressionContext): Expression {
-        // TODO Implement method references: expression::, typeType::, classType::
+        // Implement method references: expression::, typeType::, classType::
         return createUnsupportedExpression(ctx)
     }
 
@@ -1156,7 +1153,7 @@ class JavaTransformerV1(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     }
 
     override fun visitCreator(ctx: JavaParser.CreatorContext?): Any {
-        // TODO Implement creator element that can handle initializing of arrays of classes
+        // Implement creator element that can handle initializing of arrays of classes
         return createUnsupportedExpression(ctx)
     }
 

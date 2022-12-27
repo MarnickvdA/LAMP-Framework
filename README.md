@@ -23,7 +23,7 @@ During the development of our metamodel, we went through multiple iterations, wh
 Additionally, the `metamodel-bindings.xjb` file is used to define global bindings to the schema, such as the package name that will be defined for every generated class.
 
 ### Metamodel Class Diagram
-![Metamodel Class Diagram](./docs/metamodel-v2-3.png)
+![Metamodel Class Diagram](./docs/metamodel-v2-4.png)
 
 ### Code Generation (JAXB)
 We use [JAXB 3.0](https://jakarta.ee/specifications/xml-binding/3.0/jakarta-xml-binding-spec-3.0.html) to generate POJOs conforming to the XSD schema.
@@ -50,3 +50,6 @@ antlr -o target/generated-sources/antlr4 -lib src/main/resources/grammars/java -
 (3) For every:  Metamodel XML document      =(using)=>  JAXB Unmarshalling   =(outputs)=>    Module Metamodel instance
 (4) For every:  Module Metamodel instance   =(using)=>  JAXB Visitor         =(outputs)=>    Metrics
 ```
+
+### Running for Java Projects
+See Example Project [here](https://github.com/MarnickvdA/LAMP-Java17.git).
