@@ -1,7 +1,7 @@
 # LAMP Framework 💡
 ### A Language-Agnostic Multi-Paradigm Code Quality Assurance Framework
 This git repository contains the prototype of the LAMP Framework.
-This framework is created as proof for the concepts described in my thesis written to receive my MSc grade in Computer Science from the University of Twente.
+This framework is created as proof for the concepts described in my thesis written to receive my MSc title in Computer Science from the University of Twente.
 See the paper ["Language-agnostic multi-paradigm code quality assurance framework"](https://ceur-ws.org/Vol-3245/) published in CEUR-WS Vol. 3245 to read about the preliminary research done to design this framework.
 The final version of this framework and thesis is still a work in progress.
 
@@ -27,7 +27,7 @@ During the development of our metamodel, we went through multiple iterations, wh
 Additionally, the `metamodel-bindings.xjb` file is used to define global bindings to the schema, such as the package name that will be defined for every generated class.
 
 ### Metamodel Class Diagram
-![Metamodel Class Diagram](./docs/metamodel-v2-4.png)
+![Metamodel Class Diagram](./docs/metamodel-v2-5.png)
 
 ### Code Generation (JAXB)
 We use [JAXB 3.0](https://jakarta.ee/specifications/xml-binding/3.0/jakarta-xml-binding-spec-3.0.html) to generate POJOs conforming to the XSD schema.

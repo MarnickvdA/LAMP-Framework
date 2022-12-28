@@ -29,7 +29,7 @@ class JavaProjectParserV2 {
 
         val file = get(System.getProperty("user.dir"), path).toFile()
         val javaFile = JavaFile.parse(file)
-        val modules = javaFile.extractModulesFromASTv2()
+        val modules = javaFile.extractModulesFromAST()
 
         modules.forEach { module -> writeToXML(module, this.getOutputLocation(module, "input")) }
     }
@@ -55,7 +55,7 @@ class JavaProjectParserV2 {
             .forEach {
                 val javaFile = JavaFile.parse(it)
 
-                val modules = javaFile.extractModulesFromASTv2()
+                val modules = javaFile.extractModulesFromAST()
 
                 // Phase 4: Write documents to files
                 modules.parallelStream().forEach { module ->

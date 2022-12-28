@@ -5,8 +5,45 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d630933d-6250-4de4-bc33-fb5f4db8d499" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/app/MetricRunner.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CognitiveComplexity.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CognitivelyWeightedMethodPerClass.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CouplingBetweenComponents.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CouplingBetweenObjectClasses.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CyclomaticComplexity.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/DepthOfInheritanceTree.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/LackOfCohesionInMethods.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/Metric.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/MetricException.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/NumberOfChildren.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/ResponseForAClass.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/WeightedMethodPerClass.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/smells/ComplexSwitchStatement.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/smells/DataClass.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/smells/LackOfListComprehension.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/smells/LargeLambda.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/smells/LazySideEffect.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/smells/MessageChain.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/smells/MutatingLambdaFunction.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/parsers/MetamodelProjectParser.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/metamodel/metamodel-bindings.xjb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/resources/java/CognitiveComplexityExamples.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/metamodel-v2-1.plantuml" beforeDir="false" afterPath="$PROJECT_DIR$/docs/metamodel-v2-1.plantuml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/app/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/app/Main.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/model/JavaFile.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/model/JavaFile.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/parsers/JavaProjectParserV1.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/parsers/JavaProjectParserV1.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/parsers/JavaProjectParserV2.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/parsers/JavaProjectParserV2.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformerV0.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformerV0.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformerV1.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformerV1.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformerV2.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformerV2.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/grammars/java/JavaLexer.g4" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/java/JavaLexer.g4" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/grammars/java/JavaParser.g4" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/java/JavaParser.g4" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/metamodel-bindings.xjb" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/archive/metamodel-bindings.xjb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/metamodel-schema-v1.xsd" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/archive/metamodel-schema-v1.xsd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/metamodel-schema-v2.xsd" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/metamodel/metamodel-schema-v2.xsd" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,9 +54,9 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="JUnit5 Test Class" />
-        <option value="Kotlin Interface" />
         <option value="Kotlin Data Class" />
         <option value="Class" />
+        <option value="Kotlin Interface" />
         <option value="Kotlin Class" />
       </list>
     </option>
@@ -54,7 +91,7 @@
     "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
     "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
     "last_directory_selection": "/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/src/test/kotlin/nl/utwente/student/app",
-    "last_opened_file_path": "/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/input",
+    "last_opened_file_path": "/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/src/test/resources/java",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -63,6 +100,7 @@
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
+    "run.code.analysis.last.selected.profile": "pProject Default",
     "settings.editor.selected.configurable": "actions.on.save"
   }
 }]]></component>
@@ -71,6 +109,8 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/test/resources/java" />
+      <recent name="$PROJECT_DIR$/src/main/resources/archive" />
       <recent name="$PROJECT_DIR$/input" />
       <recent name="$PROJECT_DIR$/docs" />
     </key>
@@ -78,13 +118,14 @@
       <recent name="" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/input" />
+      <recent name="$PROJECT_DIR$/src/main/resources/metamodel" />
+      <recent name="$PROJECT_DIR$/src/main/resources/java" />
       <recent name="$PROJECT_DIR$/src/main/resources" />
       <recent name="$PROJECT_DIR$/src/main/resources/v2" />
-      <recent name="$PROJECT_DIR$/src/main/resources/v1" />
-      <recent name="$PROJECT_DIR$" />
-      <recent name="$PROJECT_DIR$/src/main/resources/grammars/java" />
     </key>
     <key name="MoveKotlinTopLevelDeclarationsDialog.RECENTS_KEY">
+      <recent name="nl.utwente.student.metrics.smells" />
       <recent name="nl.utwente.student.model" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
@@ -97,11 +138,11 @@
       <recent name="nl.utwente.student.parsers" />
     </key>
   </component>
-  <component name="RunManager" selected="Kotlin.Run Project">
+  <component name="RunManager" selected="Kotlin.Run File">
     <configuration name="Run File" type="JetRunConfigurationType">
       <option name="MAIN_CLASS_NAME" value="nl.utwente.student.app.MainKt" />
       <module name="LAMP-Framework" />
-      <option name="PROGRAM_PARAMETERS" value="--path /input/AssignmentExamples.java" />
+      <option name="PROGRAM_PARAMETERS" value="--path /input/CognitiveComplexityExamples.java" />
       <shortenClasspath name="NONE" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -143,7 +184,7 @@
       <workItem from="1670948285692" duration="19767000" />
       <workItem from="1671440816500" duration="6397000" />
       <workItem from="1671460712272" duration="56125000" />
-      <workItem from="1671805284325" duration="17826000" />
+      <workItem from="1671805284325" duration="41278000" />
     </task>
     <servers />
   </component>
@@ -169,17 +210,6 @@
         </entry>
       </map>
     </option>
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformerV2.kt</url>
-          <line>953</line>
-          <option name="timeStamp" value="7" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
   <component name="XPathView.XPathProjectComponent">
     <history />

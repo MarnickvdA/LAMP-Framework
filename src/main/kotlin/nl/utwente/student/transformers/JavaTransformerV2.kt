@@ -577,6 +577,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
                         it.expressions[0]
                     } else {
                         Expression().also { exp ->
+                            exp.addMetadata(ctx.block())
                             exp.context = "java:BlockStatement"
                             exp.nestedScope = it
                         }
@@ -627,7 +628,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     }
 
     private fun visitIfStatement(ctx: JavaParser.StatementContext): Conditional {
-        val conditional = Conditional().addMetadata(ctx)
+        val conditional = Conditional().addMetadata(ctx).also { it.context = "java:IfStatement" }
 
         conditional.metadata = getSourceMetadata(ctx)
 
@@ -635,7 +636,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
         ifExpr?.context = "java:IfStatement"
         ifExpr?.add(this.visitStatement(ctx.statement().first()))
 
-        conditional.condition = ifExpr
+        conditional.ifExpr = ifExpr
 
         if (ctx.ELSE() != null) {
             conditional.elseExpr = Expression().also {
@@ -643,6 +644,17 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
                 it.context = "java:ElseStatement"
                 it.add(this.visitStatement(ctx.statement().last()))
             }
+        }
+
+        // TODO Check if this chaining will work.
+        val elseIf = conditional.elseExpr?.nestedScope?.expressions?.first() as? Conditional
+        if (elseIf != null) {
+            conditional.elseIfExpr.add(elseIf.ifExpr.also {
+                it.context = "java:IfElseStatement"
+            })
+            conditional.elseIfExpr.addAll(elseIf.elseIfExpr.map { it.also { e -> e.context = "java:IfElseStatement" } })
+            elseIf.elseIfExpr.removeAll(elseIf.elseIfExpr)
+            conditional.elseExpr = elseIf.elseExpr
         }
 
         return conditional
@@ -653,7 +665,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     }
 
     private fun visitForStatement(ctx: JavaParser.StatementContext): Loop {
-        val forLoop = Loop().addMetadata(ctx)
+        val forLoop = Loop().addMetadata(ctx).also { it.context = "java:ForStatement" }
 
         this.visitForControl(ctx.forControl()).let { forLoop.evaluations.add(it) }
 
@@ -739,6 +751,7 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
 
         return Catch().also {
             it.addMetadata(ctx)
+            it.context = "java:CatchClause"
             it.exception = exception
             it.nestedScope = this.visitBlock(ctx?.block())
 
@@ -805,8 +818,8 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     }
 
     private fun visitSwitchStatement(ctx: JavaParser.StatementContext): Conditional {
-        val switch = Conditional().addMetadata(ctx)
-        switch.condition = this.visitParExpression(ctx.parExpression())?.also { it.context = "java:SwitchSubject" }
+        val switch = Conditional().addMetadata(ctx).also { it.context = "java:SwitchStatement" }
+        switch.ifExpr = this.visitParExpression(ctx.parExpression())?.also { it.context = "java:SwitchSubject" }
 
         ctx.switchBlockStatementGroup()
             .map { this.visitSwitchBlockStatementGroup(it) }
@@ -843,8 +856,8 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     }
 
     override fun visitSwitchExpression(ctx: JavaParser.SwitchExpressionContext?): Conditional {
-        val expression = Conditional().addMetadata(ctx)
-        expression.condition = this.visitParExpression(ctx?.parExpression())
+        val expression = Conditional().addMetadata(ctx).also { it.context = "java:SwitchExpression" }
+        expression.ifExpr = this.visitParExpression(ctx?.parExpression())
         ctx?.switchLabeledRule()
             ?.map { this.visitSwitchLabeledRule(it) }
             ?.forEach { expression.add(it) }
@@ -869,12 +882,15 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
 
         // Guarded pattern with parenthesis
         if (ctx?.guardedPattern() != null && ctx.expression() == null) {
-            pattern = this.visitGuardedPattern(ctx.guardedPattern())
+            return this.visitGuardedPattern(ctx.guardedPattern())
         } else if (ctx?.typeType() != null) {
             // Guarded pattern with a type check and a logical sequence of expressions
             // TODO How to declare the variableModifier* typeType identifier?
             if (ctx.expression()?.isNotEmpty() == true) {
-                val seq = LogicalSequence().addMetadata(ctx)
+                val seq = LogicalSequence().also {
+                    it.addMetadata(ctx)
+                    it.context = "java:LogicalAndSequence"
+                }
                 seq.operands.add(Expression().also {
                     it.context = "java:TypePattern" // TODO create Type Pattern
                 })
@@ -886,8 +902,20 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
                 return seq
             }
         } else {
-            pattern = LogicalSequence().addMetadata(ctx)
-            pattern.operands.add(this.visitGuardedPattern(ctx?.guardedPattern()))
+            pattern = LogicalSequence().also {
+                it.addMetadata(ctx)
+                it.context = "java:LogicalAndSequence"
+            }
+
+            val guardedPattern = this.visitGuardedPattern(ctx?.guardedPattern())
+
+            // Flatten LogicalSequence
+            if (guardedPattern is LogicalSequence) {
+                pattern.operands.addAll(guardedPattern.operands)
+            } else {
+                pattern.operands.add(guardedPattern)
+            }
+
             this.visitExpression(ctx?.expression()?.first())?.let { pattern.operands.add(it) }
         }
 
@@ -914,17 +942,27 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     }
 
     private fun visitBreakStatement(ctx: JavaParser.StatementContext?): Expression {
-        return Jump().also {
-            it.addMetadata(ctx)
-            it.context = "java:BreakStatement"
-        }
+        return (if (ctx?.identifier() != null) {
+            LabeledJump().also {
+                it.label = this.visitIdentifier(ctx.identifier())?.value
+            }
+        } else Expression())
+            .also {
+                it.addMetadata(ctx)
+                it.context = "java:BreakStatement"
+            }
     }
 
     private fun visitContinueStatement(ctx: JavaParser.StatementContext?): Expression {
-        return Jump().also {
-            it.addMetadata(ctx)
-            it.context = "java:ContinueStatement"
-        }
+        return (if (ctx?.identifier() != null) {
+            LabeledJump().also {
+                it.label = this.visitIdentifier(ctx.identifier())?.value
+            }
+        } else Expression())
+            .also {
+                it.addMetadata(ctx)
+                it.context = "java:ContinueStatement"
+            }
     }
 
     // TODO(Should you see yield as a return, or as a jump)
@@ -1157,9 +1195,22 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
 
             "&&", "||" -> LogicalSequence().also {
                 it.addMetadata(ctx)
-                it.context = "java:BinaryExpression"
-                it.operands.add(leftSide)
-                it.operands.add(rightSide)
+                it.context = "java:Logical${if (ctx.bop.text == "&&") "And" else "Or"}Sequence"
+
+                if (leftSide is LogicalSequence && leftSide.context == it.context) {
+                    it.operands.addAll(leftSide.operands)
+                    leftSide.operands.removeAll(leftSide.operands)
+                } else {
+                    it.operands.add(leftSide)
+                }
+
+                // Flatten the right side of the logicalsequence
+                if (rightSide is LogicalSequence && rightSide.context == it.context) {
+                    it.operands.addAll(rightSide.operands)
+                    rightSide.operands.removeAll(rightSide.operands)
+                } else {
+                    it.operands.add(rightSide)
+                }
             }
 
             else -> {
@@ -1172,12 +1223,13 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
     }
 
     private fun visitConditionalExpression(ctx: JavaParser.ExpressionContext): Expression {
-        val expr = Conditional().addMetadata(ctx)
-        expr.condition = this.visitExpression(ctx.expression(0))
-        expr.add(this.visitExpression(ctx.expression(1)))
-        expr.elseExpr = this.visitExpression(ctx.expression(2))
-
-        return expr
+        return Conditional().also {
+            it.addMetadata(ctx)
+            it.context = "java:TernaryExpression"
+            it.ifExpr = this.visitExpression(ctx.expression(0))
+            it.ifExpr.add(this.visitExpression(ctx.expression(1)))
+            it.ifExpr.add(this.visitExpression(ctx.expression(2)))
+        }
     }
 
     override fun visitLambdaExpression(ctx: JavaParser.LambdaExpressionContext?): Lambda {

@@ -1,7 +1,5 @@
 package nl.utwente.student.model
 
-import nl.utwente.student.metamodel.v1.Module
-import nl.utwente.student.transformers.JavaTransformerV1
 import nl.utwente.student.transformers.JavaTransformerV2
 import nl.utwente.student.visitor.java.JavaLexer
 import nl.utwente.student.visitor.java.JavaParser
@@ -10,6 +8,7 @@ import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
 import java.io.File
 import java.io.FileInputStream
+import nl.utwente.student.metamodel.v2.Module
 
 class JavaFile private constructor(val file: File, val parseTree: ParseTree) {
 
@@ -29,11 +28,8 @@ class JavaFile private constructor(val file: File, val parseTree: ParseTree) {
             }
         }
     }
-    fun extractModulesFromASTv1(): List<Module> {
-        return JavaTransformerV1(this).transform()
-    }
 
-    fun extractModulesFromASTv2(): List<nl.utwente.student.metamodel.v2.Module> {
+    fun extractModulesFromAST(): List<Module> {
         return JavaTransformerV2(this).transform()
     }
 }

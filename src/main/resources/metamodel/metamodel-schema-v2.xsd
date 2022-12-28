@@ -142,9 +142,11 @@
         <xs:complexContent>
             <xs:extension base="Expression">
                 <xs:sequence>
-                    <xs:element name="Condition" type="Expression"/>
-                    <xs:element minOccurs="0" name="ElseExpr"
-                                type="Expression"/> <!-- Elseif will be nested within ElseExpr as another conditional -->
+                    <xs:element name="IfExpr" type="Expression"/>
+                    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="ElseIfExpr" type="Expression"/>
+                    </xs:sequence>
+                    <xs:element minOccurs="0" name="ElseExpr" type="Expression"/>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
@@ -161,9 +163,11 @@
         </xs:complexContent>
     </xs:complexType>
 
-    <xs:complexType name="Jump">
+    <xs:complexType name="LabeledJump">
         <xs:complexContent>
-            <xs:extension base="Expression"/>
+            <xs:extension base="Expression">
+                <xs:attribute name="label" type="xs:string"/>
+            </xs:extension>
         </xs:complexContent>
     </xs:complexType>
 

@@ -10,7 +10,7 @@ class BlockScope
 class Loop
 class Conditional
 class LogicalSequence
-class Jump
+class LabeledJump
 class Declaration
 class Assignment
 class Lambda
@@ -73,7 +73,7 @@ Expression : # metadata: Metadata
 Expression <|-- Loop
 Expression <|-- Conditional
 Expression <|-- LogicalSequence
-Expression <|-- Jump
+Expression <|-- LabeledJump
 Expression <|-- Declaration
 Expression <|-- Assignment
 Expression <|-- Lambda
@@ -87,10 +87,13 @@ Catch : # exception: Property
 
 Loop : # evaluations: List<Expression>
 
-Conditional : # condition: Expression
+Conditional : # ifExpr: Expression
+Conditional : # elseIfExpr: List<Expression>
 Conditional : # elseExpr: Expression
 
 LogicalSequence : # operands: List<Expression>
+
+LabeledJump : # label: String
 
 Lambda : # parameters: List<Property>
 

@@ -215,9 +215,10 @@
                 <version>0.15.0</version>
                 <configuration>
                     <schemaDirectory>
-                        ${basedir}/src/main/resources
+                        ${basedir}/src/main/resources/metamodel
                     </schemaDirectory>
                     <args>
+                        <arg>-Xvisitor-includeType</arg>
                         <arg>-Xvisitor</arg>
                         <arg>-Xvisitor-package:nl.utwente.student.visitor</arg>
                     </args>

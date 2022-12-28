@@ -50,38 +50,5 @@
             <jaxb:property name="arguments"/>
         </jaxb:bindings>
     </jaxb:bindings>
-
-    <jaxb:bindings schemaLocation="./metamodel-schema-v1.xsd">
-        <jaxb:schemaBindings>
-            <jaxb:package name="nl.utwente.student.metamodel.v1"/>
-        </jaxb:schemaBindings>
-        <jaxb:bindings node="//xs:complexType[@name='ModuleBody']//xs:choice">
-            <jaxb:property name="members"/>
-        </jaxb:bindings>
-        <jaxb:bindings node="//xs:complexType[@name='Block']//xs:choice">
-            <jaxb:property name="statements"/>
-        </jaxb:bindings>
-        <jaxb:bindings node="//xs:complexType[@name='Field']//xs:choice">
-            <jaxb:property name="items"/>
-        </jaxb:bindings>
-        <jaxb:bindings node="//xs:complexType[@name='ModifierList']//xs:choice">
-            <jaxb:property name="items"/>
-        </jaxb:bindings>
-        <jaxb:bindings node="//xs:complexType[@name='VariableDeclaratorList']//xs:choice">
-            <jaxb:property name="items"/>
-        </jaxb:bindings>
-        <jaxb:bindings node="//xs:complexType[@name='ParameterList']//xs:choice">
-            <jaxb:property name="parameters"/>
-        </jaxb:bindings>
-        <jaxb:bindings node="//xs:complexType[@name='ExpressionList']//xs:choice">
-            <jaxb:property name="expressions"/>
-        </jaxb:bindings>
-        <jaxb:bindings node="//xs:complexType[@name='ModuleNameList']//xs:choice">
-            <jaxb:property name="names"/>
-        </jaxb:bindings>
-        <jaxb:bindings node="//xs:complexType[@name='CatchClauseList']//xs:choice">
-            <jaxb:property name="clauses"/>
-        </jaxb:bindings>
-    </jaxb:bindings>
 </jaxb:bindings>
 
