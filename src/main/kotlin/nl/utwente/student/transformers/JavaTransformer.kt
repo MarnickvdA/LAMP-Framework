@@ -2,7 +2,6 @@ package nl.utwente.student.transformers
 
 import nl.utwente.student.metamodel.v2.*
 import nl.utwente.student.metamodel.v2.Unit
-import nl.utwente.student.model.JavaFile
 import nl.utwente.student.utils.Log
 import nl.utwente.student.utils.getDepth
 import nl.utwente.student.visitor.java.JavaParser
@@ -11,12 +10,13 @@ import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.RuleNode
 import org.antlr.v4.runtime.tree.TerminalNode
+import java.io.File
 
-class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<Any?>() {
+class JavaTransformer(private val javaFile: File, private val javaParseTree: ParseTree) : JavaParserBaseVisitor<Any?>() {
     private var imports: MutableList<String>? = null
 
     fun transform(): List<Module> {
-        return (this.visit(javaFile.parseTree) as List<*>).filterIsInstance<Module>()
+        return (this.visit(javaParseTree) as List<*>).filterIsInstance<Module>()
     }
 
     /**
@@ -73,8 +73,8 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
 
     override fun visitTypeDeclaration(ctx: JavaParser.TypeDeclarationContext?): Module {
         val module = Module()
-        module.filePath = javaFile.file.absolutePath
-        module.fileName = javaFile.file.name
+        module.filePath = javaFile.absolutePath
+        module.fileName = javaFile.name
         module.metadata = getSourceMetadata(ctx!!)
         module.moduleScope = super.visitTypeDeclaration(ctx) as ModuleScope?
 
@@ -1177,15 +1177,19 @@ class JavaTransformerV2(private val javaFile: JavaFile) : JavaParserBaseVisitor<
             }
         } else {
             // We ignore + - in pre and post.
-            Expression()
-        }.also { it.context = "java:UnaryExpression" }
+            Expression().also {
+                it.add(this.visitExpression(ctx.expression().first()))
+            }
+        }.also {
+            it.context = "java:UnaryExpression"
+        }
     }
 
     private fun visitBinaryExpression(ctx: JavaParser.ExpressionContext): Expression? {
         val leftSide = this.visitExpression(ctx.expression().first())
         val rightSide = this.visitExpression(ctx.expression().last())
 
-        return when (ctx.bop.text) {
+        return when (ctx.bop?.text) {
             "=", "+=", "-=", "*=", "/=", "&=", "|=", "^=", ">>=", ">>>=", "<<=", "%=" -> Assignment().also {
                 it.reference = leftSide
                 it.context = "java:Assignment"

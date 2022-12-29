@@ -12,7 +12,7 @@ class CognitiveComplexity : Metric<Int>() {
     fun getMetricResults() = metricResults
 
     private fun logCount(expression: Expression, count: Int) {
-        println("+$count (nesting = $currentNestingLevel) for ${expression.context} on line ${expression.metadata.startLine}:${expression.metadata.endLine}")
+//        println("+$count (nesting = $currentNestingLevel) for ${expression.context} on line ${expression.metadata.startLine}:${expression.metadata.endLine}")
     }
 
     override fun visitUnit(unit: Unit?): Int {
@@ -22,7 +22,6 @@ class CognitiveComplexity : Metric<Int>() {
         }
         // Reset the current nesting level to calculate the whole
         this.currentNestingLevel = 0
-        println("\nVisiting ${unit.identifier.value}")
 
         // Visit the body and register the complexity as a metric result
         metricResults[unit.identifier.value] = visitBlockScope(unit.body)
