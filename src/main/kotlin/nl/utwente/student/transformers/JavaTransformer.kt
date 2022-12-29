@@ -12,7 +12,8 @@ import org.antlr.v4.runtime.tree.RuleNode
 import org.antlr.v4.runtime.tree.TerminalNode
 import java.io.File
 
-class JavaTransformer(private val javaFile: File, private val javaParseTree: ParseTree) : JavaParserBaseVisitor<Any?>() {
+class JavaTransformer(private val javaFile: File, private val javaParseTree: ParseTree) :
+    JavaParserBaseVisitor<Any?>() {
     private var imports: MutableList<String>? = null
 
     fun transform(): List<Module> {
@@ -600,7 +601,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
             ctx.SWITCH() != null -> this.visitSwitchStatement(ctx)
             ctx.SYNCHRONIZED() != null -> this.visitSynchronizedStatement(ctx)
-            ctx.RETURN() != null -> this.visitReturnStatement()
+            ctx.RETURN() != null -> this.visitReturnStatement(ctx)
             ctx.THROW() != null -> this.visitThrowStatement(ctx)
             ctx.BREAK() != null -> this.visitBreakStatement(ctx)
             ctx.CONTINUE() != null -> this.visitContinueStatement(ctx)
@@ -633,7 +634,6 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
         conditional.metadata = getSourceMetadata(ctx)
 
         val ifExpr = this.visitParExpression(ctx.parExpression())
-        ifExpr?.context = "java:IfStatement"
         ifExpr?.add(this.visitStatement(ctx.statement().first()))
 
         conditional.ifExpr = ifExpr
@@ -823,7 +823,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
         ctx.switchBlockStatementGroup()
             .map { this.visitSwitchBlockStatementGroup(it) }
-            .forEach { switch.addAll(it) }
+            .forEach { switch.ifExpr.addAll(it) }
 
         return switch
     }
@@ -834,7 +834,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
         ctx?.switchLabel()?.forEachIndexed { i, l ->
             this.visitSwitchLabel(l).also {
                 it?.add(this.visitBlockStatement(ctx.blockStatement(i)))
-            }
+            }?.let { rules.add(it) }
         }
 
         return rules
@@ -930,46 +930,40 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
         return synchronizedStatement
     }
 
-    private fun visitReturnStatement(): Expression {
-        return Expression().also { it.context = "java:ReturnStatement" }
+    private fun visitReturnStatement(ctx: JavaParser.StatementContext): Expression {
+        return ReturnValue().also {
+            it.value = visitExpression(ctx.expression()?.firstOrNull())
+            it.context = "java:ReturnStatement"
+        }
     }
 
     private fun visitThrowStatement(ctx: JavaParser.StatementContext): Expression {
-        return Expression().also {
+        return ReturnValue().also {
             it.context = "java:ThrowStatement"
-            it.add(this.visitExpression(ctx.expression().first()))
+            it.value = this.visitExpression(ctx.expression().first())
         }
     }
 
     private fun visitBreakStatement(ctx: JavaParser.StatementContext?): Expression {
-        return (if (ctx?.identifier() != null) {
-            LabeledJump().also {
-                it.label = this.visitIdentifier(ctx.identifier())?.value
-            }
-        } else Expression())
-            .also {
-                it.addMetadata(ctx)
-                it.context = "java:BreakStatement"
-            }
+        return Jump().also {
+            it.addMetadata(ctx)
+            it.label = this.visitIdentifier(ctx?.identifier())?.value
+            it.context = "java:BreakStatement"
+        }
     }
 
     private fun visitContinueStatement(ctx: JavaParser.StatementContext?): Expression {
-        return (if (ctx?.identifier() != null) {
-            LabeledJump().also {
-                it.label = this.visitIdentifier(ctx.identifier())?.value
-            }
-        } else Expression())
-            .also {
-                it.addMetadata(ctx)
-                it.context = "java:ContinueStatement"
-            }
+        return Jump().also {
+            it.addMetadata(ctx)
+            it.label = this.visitIdentifier(ctx?.identifier())?.value
+            it.context = "java:ContinueStatement"
+        }
     }
 
-    // TODO(Should you see yield as a return, or as a jump)
     private fun visitYieldStatement(ctx: JavaParser.StatementContext): Expression {
-        return Expression().also {
+        return ReturnValue().also {
             it.context = "java:YieldStatement"
-            it.add(visitExpression(ctx.expression().first()))
+            it.value = visitExpression(ctx.expression().first())
         }
     }
 
@@ -978,8 +972,9 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
     }
 
     private fun visitLabeledStatement(ctx: JavaParser.StatementContext): Expression {
-        return Expression().also {
+        return LabeledExpression().also {
             it.context = "java:LabeledStatement"
+            it.label = this.visitIdentifier(ctx.identifierLabel)?.value
             it.add(visitStatement(ctx.statement().first()))
         }
     }
@@ -989,6 +984,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
         // TODO(Test extensively. This pattern matching clause could be prone to wrong identification.)
 
+        // TODO(Check why Class.variable gets labeled as LambdaExpression
         val expression = when {
             ctx.lambdaExpression() != null -> this.visitLambdaExpression(ctx.lambdaExpression())
             ctx.switchExpression() != null -> this.visitSwitchExpression(ctx.switchExpression())
@@ -1218,9 +1214,11 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
             }
 
             else -> {
-                leftSide?.also {
+                BinaryExpression().also {
+                    it.addMetadata(ctx)
                     it.context = "java:BinaryExpression"
-                    it.add(rightSide)
+                    it.leftOperand = leftSide
+                    it.rightOperand = rightSide
                 }
             }
         }

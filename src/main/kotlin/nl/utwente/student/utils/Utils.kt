@@ -1,5 +1,7 @@
 package nl.utwente.student.utils
 
+import nl.utwente.student.metamodel.v2.Identifier
+import nl.utwente.student.metamodel.v2.Module
 import org.antlr.v4.runtime.tree.ParseTree
 import java.io.File
 import java.lang.Exception
@@ -27,4 +29,10 @@ fun getFile(fileOrDir: String): File? {
             return null
         }
     }
+}
+
+fun Identifier.getUniqueName(module: Module?): String {
+    val moduleName = module?.moduleScope?.identifier?.value ?: ""
+    val packageName = module?.packageName ?: ""
+    return "$packageName.$moduleName::${this.value}"
 }

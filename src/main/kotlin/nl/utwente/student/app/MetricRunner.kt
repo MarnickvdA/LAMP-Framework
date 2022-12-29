@@ -2,6 +2,7 @@ package nl.utwente.student.app
 
 import nl.utwente.student.metamodel.v2.Module
 import nl.utwente.student.metrics.CognitiveComplexity
+import nl.utwente.student.metrics.CyclomaticComplexity
 import nl.utwente.student.utils.getFile
 import java.io.File
 
@@ -10,14 +11,30 @@ class MetricRunner(private val modules: List<Module>) {
         val out = output?.let { getFile(it) }
         val modulesToEvaluate = modules.filter { it.moduleScope?.members?.isNotEmpty() == true }
 
-        modulesToEvaluate.parallelStream().forEach {
+        modulesToEvaluate.forEach {
+            val cyclomaticComplexity = CyclomaticComplexity().also { cc -> cc.visitModule(it) }
             val cognitiveComplexity = CognitiveComplexity().also { cc -> cc.visitModule(it) }
-            val results = cognitiveComplexity.getMetricResults()
+
+            val results = mutableMapOf<String, MutableList<Pair<String, Int>>?>()
+
+            cyclomaticComplexity.getMetricResults().forEach { (unitId, result) ->
+                results[unitId] = (results[unitId] ?: mutableListOf()).also {
+                    it.add(Pair(cyclomaticComplexity.getTag(), result))
+                }
+            }
+
+            cognitiveComplexity.getMetricResults().forEach { (unitId, result) ->
+                results[unitId] = (results[unitId] ?: mutableListOf()).also {
+                    it.add(Pair(cognitiveComplexity.getTag(), result))
+                }
+            }
 
             if (results.isNotEmpty()) {
-                println("\nCognitive Complexity for ${it.packageName}.${it.moduleScope.identifier.value}")
-                results.forEach { (unitId, coco) ->
-                    println("${unitId.padEnd(32)} = $coco")
+                results.forEach { (unitId, metrics) ->
+                    println(unitId.padEnd(100))
+                    metrics?.forEach {
+                        println("\t${it.first.padEnd(6)}: ${it.second}")
+                    }
                 }
             }
         }

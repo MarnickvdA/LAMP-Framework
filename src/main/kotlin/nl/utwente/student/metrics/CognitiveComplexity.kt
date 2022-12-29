@@ -2,17 +2,25 @@ package nl.utwente.student.metrics
 
 import nl.utwente.student.metamodel.v2.*
 import nl.utwente.student.metamodel.v2.Unit
+import nl.utwente.student.utils.getUniqueName
 
 class CognitiveComplexity : Metric<Int>() {
     override fun getTag(): String = "COCO"
 
     private val metricResults = mutableMapOf<String, Int>()
+    private var module: Module? = null
     private var currentNestingLevel: Int = 0
 
     fun getMetricResults() = metricResults
 
     private fun logCount(expression: Expression, count: Int) {
 //        println("+$count (nesting = $currentNestingLevel) for ${expression.context} on line ${expression.metadata.startLine}:${expression.metadata.endLine}")
+    }
+
+
+    override fun visitModule(module: Module?): Int {
+        this.module = module
+        return this.visitModuleScope(module?.moduleScope)
     }
 
     override fun visitUnit(unit: Unit?): Int {
@@ -24,7 +32,7 @@ class CognitiveComplexity : Metric<Int>() {
         this.currentNestingLevel = 0
 
         // Visit the body and register the complexity as a metric result
-        metricResults[unit.identifier.value] = visitBlockScope(unit.body)
+        metricResults[unit.identifier.getUniqueName(module)] = visitBlockScope(unit.body)
 
         return 0
     }
@@ -115,8 +123,18 @@ class CognitiveComplexity : Metric<Int>() {
 
     }
 
-    override fun visitLabeledJump(jump: LabeledJump?): Int {
-        return if (jump == null) 0 else (1)
+    override fun visitJump(jump: Jump?): Int {
+        return if (jump?.label != null) 1 else 0
+    }
+
+    override fun visitReturnValue(returnValue: ReturnValue?): Int {
+        return visitExpression(returnValue?.value)
+    }
+
+    override fun visitBinaryExpression(binaryExpression: BinaryExpression?): Int {
+        return visitExpression(binaryExpression?.leftOperand) +
+                visitExpression(binaryExpression?.rightOperand) +
+                visitBlockScope(binaryExpression?.nestedScope)
     }
 
     override fun visitLambda(lambda: Lambda?): Int {
@@ -164,17 +182,15 @@ class CognitiveComplexity : Metric<Int>() {
         } ?: 0)
     }
 
-    override fun visitModule(module: Module?): Int {
-        return this.visitModuleScope(module?.moduleScope)
-    }
-
     override fun visitExpression(expression: Expression?): Int {
         return when (expression) {
             is Loop -> this.visitLoop(expression)
             is Conditional -> this.visitConditional(expression)
             is LogicalSequence -> this.visitLogicalSequence(expression)
-            is LabeledJump -> this.visitLabeledJump(expression)
+            is Jump -> this.visitJump(expression)
+            is ReturnValue -> this.visitReturnValue(expression)
             is Declaration -> this.visitDeclaration(expression)
+            is BinaryExpression -> this.visitBinaryExpression(expression)
             is Assignment -> this.visitAssignment(expression)
             is Lambda -> this.visitLambda(expression)
             is UnitCall -> this.visitUnitCall(expression)

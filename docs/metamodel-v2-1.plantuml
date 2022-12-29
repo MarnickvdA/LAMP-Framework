@@ -10,11 +10,14 @@ class BlockScope
 class Loop
 class Conditional
 class LogicalSequence
-class LabeledJump
+class Jump
 class Declaration
 class Assignment
 class Lambda
 class UnitCall
+class ReturnValue
+class BinaryExpression
+class LabeledExpression
 
 enum ModuleType {
     CLASS
@@ -73,13 +76,16 @@ Expression : # metadata: Metadata
 Expression <|-- Loop
 Expression <|-- Conditional
 Expression <|-- LogicalSequence
-Expression <|-- LabeledJump
+Expression <|-- Jump
 Expression <|-- Declaration
 Expression <|-- Assignment
 Expression <|-- Lambda
 Expression <|-- UnitCall
 Expression <|-- Catch
 Expression <|-- Identifier
+Expression <|-- ReturnValue
+Expression <|-- BinaryExpression
+Expression <|-- LabeledExpression
 
 Identifier : # value: String
 
@@ -93,7 +99,14 @@ Conditional : # elseExpr: Expression
 
 LogicalSequence : # operands: List<Expression>
 
-LabeledJump : # label: String
+BinaryExpression : # leftOperand: Expression
+BinaryExpression : # rightOperand: Expression
+
+Jump : # label: String?
+
+LabeledExpression : # label: String
+
+ReturnValue : # value : Expression
 
 Lambda : # parameters: List<Property>
 
