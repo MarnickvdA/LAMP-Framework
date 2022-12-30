@@ -163,39 +163,10 @@
         </xs:complexContent>
     </xs:complexType>
 
-    <xs:complexType name="BinaryExpression">
-        <xs:complexContent>
-            <xs:extension base="Expression">
-                <xs:sequence>
-                    <xs:element name="leftOperand" type="Expression"/>
-                    <xs:element name="rightOperand" type="Expression"/>
-                </xs:sequence>
-            </xs:extension>
-        </xs:complexContent>
-    </xs:complexType>
-
-    <xs:complexType name="LabeledExpression">
-        <xs:complexContent>
-            <xs:extension base="Expression">
-                <xs:attribute name="label" type="xs:string"/>
-            </xs:extension>
-        </xs:complexContent>
-    </xs:complexType>
-
     <xs:complexType name="Jump">
         <xs:complexContent>
             <xs:extension base="Expression">
                 <xs:attribute name="label" type="xs:string"/>
-            </xs:extension>
-        </xs:complexContent>
-    </xs:complexType>
-
-    <xs:complexType name="ReturnValue">
-        <xs:complexContent>
-            <xs:extension base="Expression">
-                <xs:sequence>
-                    <xs:element name="Value" type="Expression"/>
-                </xs:sequence>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -215,7 +186,7 @@
         <xs:complexContent>
             <xs:extension base="Expression">
                 <xs:sequence>
-                    <xs:element name="Reference" type="Expression"/>
+                    <xs:element name="Reference" type="Identifier"/>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>

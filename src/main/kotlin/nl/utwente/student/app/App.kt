@@ -2,6 +2,7 @@ package nl.utwente.student.app
 
 import nl.utwente.student.io.GitClient
 import nl.utwente.student.io.XMLWriter
+import nl.utwente.student.metrics.MetricRunner
 import nl.utwente.student.parsers.JavaModelParser
 import nl.utwente.student.parsers.MetamodelParser
 import java.io.File

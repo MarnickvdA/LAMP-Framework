@@ -34,5 +34,5 @@ fun getFile(fileOrDir: String): File? {
 fun Identifier.getUniqueName(module: Module?): String {
     val moduleName = module?.moduleScope?.identifier?.value ?: ""
     val packageName = module?.packageName ?: ""
-    return "$packageName.$moduleName::${this.value}"
+    return "$packageName.$moduleName.${this.value}"
 }

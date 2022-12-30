@@ -1,4 +1,4 @@
-package nl.utwente.student.metrics.smells
+package nl.utwente.student.metrics.generic
 
 import nl.utwente.student.metrics.Metric
 

@@ -27,7 +27,7 @@ During the development of our metamodel, we went through multiple iterations, wh
 Additionally, the `metamodel-bindings.xjb` file is used to define global bindings to the schema, such as the package name that will be defined for every generated class.
 
 ### Metamodel Class Diagram
-![Metamodel Class Diagram](./docs/metamodel-v2-5.png)
+![Metamodel Class Diagram](./docs/metamodel-v2-7.png)
 
 ### Code Generation (JAXB)
 We use [JAXB 3.0](https://jakarta.ee/specifications/xml-binding/3.0/jakarta-xml-binding-spec-3.0.html) to generate POJOs conforming to the XSD schema.

@@ -15,9 +15,6 @@ class Declaration
 class Assignment
 class Lambda
 class UnitCall
-class ReturnValue
-class BinaryExpression
-class LabeledExpression
 
 enum ModuleType {
     CLASS
@@ -64,9 +61,9 @@ Unit : # metadata: Metadata
 
 Property : # identifier: Identifier
 Property : # modifiers: List<ModifierType>
-Property : # value: Expression
-Property : # getter: Unit
-Property : # setter: Unit
+Property : # value: Expression?
+Property : # getter: Unit?
+Property : # setter: Unit?
 
 BlockScope "1" *-- "*" Expression : expressions >
 
@@ -83,9 +80,6 @@ Expression <|-- Lambda
 Expression <|-- UnitCall
 Expression <|-- Catch
 Expression <|-- Identifier
-Expression <|-- ReturnValue
-Expression <|-- BinaryExpression
-Expression <|-- LabeledExpression
 
 Identifier : # value: String
 
@@ -99,22 +93,15 @@ Conditional : # elseExpr: Expression
 
 LogicalSequence : # operands: List<Expression>
 
-BinaryExpression : # leftOperand: Expression
-BinaryExpression : # rightOperand: Expression
-
 Jump : # label: String?
-
-LabeledExpression : # label: String
-
-ReturnValue : # value : Expression
 
 Lambda : # parameters: List<Property>
 
-UnitCall : # reference: Expression
+UnitCall : # reference: Identifier
 UnitCall : # arguments: List<Expression>
 
 Declaration : # value: Scope
 
-Assignment : # reference: Expression
+Assignment : # reference: Identifier
 
 @enduml

@@ -10,6 +10,7 @@ import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.RuleNode
 import org.antlr.v4.runtime.tree.TerminalNode
+import org.antlr.v4.runtime.tree.TerminalNodeImpl
 import java.io.File
 
 class JavaTransformer(private val javaFile: File, private val javaParseTree: ParseTree) :
@@ -491,7 +492,9 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
     override fun visitVariableInitializer(ctx: JavaParser.VariableInitializerContext?): Expression? {
         return if (ctx?.expression() != null) {
             this.visitExpression(ctx.expression())
-        } else null // TODO add array initializer
+        } else {
+            this.visitArrayInitializer(ctx?.arrayInitializer())
+        }
     }
 
     private fun visitParameter(
@@ -612,8 +615,11 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
             else -> Expression().also { it.context = "java:UnknownStatement" }
         }
 
-        // TODO(Add metadata to existing metadata, instead of override).
-        return expression?.addMetadata(ctx)
+        return expression?.also {
+            if (it.metadata == null) {
+                it.addMetadata(ctx)
+            }
+        }
     }
 
     private fun visitAssertStatement(ctx: JavaParser.StatementContext): Expression? {
@@ -646,7 +652,6 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
             }
         }
 
-        // TODO Check if this chaining will work.
         val elseIf = conditional.elseExpr?.nestedScope?.expressions?.first() as? Conditional
         if (elseIf != null) {
             conditional.elseIfExpr.add(elseIf.ifExpr.also {
@@ -681,7 +686,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
         this.visitForInit(ctx?.forInit())?.let { forControl.add(it) }
         this.visitExpression(ctx?.expression())?.let { forControl.add(it) }
 
-        // TODO Document that we flatten the expression list here.
+        // TODO(Document: flattening of the expression list.)
         this.visitExpressionList(ctx?.expressionList()).let { forControl.addAll(it?.nestedScope?.expressions) }
 
         return forControl
@@ -892,7 +897,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
                     it.context = "java:LogicalAndSequence"
                 }
                 seq.operands.add(Expression().also {
-                    it.context = "java:TypePattern" // TODO create Type Pattern
+                    it.context = "java:TypePattern"
                 })
 
                 ctx.expression()
@@ -909,7 +914,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
             val guardedPattern = this.visitGuardedPattern(ctx?.guardedPattern())
 
-            // Flatten LogicalSequence
+            // Flatten Logical Sequence
             if (guardedPattern is LogicalSequence) {
                 pattern.operands.addAll(guardedPattern.operands)
             } else {
@@ -919,7 +924,6 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
             this.visitExpression(ctx?.expression()?.first())?.let { pattern.operands.add(it) }
         }
 
-        // TODO How to handle the merge of logical sequences?
         return pattern
     }
 
@@ -931,22 +935,21 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
     }
 
     private fun visitReturnStatement(ctx: JavaParser.StatementContext): Expression {
-        return ReturnValue().also {
-            it.value = visitExpression(ctx.expression()?.firstOrNull())
+        return Expression().also {
             it.context = "java:ReturnStatement"
+            it.add(visitExpression(ctx.expression()?.firstOrNull()))
         }
     }
 
     private fun visitThrowStatement(ctx: JavaParser.StatementContext): Expression {
-        return ReturnValue().also {
+        return Expression().also {
             it.context = "java:ThrowStatement"
-            it.value = this.visitExpression(ctx.expression().first())
+            it.add(visitExpression(ctx.expression()?.firstOrNull()))
         }
     }
 
     private fun visitBreakStatement(ctx: JavaParser.StatementContext?): Expression {
         return Jump().also {
-            it.addMetadata(ctx)
             it.label = this.visitIdentifier(ctx?.identifier())?.value
             it.context = "java:BreakStatement"
         }
@@ -954,16 +957,15 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
     private fun visitContinueStatement(ctx: JavaParser.StatementContext?): Expression {
         return Jump().also {
-            it.addMetadata(ctx)
             it.label = this.visitIdentifier(ctx?.identifier())?.value
             it.context = "java:ContinueStatement"
         }
     }
 
     private fun visitYieldStatement(ctx: JavaParser.StatementContext): Expression {
-        return ReturnValue().also {
+        return Expression().also {
             it.context = "java:YieldStatement"
-            it.value = visitExpression(ctx.expression().first())
+            it.add(visitExpression(ctx.expression().first()))
         }
     }
 
@@ -972,9 +974,8 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
     }
 
     private fun visitLabeledStatement(ctx: JavaParser.StatementContext): Expression {
-        return LabeledExpression().also {
+        return Expression().also {
             it.context = "java:LabeledStatement"
-            it.label = this.visitIdentifier(ctx.identifierLabel)?.value
             it.add(visitStatement(ctx.statement().first()))
         }
     }
@@ -982,17 +983,9 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
     override fun visitExpression(ctx: JavaParser.ExpressionContext?): Expression? {
         if (ctx == null) return null
 
-        // TODO(Test extensively. This pattern matching clause could be prone to wrong identification.)
-
-        // TODO(Check why Class.variable gets labeled as LambdaExpression
         val expression = when {
-            ctx.lambdaExpression() != null -> this.visitLambdaExpression(ctx.lambdaExpression())
-            ctx.switchExpression() != null -> this.visitSwitchExpression(ctx.switchExpression())
-            ctx.primary() != null -> this.visitPrimary(ctx.primary())
-            ctx.bop != null && ctx.bop.equals(".") -> this.visitCallExpression(ctx)
+            ctx.bop != null && ctx.bop.text == "." -> this.visitCallExpression(ctx)
             ctx.expression().size == 2 && ctx.text.contains("[") -> this.visitArrayAccessExpression(ctx)
-            ctx.methodCall() != null -> this.visitMethodCall(ctx.methodCall())
-            ctx.creator() != null -> this.visitCreator(ctx.creator())
             ctx.INSTANCEOF() != null && ctx.typeType() != null -> this.visitExpression(ctx.expression().firstOrNull())
             ctx.postfix != null || ctx.prefix != null -> this.visitUnaryExpression(ctx)
             ctx.expression().size == 2
@@ -1001,8 +994,14 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
             ctx.INSTANCEOF() != null -> this.visitTypeCheck(ctx)
             ctx.expression().size == 3 && ctx.bop.text == "?" -> this.visitConditionalExpression(ctx)
-            ctx.expression()?.size == 1 && ctx.identifier() != null -> this.visitMethodReference(ctx)
-            ctx.typeType() != null || ctx.classType() != null -> this.visitMethodReference(ctx)
+            ctx.children?.filterIsInstance<TerminalNodeImpl>()
+                ?.firstOrNull()?.text == "::" -> this.visitMethodReference(ctx)
+
+            ctx.primary() != null -> this.visitPrimary(ctx.primary())
+            ctx.methodCall() != null -> this.visitMethodCall(ctx.methodCall())
+            ctx.creator() != null -> this.visitCreator(ctx.creator())
+            ctx.lambdaExpression() != null -> this.visitLambdaExpression(ctx.lambdaExpression())
+            ctx.switchExpression() != null -> this.visitSwitchExpression(ctx.switchExpression())
             else -> Expression()
         }
 
@@ -1029,8 +1028,6 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
     }
 
     private fun visitCallExpression(ctx: JavaParser.ExpressionContext): UnitCall {
-        // TODO(How to handle call chaining? The expression chain will bubble up recursively.)
-
         val prefix = this.visitExpression(ctx.expression().first())
 
         val call: UnitCall = when {
@@ -1058,26 +1055,18 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
             ctx.SUPER() != null -> UnitCall().also {
                 it.reference = createIdentifier("super", ctx)
                 it.context = "SuperCall"
-                // TODO(Do something with the superSuffix)
+                // TODO(Document: We do not handle super suffix.)
             }
 
             ctx.explicitGenericInvocation() != null -> UnitCall().also {
-                // TODO(Handle explicitGenericInvocationSuffix)
                 it.context = "java:ExplicitGenericInvocation"
             }
 
             else -> UnitCall()
         }.addMetadata(ctx)
 
-        // TODO(How to handle traversal, or nestedScopes. these.are.prefixes.of.this.call. 'these' at the root, or at the 'leaf'?
-        fun getLeaf(expression: Expression): Expression {
-            return when (expression.nestedScope) {
-                null -> expression
-                else -> getLeaf(expression.nestedScope.expressions.first()) // TODO(Big assumption here! we think the nestedScope only contains 1 expression)
-            }
-        }
-
-        prefix?.let { getLeaf(it) }?.add(call)
+        // TODO(Document: We chain the method call prefixes within the current UnitCall.)
+        call.add(prefix)
 
         return call
     }
@@ -1091,10 +1080,10 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
         this.visitClassBodyDeclarations(ctx?.classBody()?.classBodyDeclaration())?.let { members ->
             scope = BlockScope()
 
-            // Anonymous class // TODO(Check how this anonymous class will work out.)
+            // Anonymous class // TODO(Document: how this anonymous class works)
             scope!!.expressions.add(Declaration().addMetadata(ctx).also { d ->
                 d.value = ModuleScope().also { m ->
-                    m.identifier = moduleReference.also { it?.value = it?.value + ctx?.start.hashCode() }
+                    m.identifier = moduleReference?.also { it.value = it.value + ctx?.start.hashCode() }
                     m.members.addAll(members)
                 }
             })
@@ -1126,15 +1115,13 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
     private fun visitArrayAccessExpression(ctx: JavaParser.ExpressionContext): Expression {
         return UnitCall().also {
             it.context = "java:ArrayAccess"
-            // TODO(How to handle this 'expression' as reference, maybe change UnitCall.reference to type Identifier to capture those values?)
+            it.reference = this.visitExpression(ctx.expression().first()) as? Identifier
             it.arguments.add(this.visitExpression(ctx.expression().last()))
         }
     }
 
     override fun visitCreator(ctx: JavaParser.CreatorContext?): UnitCall {
-        // TODO Implement creator element that can handle initializing of arrays of classes
         val ref = this.visitCreatedName(ctx?.createdName())
-
         val call = UnitCall().addMetadata(ctx)
 
         return when {
@@ -1146,7 +1133,34 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
                 it.nestedScope = createAnonymousClass(ctx.classCreatorRest(), ref)
             }
 
-            else -> call.also { it.context = "java:ArrayCreator" } // TODO handle array creator
+            else -> call.also {
+                it.reference = ref
+                it.context = "java:ArrayCreator"
+                it.add(this.visitArrayCreatorRest(ctx?.arrayCreatorRest()))
+            }
+        }
+    }
+
+    override fun visitArrayCreatorRest(ctx: JavaParser.ArrayCreatorRestContext?): Expression {
+        val expressions = mutableListOf<Expression>()
+
+        this.visitArrayInitializer(ctx?.arrayInitializer())?.let { expressions.add(it) }
+        ctx?.expression()?.mapNotNull(this::visitExpression)?.let { expressions.addAll(it) }
+
+        return Expression().also {
+            it.context = "java:ArrayCreator"
+            it.addMetadata(ctx)
+            it.addAll(expressions)
+        }
+    }
+
+    override fun visitArrayInitializer(ctx: JavaParser.ArrayInitializerContext?): Expression? {
+        return ctx?.variableInitializer()?.mapNotNull(this::visitVariableInitializer)?.let {
+            Expression().also {exp ->
+                exp.context = "java:ArrayInitializer"
+                exp.addMetadata(ctx)
+                exp.addAll(it)
+            }
         }
     }
 
@@ -1166,10 +1180,9 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
     private fun visitUnaryExpression(ctx: JavaParser.ExpressionContext): Expression {
         return if (ctx.postfix?.text == "++" || ctx.postfix?.text == "--" || ctx.prefix?.text == "--" || ctx.prefix?.text == "++") {
-            // TODO(We are going to try for Assignment to include reference as Expression instead of string.
             Assignment().also {
                 it.addMetadata(ctx)
-                it.reference = this.visitExpression(ctx.expression().first())
+                it.reference = this.visitExpression(ctx.expression().first()) as? Identifier
             }
         } else {
             // We ignore + - in pre and post.
@@ -1181,13 +1194,13 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
         }
     }
 
-    private fun visitBinaryExpression(ctx: JavaParser.ExpressionContext): Expression? {
+    private fun visitBinaryExpression(ctx: JavaParser.ExpressionContext): Expression {
         val leftSide = this.visitExpression(ctx.expression().first())
         val rightSide = this.visitExpression(ctx.expression().last())
 
         return when (ctx.bop?.text) {
             "=", "+=", "-=", "*=", "/=", "&=", "|=", "^=", ">>=", ">>>=", "<<=", "%=" -> Assignment().also {
-                it.reference = leftSide
+                it.reference = leftSide as? Identifier
                 it.context = "java:Assignment"
                 it.addMetadata(ctx)
                 it.add(rightSide)
@@ -1204,7 +1217,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
                     it.operands.add(leftSide)
                 }
 
-                // Flatten the right side of the logicalsequence
+                // Flatten the right side of the logical sequence
                 if (rightSide is LogicalSequence && rightSide.context == it.context) {
                     it.operands.addAll(rightSide.operands)
                     rightSide.operands.removeAll(rightSide.operands)
@@ -1214,11 +1227,10 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
             }
 
             else -> {
-                BinaryExpression().also {
+                Expression().also {
                     it.addMetadata(ctx)
                     it.context = "java:BinaryExpression"
-                    it.leftOperand = leftSide
-                    it.rightOperand = rightSide
+                    it.addAll(listOf(leftSide, rightSide))
                 }
             }
         }
@@ -1289,12 +1301,16 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
     }
 
     private fun visitMethodReference(ctx: JavaParser.ExpressionContext): Expression {
-        // TODO Implement method references: expression::, typeType::, classType::
         return Lambda().also {
             it.context = "java:LambdaExpression"
             it.addMetadata(ctx)
             it.add(UnitCall().addMetadata(ctx).also { uc ->
-                uc.reference = createIdentifier(ctx.text, ctx) // TODO How to handle the UnitCall reference
+                uc.reference = when {
+                    ctx.expression() != null -> this.visitExpression(ctx.expression().firstOrNull()) as? Identifier // TODO How to handle this expression reference? What are the possible type outcomes?
+                    ctx.typeType()?.isNotEmpty() == true -> createIdentifier(ctx.typeType().first().text, ctx.typeType().first())
+                    ctx.classType() != null -> this.visitIdentifier(ctx.classType().identifier())
+                    else -> createIdentifier(ctx.text, ctx)
+                }
             })
         }
     }

@@ -27,17 +27,7 @@ internal class MainKtTest {
         System.setErr(originalErr)
     }
 
-    private val main: Main = Main();
-
     @Test
     fun runMainWithoutArguments() {
-        main.run()
-        assertEquals("Hello World!\n", outContent.toString())
-    }
-
-    @Test
-    fun runMainWithOneArgument() {
-        main.run("Hey!")
-        assertEquals("Hello World!\nProgram arguments: Hey!\n", outContent.toString())
     }
 }
