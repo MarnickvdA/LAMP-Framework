@@ -1044,12 +1044,14 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
             ctx.NEW() != null -> UnitCall().also {
                 // Reference to Class, a.k.a. constructor call.
                 it.context = "java:ConstructorReference"
-                it.reference = this.visitIdentifier(ctx.innerCreator().identifier())
+
+                // TODO(Document: We change the call to 'constructor' and put the identifier in the nested scope)
+                it.reference = createIdentifier("constructor", ctx.innerCreator().identifier())
+                it.add(this.visitIdentifier(ctx.innerCreator().identifier()))
+                it.addAll(this.createAnonymousClass(ctx.innerCreator().classCreatorRest(), it.reference)?.expressions)
 
                 this.visitArguments(ctx.innerCreator().classCreatorRest().arguments())
                     ?.let { list -> it.arguments.addAll(list) }
-
-                it.nestedScope = this.createAnonymousClass(ctx.innerCreator().classCreatorRest(), it.reference)
             }
 
             ctx.SUPER() != null -> UnitCall().also {
@@ -1128,9 +1130,12 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
             ctx?.nonWildcardTypeArguments() != null || ctx?.classCreatorRest() != null
             -> call.also {
                 it.context = "java:ClassCreator"
-                it.reference = ref
                 this.visitArguments(ctx.classCreatorRest().arguments())?.let { args -> it.arguments.addAll(args) }
-                it.nestedScope = createAnonymousClass(ctx.classCreatorRest(), ref)
+
+                // TODO(document: we did the constructor reference again.)
+                it.reference = createIdentifier("constructor", ctx.createdName())
+                it.add(ref)
+                it.addAll(createAnonymousClass(ctx.classCreatorRest(), ref)?.expressions)
             }
 
             else -> call.also {

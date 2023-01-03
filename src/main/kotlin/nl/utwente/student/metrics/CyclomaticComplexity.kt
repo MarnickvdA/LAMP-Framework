@@ -1,8 +1,8 @@
-package nl.utwente.student.metrics.generic
+package nl.utwente.student.metrics
 
 import nl.utwente.student.metamodel.v2.*
 import nl.utwente.student.metamodel.v2.Unit
-import nl.utwente.student.metrics.Metric
+import nl.utwente.student.visitors.UnitVisitor
 import nl.utwente.student.utils.getUniqueName
 
 /**
@@ -17,18 +17,10 @@ import nl.utwente.student.utils.getUniqueName
  *
  * TODO(evaluate CC for getWords (CC=2, expected 5), toRegexp(CC=15, excepted 12)
  */
-class CyclomaticComplexity : Metric<kotlin.Unit>() {
+class CyclomaticComplexity: UnitVisitor() {
     override fun getTag(): String = "CC"
 
-    private val metricResults = mutableMapOf<String, Int>()
-    private var module: Module? = null
     private var currentComplexity = 0
-
-    fun getMetricResults() = metricResults
-
-    private fun logCount(expression: Expression?, count: Int) {
-//        println("+$count for ${expression::class.java.simpleName} (${expression.context}) on line ${expression.metadata.startLine}:${expression.metadata.endLine}")
-    }
 
     override fun visitModule(module: Module?) {
         this.module = module
@@ -47,7 +39,7 @@ class CyclomaticComplexity : Metric<kotlin.Unit>() {
         super.visitUnit(unit)
 
         if (unit != null) {
-            metricResults[unit.identifier.getUniqueName(module)] = currentComplexity
+            metricResults.add(Pair(unit.getUniqueName(module), currentComplexity))
         }
     }
 

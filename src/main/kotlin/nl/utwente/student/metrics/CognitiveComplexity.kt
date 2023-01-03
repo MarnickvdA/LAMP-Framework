@@ -1,23 +1,15 @@
-package nl.utwente.student.metrics.generic
+package nl.utwente.student.metrics
 
 import nl.utwente.student.metamodel.v2.*
 import nl.utwente.student.metamodel.v2.Unit
-import nl.utwente.student.metrics.Metric
+import nl.utwente.student.visitors.UnitVisitor
 import nl.utwente.student.utils.getUniqueName
 
-class CognitiveComplexity : Metric<kotlin.Unit>() {
+class CognitiveComplexity : UnitVisitor() {
     override fun getTag(): String = "COCO"
 
-    private val metricResults = mutableMapOf<String, Int>()
-    private var module: Module? = null
     private var currentNestingLevel = 0
     private var currentComplexity = 0
-
-    fun getMetricResults() = metricResults
-
-    private fun logCount(expression: Expression?, count: Int) {
-//        println("+$count (nesting = $currentNestingLevel) for ${expression?.context} on line ${expression?.metadata?.startLine}:${expression?.metadata?.endLine}")
-    }
 
     override fun visitModule(module: Module?) {
         this.module = module
@@ -33,7 +25,7 @@ class CognitiveComplexity : Metric<kotlin.Unit>() {
         super.visitUnit(unit)
 
         if (unit != null) {
-            metricResults[unit.identifier.getUniqueName(module)] = this.currentComplexity
+            metricResults.add(Pair(unit.getUniqueName(module), this.currentComplexity))
         }
     }
 

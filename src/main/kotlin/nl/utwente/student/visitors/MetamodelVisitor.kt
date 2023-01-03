@@ -1,12 +1,14 @@
-package nl.utwente.student.metrics
+package nl.utwente.student.visitors
 
 import nl.utwente.student.metamodel.v2.*
 import nl.utwente.student.metamodel.v2.Unit
 import nl.utwente.student.visitor.BaseVisitor
 
-abstract class Metric<T>: BaseVisitor<T, MetricException>() {
+abstract class MetamodelVisitor<T, R>: BaseVisitor<T, VisitorException>() {
 
-    open fun getTag(): String = ""
+    abstract fun getTag(): String
+
+    abstract fun getResult(): R
 
     override fun visitExpression(expression: Expression?): T {
         return when (expression) {
@@ -22,7 +24,6 @@ abstract class Metric<T>: BaseVisitor<T, MetricException>() {
             else -> this.visitBlockScope(expression?.nestedScope)
         }
     }
-
 
     override fun visitModule(module: Module?): T {
         return this.visitModuleScope(module?.moduleScope)
