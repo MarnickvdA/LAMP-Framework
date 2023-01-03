@@ -17,6 +17,7 @@ class LinesOfLambda: UnitVisitor() {
         super.visitLambda(lambda)
 
         // TODO Document that if we are in an inner lambda, we do not trigger the inLambda shutoff.
+        // FIXME Use parent lambda & child lambda!
         if (!alreadyInLambda) {
             inLambda = false
 
