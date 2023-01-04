@@ -79,7 +79,7 @@ class App {
         val file = modules?.let { XMLWriter.writeModules(it, output) }
 
         return file?.also {
-            println("Transformed ${modules.size} .$lang file(s), now located in ${it.absolutePath}")
+            println("Transformed ${modules.size} .$lang module(s), now located in ${it.absolutePath}")
         }
     }
 

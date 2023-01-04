@@ -4,12 +4,12 @@ package nl.utwente.student.models.semantics
  * Semantic Model of one source code project
  */
 class SemanticTree(
-    name: String,
+    override val name: String,
     override val elements: MutableMap<String, SemanticElement> = mutableMapOf()
 ) : SemanticElement {
-
-    override val name = name
-        get() = "project://$field"
+    override fun toString(): String {
+        return "project://$name"
+    }
 
     private fun addSemanticElement(element: SemanticElement) {
         if (elements.containsKey(element.name)) return

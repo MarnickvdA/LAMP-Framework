@@ -7,12 +7,12 @@ import nl.utwente.student.visitors.ModuleVisitor
 import nl.utwente.student.utils.getUniqueName
 
 class CognitivelyWeightedMethodPerClass: ModuleVisitor() {
-
+    override var result: Int? = 0
     override fun getTag(): String = "CWMC"
 
     override fun visitModule(module: Module?) {
         if (module == null) throw VisitorException("Module is null")
-        moduleName = module.getUniqueName()
+        moduleName = module.getUniqueName(false)
 
         val coco = CognitiveComplexity()
 

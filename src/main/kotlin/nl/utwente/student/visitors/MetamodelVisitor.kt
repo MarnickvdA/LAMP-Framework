@@ -43,6 +43,7 @@ abstract class MetamodelVisitor<T, R>: BaseVisitor<T, VisitorException>() {
     }
 
     override fun visitCatch(catch: Catch?): T {
+        this.visitProperty(catch?.exception)
         this.visitBlockScope(catch?.nestedScope)
 
         return super.visitCatch(catch)

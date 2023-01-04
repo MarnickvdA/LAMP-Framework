@@ -18,11 +18,13 @@ The final version of this framework and thesis is still a work in progress.
 (2)  For every:  AST model                   =(using)=>  XML schema                   =(outputs)=>    Metamodel XML document
 (3)  For every:  Metamodel XML document      =(using)=>  JAXB Unmarshalling           =(outputs)=>    Module Metamodel instance
 (4a) For every:  Module Metamodel instance   =(using)=>  ModuleMetricVisitor(s)       =(outputs)=>    Module Metrics (WMC, CWMC)
-(4b) For every:  Module Metamodel instance   =(using)=>  UnitMetricVisitor(s)         =(outputs)=>    Unit Metrics (CC, COCO, NOP, LOL, LC)
+(4b) For every:  Module Metamodel instance   =(using)=>  UnitMetricVisitor(s)         =(outputs)=>    Unit Metrics (CC, COCO, NOP, LC, LOC)
+(4c) For every:  Module Metamodel instance   =(using)=>  UnitMetricVisitor(s)         =(outputs)=>    Expression Metrics (LOL, DOC)
 (5)  For all:    Module Metamodel instances  =(using)=>  InheritanceTreeVisitor       =(outputs)=>    Inheritance Tree of project modules 
 (6)              Inheritance Tree            =(using)=>  InheritanceMetricVisitor(s)  =(outputs)=>    Inheritance Metrics (DIT, NOC)
 (7)  For all:    Module Metamodel instances  =(using)=>  SemanticTreeVisitor          =(outputs)=>    Semantic Tree of project
 (8)              Semantic Tree               =(using)=>  SemanticMetricVisitor(s)     =(outputs)=>    Semantic Metrics (CBO, MLF, RFC, DEAD, LSE, LCOM)
+(9)  For all:    Metric Results              =(using)=>  MetricCollector              =(outputs)=>    Project Metric Report
 ```
 
 ### Metric Overview
@@ -42,13 +44,13 @@ The final version of this framework and thesis is still a work in progress.
 
 ### Metamodel development (with XSD)
 The metamodel is created using the XML Schema Definition (XSD) language.
-The metamodel XML schema is located in `src/main/resources`. 
+The metamodel XML schema is located in `src/main/resources/metamodel`. 
 During the development of our metamodel, we went through multiple iterations, which correspond to XSD versions (v1, v2, etc.).
 
 Additionally, the `metamodel-bindings.xjb` file is used to define global bindings to the schema, such as the package name that will be defined for every generated class.
 
 ### Metamodel Class Diagram
-![Metamodel Class Diagram](./docs/metamodel-v2-7.png)
+![Metamodel Class Diagram](./docs/metamodel-v2-8.png)
 
 ### Metamodel POJO Generation (with JAXB)
 We use [JAXB 3.0](https://jakarta.ee/specifications/xml-binding/3.0/jakarta-xml-binding-spec-3.0.html) to generate POJOs conforming to the XSD schema.

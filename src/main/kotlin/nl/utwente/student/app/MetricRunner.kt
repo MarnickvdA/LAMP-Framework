@@ -5,16 +5,11 @@ import nl.utwente.student.metrics.*
 import nl.utwente.student.visitors.ModuleVisitor
 import nl.utwente.student.visitors.UnitVisitor
 import nl.utwente.student.utils.getFile
+import nl.utwente.student.visitors.InheritanceTreeVisitor
 import nl.utwente.student.visitors.SemanticTreeVisitor
 import java.io.File
 
 class MetricRunner(private val modules: List<Module>) {
-    private val unitMetrics = listOf(
-        CyclomaticComplexity(),
-        CognitiveComplexity(),
-        LinesOfLambda(),
-        NumberOfParameters()
-    )
 
     private val moduleMetrics = listOf(
         WeightedMethodPerClass(),
@@ -22,21 +17,55 @@ class MetricRunner(private val modules: List<Module>) {
         LambdaCount()
     )
 
+    private val unitMetrics = listOf(
+        CyclomaticComplexity(),
+        CognitiveComplexity(),
+        NumberOfParameters(),
+        UnitLinesOfCode()
+    )
+
+    private val expressionMetrics = listOf(
+        LinesOfLambda(),
+        DepthOfMessageChain()
+    )
+
     fun run(output: String?): File? {
         val out = output?.let { getFile(it) }
-        val modulesToEvaluate = modules.filter { it.moduleScope?.members?.isNotEmpty() == true }
 
-        modulesToEvaluate.forEach {
-            println("\n==== MODULE METRICS ====")
-            val moduleMetrics = calculateModuleMetrics(it)
-            moduleMetrics.forEach { metric -> this.printModuleMetrics(metric.key, metric.value)}
+        val moduleResults = mutableMapOf<String, MutableList<Pair<String, Int>>>()
+        var unitResults = mutableMapOf<String, MutableList<Pair<String, Int>>>()
+        var expressionResults = mutableMapOf<String, MutableList<Pair<String, Int>>>()
 
-            val unitMetrics = calculateUnitMetrics(it)
-            println("\n==== UNIT METRICS ====")
-            unitMetrics.forEach { metric -> this.printUnitMetrics(metric.key, metric.value) }
+        InheritanceTreeVisitor(modules).getResult()
+            .forEach {
+                moduleResults[it.key] = mutableListOf(
+                    Pair("DIT", it.value.getDepthOfInheritanceTree()),
+                    Pair("NOC", it.value.getNumberOfChildren())
+                )
+            }
+
+        modules.filter { it.moduleScope.members.size > 0 }.forEach {
+            calculateModuleMetrics(this.moduleMetrics, it).forEach { moduleMetrics ->
+                if (moduleResults[moduleMetrics.key] == null)
+                    moduleResults[moduleMetrics.key] = moduleMetrics.value.toMutableList()
+                else moduleResults[moduleMetrics.key]?.addAll(moduleMetrics.value)
+            }
+
+            unitResults = calculateUnitMetrics(this.unitMetrics, it)
+
+            expressionResults = calculateUnitMetrics(this.expressionMetrics, it)
         }
 
-//        SemanticTreeVisitor("Test", modulesToEvaluate).getResult().print()
+        println("\n==== MODULE METRICS ====")
+        moduleResults.forEach { metric -> this.printModuleMetrics(metric.key, metric.value) }
+
+        println("\n==== UNIT METRICS ====")
+        unitResults.forEach { metric -> this.printUnitMetrics(metric.key, metric.value) }
+
+        println("\n==== EXPRESSION METRICS ====")
+        expressionResults.forEach { metric -> this.printUnitMetrics(metric.key, metric.value) }
+
+        SemanticTreeVisitor("Test", modules).getResult().print()
 
         return out
     }
@@ -55,7 +84,7 @@ class MetricRunner(private val modules: List<Module>) {
         }
     }
 
-    private fun aggregateMetricOutput(
+    private fun aggregateMultipleMetricOutput(
         metricOutput: Map<String, Pair<String, Int>>,
         results: MutableMap<String, MutableList<Pair<String, Int>>>
     ) {
@@ -66,15 +95,22 @@ class MetricRunner(private val modules: List<Module>) {
         }
     }
 
-    private fun calculateUnitMetrics(module: Module): Map<String, MutableList<Pair<String, Int>>> {
+    private fun calculateUnitMetrics(
+        unitMetrics: List<UnitVisitor>,
+        module: Module
+    ): MutableMap<String, MutableList<Pair<String, Int>>> {
         val results = mutableMapOf<String, MutableList<Pair<String, Int>>>()
-        unitMetrics.map { this.evaluateUnitMetric(it, module) }.forEach { aggregateMetricOutput(it, results) }
+        unitMetrics.map { this.evaluateUnitMetric(it, module) }.forEach { aggregateMultipleMetricOutput(it, results) }
         return results
     }
 
-    private fun calculateModuleMetrics(module: Module): Map<String, List<Pair<String, Int>>> {
+    private fun calculateModuleMetrics(
+        moduleMetrics: List<ModuleVisitor>,
+        module: Module
+    ): MutableMap<String, MutableList<Pair<String, Int>>> {
         val results = mutableMapOf<String, MutableList<Pair<String, Int>>>()
-        moduleMetrics.map { this.evaluateModuleMetric(it, module) }.forEach { aggregateMetricOutput(it, results) }
+        moduleMetrics.map { this.evaluateModuleMetric(it, module) }
+            .forEach { aggregateMultipleMetricOutput(it, results) }
         return results
     }
 

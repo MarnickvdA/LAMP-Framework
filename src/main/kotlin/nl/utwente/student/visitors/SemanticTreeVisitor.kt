@@ -6,9 +6,10 @@ import nl.utwente.student.models.semantics.*
 import nl.utwente.student.utils.getUniqueName
 
 class SemanticTreeVisitor(
-    projectName: String, modules: List<Module>, private val semanticTree: SemanticTree = SemanticTree(projectName)
+    private val projectName: String, private val modules: List<Module>
 ) : MetamodelVisitor<kotlin.Unit, SemanticTree>() {
 
+    private lateinit var semanticTree: SemanticTree
     private val unitCallsToEvaluate = mutableListOf<Triple<UnitCall, Module, SemanticDeclarable>>()
     private var currentComponent: SemanticComponent? = null
     private var currentSemanticModule: SemanticModule? = null
@@ -17,22 +18,22 @@ class SemanticTreeVisitor(
     private var currentScope: Scope? = null
     private var currentSemanticScope: SemanticDeclarable? = null
 
-    init {
+    override fun getTag(): String = "SemanticTree"
+
+    override fun getResult(): SemanticTree {
+        semanticTree = SemanticTree(projectName)
+
         modules.forEach(this::visitModule)
 
         unitCallsToEvaluate.forEach {
             it.third.addOutgoingUnitCall(
                 SemanticUnitCall(
-                    targetUnit = it.first.getUniqueName(it.second), // TODO Handle dependencies
+                    name = it.first.getUniqueName(it.second), // TODO Handle dependencies
                     origin = it.third,
                 )
             )
         }
-    }
 
-    override fun getTag(): String = "SemanticTree"
-
-    override fun getResult(): SemanticTree {
         return semanticTree
     }
 
@@ -43,7 +44,13 @@ class SemanticTreeVisitor(
             currentComponent = semanticTree.addComponent(SemanticComponent(module.packageName))
         }
 
-        val semanticModule = SemanticModule(module.getUniqueName(), currentComponent!!)
+        currentModule = module
+        this.visitModuleScope(module.moduleScope)
+    }
+
+    override fun visitModuleScope(module: ModuleScope?) {
+        if (module == null) return
+        val semanticModule = SemanticModule(module.getUniqueName(currentComponent?.name), currentComponent)
 
         when {
             currentSemanticScope != null -> currentSemanticScope!!.addModule(semanticModule)
@@ -54,16 +61,42 @@ class SemanticTreeVisitor(
         val parentSemanticModule = currentSemanticModule
         currentSemanticModule = semanticModule
 
-        val parentModule = currentModule
-        currentModule = module
-
         val parentSemanticScope = currentSemanticScope
         currentSemanticScope = currentSemanticModule
 
-        super.visitModule(module)
+        super.visitModuleScope(module)
 
         currentSemanticModule = parentSemanticModule
-        currentModule = parentModule
+        currentSemanticScope = parentSemanticScope
+    }
+
+    private fun hasSemanticObjects(scope: BlockScope?): Boolean {
+        return scope == null || scope.expressions.none {
+            it is Loop
+                    || it is Conditional
+                    || it is LogicalSequence
+                    || it is Jump
+                    || it is Declaration
+                    || it is Assignment
+                    || it is Lambda
+                    || it is UnitCall
+                    || it is Catch
+                    || hasSemanticObjects(it.nestedScope)
+        }
+    }
+
+    override fun visitBlockScope(scope: BlockScope?) {
+        if (!hasSemanticObjects(scope)) return
+
+        // FIXME How are we handling the semantic tree, doesn't work atm.
+
+        val parentSemanticScope = currentSemanticScope
+        val currentScope = SemanticScope(parentSemanticScope!!.name)
+        currentSemanticScope = currentScope
+        parentSemanticScope.add(currentScope)
+
+        super.visitBlockScope(scope)
+
         currentSemanticScope = parentSemanticScope
     }
 
@@ -135,8 +168,52 @@ class SemanticTreeVisitor(
     override fun visitAssignment(assignment: Assignment?) {
         if (assignment == null) return
 
-        currentSemanticScope?.addAssignment(SemanticAssignment(assignment.getUniqueName()))
+        currentSemanticScope?.addAssignment(SemanticAssignment(assignment.getUniqueName(currentModule)))
 
         super.visitAssignment(assignment)
+    }
+
+    override fun visitCatch(catch: Catch?) {
+        val parentScope = currentSemanticScope
+        val currentScope = SemanticScope(parentScope!!.name)
+        currentSemanticScope = currentScope
+        parentScope.add(currentScope)
+
+        super.visitCatch(catch)
+
+        currentSemanticScope = parentScope
+    }
+
+    override fun visitConditional(conditional: Conditional?) {
+        val parentScope = currentSemanticScope
+        val currentScope = SemanticScope(parentScope!!.name)
+        currentSemanticScope = currentScope
+        parentScope.add(currentScope)
+
+        super.visitConditional(conditional)
+
+        currentSemanticScope = parentScope
+    }
+
+    override fun visitLoop(loop: Loop?) {
+        val parentScope = currentSemanticScope
+        val currentScope = SemanticScope(parentScope!!.name)
+        currentSemanticScope = currentScope
+        parentScope.add(currentScope)
+
+        super.visitLoop(loop)
+
+        currentSemanticScope = parentScope
+    }
+
+    override fun visitLambda(lambda: Lambda?) {
+        val parentScope = currentSemanticScope
+        val currentScope = SemanticScope(parentScope!!.name)
+        currentSemanticScope = currentScope
+        parentScope.add(currentScope)
+
+        super.visitLambda(lambda)
+
+        currentSemanticScope = parentScope
     }
 }

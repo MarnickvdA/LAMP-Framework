@@ -6,6 +6,7 @@ import nl.utwente.student.metamodel.v2.Identifier
 import nl.utwente.student.metamodel.v2.Lambda
 import nl.utwente.student.metamodel.v2.Metadata
 import nl.utwente.student.metamodel.v2.Module
+import nl.utwente.student.metamodel.v2.ModuleScope
 import nl.utwente.student.metamodel.v2.Property
 import nl.utwente.student.metamodel.v2.Unit
 import nl.utwente.student.metamodel.v2.UnitCall
@@ -40,59 +41,57 @@ fun getFile(fileOrDir: String): File? {
     }
 }
 
-fun Module.getUniqueName(): String {
-    return mutableListOf(
-        this.packageName,
-        this.moduleScope?.identifier?.value + getUniquePosition(this.metadata),
-    ).filterNotNull().joinToString(".")
+fun Module.getUniqueName(withLocation: Boolean = true): String {
+    return this.moduleScope.getUniqueName(this.packageName, withLocation)
+}
+
+fun ModuleScope.getUniqueName(componentName: String?, withLocation: Boolean = true): String {
+    return listOfNotNull(
+        componentName,
+        this.identifier?.value + if (withLocation) getUniquePosition(this.metadata) else "",
+    ).joinToString(".")
 }
 
 fun Unit.getUniqueName(module: Module?): String {
-    return mutableListOf(
-        module?.packageName,
-        module?.moduleScope?.identifier?.value,
-        this.identifier.value + getUniquePosition(this.metadata)
-    ).filterNotNull().joinToString(".")
-}
-
-fun Lambda.getUniqueName(module: Module?): String {
-    return mutableListOf(
-        module?.packageName,
-        module?.moduleScope?.identifier?.value,
-        "Lambda" + getUniquePosition(this.metadata)
-    ).filterNotNull().joinToString(".")
+    return ((module?.moduleScope?.getUniqueName(module.packageName, false)?.let { "$it://" })
+        ?: "") + this.identifier.value + getUniquePosition(this.metadata)
 }
 
 fun Property.getUniqueName(module: Module?): String {
-    return mutableListOf(
-        module?.packageName,
-        module?.moduleScope?.identifier?.value,
-        this.identifier.value + getUniquePosition(this.metadata)
-    ).filterNotNull().joinToString(".")
+    return ((module?.moduleScope?.getUniqueName(module.packageName, false)?.let { "$it://" })
+        ?: "") + this.identifier.value + getUniquePosition(this.metadata)
+}
+
+fun Lambda.getUniqueName(module: Module?): String {
+    return ((module?.moduleScope?.getUniqueName(module.packageName, false)?.let { "$it://" })
+        ?: "") + "Lambda" + getUniquePosition(this.metadata)
+}
+
+private fun getFullSignature(prefix: Expression?): MutableList<String?> {
+    return when (prefix) {
+        is UnitCall -> getFullSignature(prefix.nestedScope?.expressions?.first())
+            .also { it.add(getFullSignature(prefix.reference).joinToString(".")) }
+        is Identifier -> mutableListOf(prefix.value)
+        else -> mutableListOf()
+    }
 }
 
 fun UnitCall.getUniqueName(module: Module?): String {
-    fun getFullSignature(prefix: Expression?): MutableList<String?> {
-        return when (prefix) {
-            is UnitCall -> getFullSignature(prefix.nestedScope?.expressions?.first()).also { it.add(prefix.reference.value)}
-            is Identifier -> mutableListOf(prefix.value)
-            else -> mutableListOf()
-        }
-    }
-
-    return getFullSignature(this).joinToString(".")+ getUniquePosition(this.metadata)
+    return ((module?.moduleScope?.getUniqueName(module.packageName, false)?.let { "$it://" }) ?: "") +
+            getFullSignature(this).joinToString(".") + getUniquePosition(this.metadata)
 }
 
-fun Assignment.getUniqueName(): String {
-    // TODO Fix reference
-    return this.reference.value + getUniquePosition(this.metadata)
+fun Assignment.getUniqueName(module: Module?): String {
+    return ((module?.moduleScope?.getUniqueName(module.packageName, false)?.let { "$it://" }) ?: "") +
+            getFullSignature(this.reference).joinToString(".") + getUniquePosition(this.metadata)
 }
 
 private fun getUniquePosition(metadata: Metadata): String {
-    return "$" + md5("${metadata.startLine}:${metadata.startOffset}:${metadata.endLine}:${metadata.endOffset}").substring(0..8)
+//    return "$" + md5("${metadata.startLine}:${metadata.startOffset}:${metadata.endLine}:${metadata.endOffset}").substring(0..8)
+    return "$" + "[${metadata.startLine}:${metadata.startOffset},${metadata.endLine}:${metadata.endOffset}]"
 }
 
-private fun md5(input:String): String {
+private fun md5(input: String): String {
     val md = MessageDigest.getInstance("MD5")
     return BigInteger(1, md.digest(input.toByteArray())).toString(16).padStart(32, '0')
 }

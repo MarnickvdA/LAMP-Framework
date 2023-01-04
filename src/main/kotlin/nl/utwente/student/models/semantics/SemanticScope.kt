@@ -1,9 +1,8 @@
 package nl.utwente.student.models.semantics
 
-class SemanticAssignment(
+class SemanticScope(
     override val name: String,
     override val elements: MutableMap<String, SemanticElement> = mutableMapOf()
-    ) : SemanticElement {
-
-    override fun toString(): String = "assign://$name"
+) : SemanticDeclarable {
+    override fun toString(): String = "scope://$name"
 }

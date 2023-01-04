@@ -97,11 +97,11 @@ Jump : # label: String?
 
 Lambda : # parameters: List<Property>
 
-UnitCall : # reference: Identifier
+UnitCall : # reference: Expression
 UnitCall : # arguments: List<Expression>
 
 Declaration : # value: Scope
 
-Assignment : # reference: Identifier
+Assignment : # reference: Expression
 
 @enduml

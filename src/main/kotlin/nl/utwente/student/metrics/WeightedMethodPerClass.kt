@@ -7,11 +7,12 @@ import nl.utwente.student.visitors.ModuleVisitor
 import nl.utwente.student.utils.getUniqueName
 
 class WeightedMethodPerClass : ModuleVisitor() {
+    override var result: Int? = 0
     override fun getTag(): String = "WMC"
 
     override fun visitModule(module: Module?) {
         if (module == null) throw VisitorException("Module is null")
-        moduleName = module.getUniqueName()
+        moduleName = module.getUniqueName(false)
 
         val coco = CyclomaticComplexity()
 

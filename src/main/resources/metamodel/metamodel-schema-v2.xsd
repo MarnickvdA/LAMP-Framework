@@ -7,7 +7,6 @@
     <xs:element name="Module">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="Metadata" type="Metadata"/>
                 <xs:sequence id="imports" minOccurs="0" maxOccurs="unbounded">
                     <xs:element name="Import" type="xs:string"/> <!-- e.g. nl.utwente.student.AClass -->
                 </xs:sequence>
@@ -33,6 +32,7 @@
         <xs:complexContent>
             <xs:extension base="Scope">
                 <xs:sequence>
+                    <xs:element name="Metadata" type="Metadata"/>
                     <xs:element name="Identifier" type="Identifier"/>
                     <xs:sequence id="moduleModifiers" minOccurs="0" maxOccurs="unbounded">
                         <xs:element name="Modifier" type="modifierType"/>
@@ -186,7 +186,8 @@
         <xs:complexContent>
             <xs:extension base="Expression">
                 <xs:sequence>
-                    <xs:element name="Reference" type="Identifier"/>
+                    <!--  Reference is a UnitCall or Identifier  -->
+                    <xs:element name="Reference" type="Expression"/>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
@@ -211,7 +212,8 @@
                     <xs:sequence minOccurs="0" maxOccurs="unbounded" id="unitCallArgs">
                         <xs:element name="Argument" type="Expression"/>
                     </xs:sequence>
-                    <xs:element name="Reference" type="Identifier"/>
+                    <!--  Reference is a UnitCall or Identifier  -->
+                    <xs:element name="Reference" type="Expression"/>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>

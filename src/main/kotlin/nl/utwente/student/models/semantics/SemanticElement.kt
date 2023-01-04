@@ -9,7 +9,8 @@ interface SemanticElement {
     }
 
     fun print(depth: Int = 0) {
-        println("\t".repeat(depth) + name)
+        println("\t".repeat(depth) + toString())
         elements.values.forEach { it.print(depth + 1) }
     }
+    override fun toString(): String
 }

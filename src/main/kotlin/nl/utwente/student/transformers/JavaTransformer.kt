@@ -60,6 +60,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
     override fun visitImportDeclaration(ctx: JavaParser.ImportDeclarationContext?): String? {
         return this.visitQualifiedName(ctx?.qualifiedName())
+            ?.let { if (ctx?.text?.contains("*") == true) "$it.*" else it }
     }
 
     override fun visitPackageDeclaration(ctx: JavaParser.PackageDeclarationContext?): String? {
@@ -77,10 +78,12 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
         val module = Module()
         module.filePath = javaFile.absolutePath
         module.fileName = javaFile.name
-        module.metadata = getSourceMetadata(ctx!!)
-        module.moduleScope = super.visitTypeDeclaration(ctx) as ModuleScope?
+        module.moduleScope = (super.visitTypeDeclaration(ctx) as ModuleScope?)?.also {
+            it.metadata = getSourceMetadata(ctx!!)
+        }
+        imports?.let { module.imports.addAll(it) }
 
-        this.visitModuleModifierList(ctx.classOrInterfaceModifier())
+        this.visitModuleModifierList(ctx?.classOrInterfaceModifier())
             ?.let { module.moduleScope?.modifiers?.addAll(it) }
 
         return module
@@ -118,6 +121,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
     override fun visitClassDeclaration(ctx: JavaParser.ClassDeclarationContext?): ModuleScope {
         val moduleScope = ModuleScope()
+        moduleScope.metadata = ctx?.let { getSourceMetadata(it) }
         moduleScope.identifier = this.visitIdentifier(ctx?.identifier())
         moduleScope.moduleType = ModuleType.CLASS
 
@@ -137,6 +141,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
     override fun visitRecordDeclaration(ctx: JavaParser.RecordDeclarationContext?): ModuleScope {
         val moduleScope = ModuleScope()
+        moduleScope.metadata = ctx?.let { getSourceMetadata(it) }
         moduleScope.identifier = this.visitIdentifier(ctx?.identifier())
         moduleScope.moduleType = ModuleType.RECORD
 
@@ -160,6 +165,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
     override fun visitInterfaceDeclaration(ctx: JavaParser.InterfaceDeclarationContext?): ModuleScope {
         val moduleScope = ModuleScope()
+        moduleScope.metadata = ctx?.let { getSourceMetadata(it) }
         moduleScope.identifier = this.visitIdentifier(ctx?.identifier())
         moduleScope.moduleType = ModuleType.INTERFACE
 
@@ -175,6 +181,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
     override fun visitEnumDeclaration(ctx: JavaParser.EnumDeclarationContext?): ModuleScope {
         val moduleScope = ModuleScope()
+        moduleScope.metadata = ctx?.let { getSourceMetadata(it) }
         moduleScope.identifier = this.visitIdentifier(ctx?.identifier())
         moduleScope.moduleType = ModuleType.ENUM
 
@@ -652,7 +659,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
             }
         }
 
-        val elseIf = conditional.elseExpr?.nestedScope?.expressions?.first() as? Conditional
+        val elseIf = conditional.elseExpr?.nestedScope?.expressions?.firstOrNull() as? Conditional
         if (elseIf != null) {
             conditional.elseIfExpr.add(elseIf.ifExpr.also {
                 it.context = "java:IfElseStatement"
@@ -852,12 +859,11 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
             ctx?.enumConstantName != null -> Expression().also { it.context = "java:EnumConstantSwitchLabel" }
             ctx?.varName != null -> this.visitIdentifier(ctx.varName)?.also {
-                it.addMetadata(ctx)
                 it.context = "java:DeclarationSwitchLabel"
             }
 
             else -> Expression().also { it.context = "java:DefaultSwitchLabel" } // default label
-        }
+        }?.addMetadata(ctx)
     }
 
     override fun visitSwitchExpression(ctx: JavaParser.SwitchExpressionContext?): Conditional {
@@ -897,6 +903,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
                     it.context = "java:LogicalAndSequence"
                 }
                 seq.operands.add(Expression().also {
+                    it.addMetadata(ctx)
                     it.context = "java:TypePattern"
                 })
 
@@ -921,7 +928,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
                 pattern.operands.add(guardedPattern)
             }
 
-            this.visitExpression(ctx?.expression()?.first())?.let { pattern.operands.add(it) }
+            this.visitExpression(ctx?.expression()?.firstOrNull())?.let { pattern.operands.add(it) }
         }
 
         return pattern
@@ -1062,6 +1069,16 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
             ctx.explicitGenericInvocation() != null -> UnitCall().also {
                 it.context = "java:ExplicitGenericInvocation"
+
+                val obj = ctx.explicitGenericInvocation().explicitGenericInvocationSuffix()
+                if (obj.SUPER() != null) {
+                    // TODO(Document: We do not handle superSuffix correctly, with the possibility of super.identifier(args) )
+                    it.reference = createIdentifier("super", obj)
+                    this.visitArguments(obj.superSuffix().arguments())?.let { args -> it.arguments.addAll(args) }
+                } else {
+                    it.reference = this.visitIdentifier(obj.identifier())
+                    this.visitArguments(obj.arguments())?.let { args -> it.arguments.addAll(args) }
+                }
             }
 
             else -> UnitCall()
@@ -1075,7 +1092,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
     private fun createAnonymousClass(
         ctx: JavaParser.ClassCreatorRestContext?,
-        moduleReference: Identifier?
+        moduleReference: Expression?
     ): BlockScope? {
         var scope: BlockScope? = null
 
@@ -1085,7 +1102,10 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
             // Anonymous class // TODO(Document: how this anonymous class works)
             scope!!.expressions.add(Declaration().addMetadata(ctx).also { d ->
                 d.value = ModuleScope().also { m ->
-                    m.identifier = moduleReference?.also { it.value = it.value + ctx?.start.hashCode() }
+                    m.metadata = ctx?.let { getSourceMetadata(it) }
+                    // TODO( Check if we can always cast to Identifier )
+                    m.identifier =
+                        (moduleReference as? Identifier)?.also { it.value = it.value + ctx?.start.hashCode() }
                     m.members.addAll(members)
                 }
             })
@@ -1161,7 +1181,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
     override fun visitArrayInitializer(ctx: JavaParser.ArrayInitializerContext?): Expression? {
         return ctx?.variableInitializer()?.mapNotNull(this::visitVariableInitializer)?.let {
-            Expression().also {exp ->
+            Expression().also { exp ->
                 exp.context = "java:ArrayInitializer"
                 exp.addMetadata(ctx)
                 exp.addAll(it)
@@ -1205,7 +1225,7 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
         return when (ctx.bop?.text) {
             "=", "+=", "-=", "*=", "/=", "&=", "|=", "^=", ">>=", ">>>=", "<<=", "%=" -> Assignment().also {
-                it.reference = leftSide as? Identifier
+                it.reference = leftSide
                 it.context = "java:Assignment"
                 it.addMetadata(ctx)
                 it.add(rightSide)
@@ -1311,11 +1331,18 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
             it.addMetadata(ctx)
             it.add(UnitCall().addMetadata(ctx).also { uc ->
                 uc.reference = when {
-                    ctx.expression() != null -> this.visitExpression(ctx.expression().firstOrNull()) as? Identifier // TODO How to handle this expression reference? What are the possible type outcomes?
-                    ctx.typeType()?.isNotEmpty() == true -> createIdentifier(ctx.typeType().first().text, ctx.typeType().first())
+                    ctx.expression() != null -> this.visitExpression(
+                        ctx.expression().firstOrNull()
+                    )
+                    // TODO (Document: How to handle other types of references (types, classes, static things?) )
+                    ctx.typeType()?.isNotEmpty() == true -> createIdentifier(
+                        ctx.typeType().first().text,
+                        ctx.typeType().first()
+                    )
+
                     ctx.classType() != null -> this.visitIdentifier(ctx.classType().identifier())
-                    else -> createIdentifier(ctx.text, ctx)
-                }
+                    else -> null
+                } ?: createIdentifier(ctx.text, ctx)
             })
         }
     }

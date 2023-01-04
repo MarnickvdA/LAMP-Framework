@@ -26,8 +26,7 @@ object XMLWriter {
         modules.forEach { module ->
             if (module.moduleScope == null) {
                 System.err.println(
-                    "Cannot write module in ${module.fileName} at lines " +
-                            "${module.metadata.startLine} to ${module.metadata.endLine}"
+                    "Cannot write module in ${module.fileName}"
                 )
             } else {
                 val outputFile = Paths.get(
