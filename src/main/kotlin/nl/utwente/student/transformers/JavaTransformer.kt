@@ -2,6 +2,7 @@ package nl.utwente.student.transformers
 
 import nl.utwente.student.metamodel.v2.*
 import nl.utwente.student.metamodel.v2.Unit
+import nl.utwente.student.models.SupportedLanguage
 import nl.utwente.student.utils.Log
 import nl.utwente.student.utils.getDepth
 import nl.utwente.student.visitor.java.JavaParser
@@ -14,10 +15,11 @@ import org.antlr.v4.runtime.tree.TerminalNodeImpl
 import java.io.File
 
 class JavaTransformer(private val javaFile: File, private val javaParseTree: ParseTree) :
-    JavaParserBaseVisitor<Any?>() {
+    JavaParserBaseVisitor<Any?>(), Transformer {
+    override val language: SupportedLanguage = SupportedLanguage.JAVA
     private var imports: MutableList<String>? = null
 
-    fun transform(): List<Module> {
+    override fun transform(): List<Module> {
         return (this.visit(javaParseTree) as List<*>).filterIsInstance<Module>()
     }
 

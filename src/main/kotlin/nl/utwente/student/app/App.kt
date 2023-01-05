@@ -1,47 +1,37 @@
 package nl.utwente.student.app
 
 import nl.utwente.student.io.GitClient
-import nl.utwente.student.io.XMLWriter
-import nl.utwente.student.parsers.JavaModelParser
-import nl.utwente.student.parsers.MetamodelParser
+import nl.utwente.student.io.MetricsEngine
+import nl.utwente.student.io.ParserEngine
+import nl.utwente.student.io.WriterEngine
+import nl.utwente.student.utils.getFile
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-
 /**
  * Text-based User Interface
  */
-class App {
-    var isActive = true
+object App {
 
-    fun start() {
-        while (isActive) {
-            print("$ ")
-            handleInput()
-        }
-    }
+    fun execute(userInput: String? = null) {
+        val arguments = userInput?.split(" ")
 
-    private fun handleInput() {
-        val userInput = readln()
-        val arguments = userInput.split(" ")
-
-        if (arguments.isEmpty()) {
+        if (arguments.isNullOrEmpty()) {
             printWarning("Invalid Input.")
             printHelp()
             return
         }
 
         val url: String? = getArgument(arguments, "-url")
-        val lang: String? = getArgument(arguments, "-lang") ?: "java"
         val input: String? = getArgument(arguments, "-in")
         val output: String? = getArgument(arguments, "-out")
 
         when(arguments[0]) {
             "clone" -> cloneRepository(url, output)
-            "transform" -> transform(lang, input, output)
+            "transform" -> transform(input, output)
             "evaluate" -> evaluate(input, output)
-            "exit", "q", "quit" -> this.isActive = false
+            "exit", "q", "quit" -> throw Exception("Thank you for using LAMP.")
             else -> {
                 printWarning("Unknown command '${arguments[0]}'.")
                 printHelp()
@@ -62,25 +52,21 @@ class App {
         }
     }
 
-    private fun transform(lang: String?, input: String?, output: String?): File? {
-        if (input == null || output == null || lang == null) {
+    private fun transform(input: String?, output: String?): File? {
+        if (input == null || output == null) {
             System.err.println("Invalid arguments for command.")
             return null
         }
 
-        val modules = when(lang) {
-            "java", "Java" -> JavaModelParser(input, output).parse()
-            else -> {
-                printWarning("Unsupported programming language.")
-                null
-            }
+        val inputFile: File? = getFile(input)
+        val outputFile: File? = getFile(output)
+
+        if (inputFile == null || outputFile == null) {
+            System.err.println("Invalid file path.")
+            return null
         }
 
-        val file = modules?.let { XMLWriter.writeModules(it, output) }
-
-        return file?.also {
-            println("Transformed ${modules.size} .$lang module(s), now located in ${it.absolutePath}")
-        }
+        return ParserEngine.read(inputFile)?.let { WriterEngine.write(it, outputFile) }
     }
 
     private fun evaluate(input: String?, output: String?): File? {
@@ -92,16 +78,28 @@ class App {
         val dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmm")
         val now = LocalDateTime.now()
 
-        val modules = MetamodelParser(input, output ?: "results/${dtf.format(now)}").parse()
+        val inputFile: File? = getFile(input)
+        var outputFile: File? = getFile(output)
+
+        if (outputFile == null) {
+            outputFile = getFile("results/${dtf.format(now)}")
+        }
+
+        if (inputFile == null || outputFile == null) {
+            System.err.println("Invalid file path.")
+            return null
+        }
+
+        val modules = ParserEngine.read(inputFile)
 
         if (modules == null) {
-            System.err.println("No modules to evaluate.")
+            printWarning("No modules to evaluate.")
             return null
         }
 
         println("Starting evaluation of ${modules.size} module(s).")
 
-        return MetricRunner(modules).run(output)?.let { file ->
+        return MetricsEngine.run(modules, output)?.let { file ->
             println("Transformed ${modules.size} file(s), now located in ${file.absolutePath}")
             file
         }

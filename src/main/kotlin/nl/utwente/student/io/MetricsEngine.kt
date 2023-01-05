@@ -1,4 +1,4 @@
-package nl.utwente.student.app
+package nl.utwente.student.io
 
 import nl.utwente.student.metamodel.v2.Module
 import nl.utwente.student.metrics.*
@@ -9,7 +9,7 @@ import nl.utwente.student.visitors.InheritanceTreeVisitor
 import nl.utwente.student.visitors.SemanticTreeVisitor
 import java.io.File
 
-class MetricRunner(private val modules: List<Module>) {
+object MetricsEngine {
 
     private val moduleMetrics = listOf(
         WeightedMethodPerClass(),
@@ -26,10 +26,10 @@ class MetricRunner(private val modules: List<Module>) {
 
     private val expressionMetrics = listOf(
         LinesOfLambda(),
-        DepthOfMessageChain()
+//        LengthOfMessageChain()
     )
 
-    fun run(output: String?): File? {
+    fun run(modules: List<Module>, output: String?): File? {
         val out = output?.let { getFile(it) }
 
         val moduleResults = mutableMapOf<String, MutableList<Pair<String, Int>>>()
@@ -45,26 +45,27 @@ class MetricRunner(private val modules: List<Module>) {
             }
 
         modules.filter { it.moduleScope.members.size > 0 }.forEach {
-            calculateModuleMetrics(this.moduleMetrics, it).forEach { moduleMetrics ->
+            calculateModuleMetrics(moduleMetrics, it).forEach { moduleMetrics ->
                 if (moduleResults[moduleMetrics.key] == null)
                     moduleResults[moduleMetrics.key] = moduleMetrics.value.toMutableList()
                 else moduleResults[moduleMetrics.key]?.addAll(moduleMetrics.value)
             }
 
-            unitResults = calculateUnitMetrics(this.unitMetrics, it)
+            unitResults = calculateUnitMetrics(unitMetrics, it)
 
-            expressionResults = calculateUnitMetrics(this.expressionMetrics, it)
+            expressionResults = calculateUnitMetrics(expressionMetrics, it)
         }
 
         println("\n==== MODULE METRICS ====")
-        moduleResults.forEach { metric -> this.printModuleMetrics(metric.key, metric.value) }
+        moduleResults.forEach { metric -> printModuleMetrics(metric.key, metric.value) }
 
         println("\n==== UNIT METRICS ====")
-        unitResults.forEach { metric -> this.printUnitMetrics(metric.key, metric.value) }
+        unitResults.forEach { metric -> printUnitMetrics(metric.key, metric.value) }
 
         println("\n==== EXPRESSION METRICS ====")
-        expressionResults.forEach { metric -> this.printUnitMetrics(metric.key, metric.value) }
+        expressionResults.forEach { metric -> printUnitMetrics(metric.key, metric.value) }
 
+        println("\n==== SEMANTIC TREE ====")
         SemanticTreeVisitor("Test", modules).getResult().print()
 
         return out
@@ -100,7 +101,7 @@ class MetricRunner(private val modules: List<Module>) {
         module: Module
     ): MutableMap<String, MutableList<Pair<String, Int>>> {
         val results = mutableMapOf<String, MutableList<Pair<String, Int>>>()
-        unitMetrics.map { this.evaluateUnitMetric(it, module) }.forEach { aggregateMultipleMetricOutput(it, results) }
+        unitMetrics.map { evaluateUnitMetric(it, module) }.forEach { aggregateMultipleMetricOutput(it, results) }
         return results
     }
 
@@ -109,7 +110,7 @@ class MetricRunner(private val modules: List<Module>) {
         module: Module
     ): MutableMap<String, MutableList<Pair<String, Int>>> {
         val results = mutableMapOf<String, MutableList<Pair<String, Int>>>()
-        moduleMetrics.map { this.evaluateModuleMetric(it, module) }
+        moduleMetrics.map { evaluateModuleMetric(it, module) }
             .forEach { aggregateMultipleMetricOutput(it, results) }
         return results
     }

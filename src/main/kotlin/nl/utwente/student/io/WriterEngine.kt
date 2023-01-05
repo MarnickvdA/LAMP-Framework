@@ -4,24 +4,26 @@ import jakarta.xml.bind.JAXBContext
 import jakarta.xml.bind.JAXBException
 import jakarta.xml.bind.Marshaller
 import nl.utwente.student.metamodel.v2.Module
-import nl.utwente.student.utils.getFile
+import nl.utwente.student.models.SupportedLanguage
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Paths
 
-object XMLWriter {
-    fun writeModules(modules: List<Module>, outputDir: String): File? {
-        val out: File? = getFile(outputDir)
+object WriterEngine {
 
-        if (out == null) {
-            System.err.println("Cannot use $outputDir as directory.")
-            return null
+    fun write(modules: List<Module>?, output: File): File? {
+        val file = modules?.let { writeModules(it, output) }
+
+        return file?.also {
+            println("Transformed ${modules.size} module(s), now located in ${it.absolutePath}")
         }
+    }
 
+    private fun writeModules(modules: List<Module>, outputDir: File): File {
         val jaxbMarshaller: Marshaller = JAXBContext.newInstance(Module::class.java.packageName).createMarshaller()
         jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
 
-        out.mkdirs()
+        outputDir.mkdirs()
 
         modules.forEach { module ->
             if (module.moduleScope == null) {
@@ -30,8 +32,8 @@ object XMLWriter {
                 )
             } else {
                 val outputFile = Paths.get(
-                    out.absolutePath,
-                    "${module.packageName}.${module.moduleScope?.identifier?.value}.xml"
+                    outputDir.absolutePath,
+                    "${module.packageName}.${module.moduleScope?.identifier?.value}.${SupportedLanguage.METAMODEL.fileExtension}"
                 ).toFile()
 
                 println("${module.fileName}: Writing module ${module.moduleScope?.identifier?.value} to ${outputFile.name}.")
@@ -46,6 +48,6 @@ object XMLWriter {
             }
         }
 
-        return out
+        return outputDir
     }
 }

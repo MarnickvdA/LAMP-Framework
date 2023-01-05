@@ -10,7 +10,7 @@
 <!--    https://kotlinlang.org/docs/maven.html -->
 
     <properties>
-        <main.class>nl.utwente.student.app.MainKt</main.class>
+        <main.class>nl.utwente.student.MainKt</main.class>
         <maven.jar.version>3.3.0</maven.jar.version>
         <maven.assembly.version>3.4.2</maven.assembly.version>
         <maven.surefire.version>2.22.2</maven.surefire.version>
@@ -18,7 +18,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <java.version>17</java.version>
-        <kotlin.version>1.7.21</kotlin.version>
+        <kotlin.version>1.7.22</kotlin.version>
         <serialization.version>1.4.1</serialization.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <junit.version>5.9.0</junit.version>

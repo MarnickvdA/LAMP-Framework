@@ -28,14 +28,15 @@ fun ParseTree.getDepth(): Int {
     return depth
 }
 
-fun getFile(fileOrDir: String): File? {
+fun getFile(fileOrDir: String?): File? {
+    if (fileOrDir == null) return null
+
     return try {
         Paths.get(System.getProperty("user.dir"), fileOrDir).toFile()
     } catch (ex: Exception) {
         try {
             Paths.get(fileOrDir).toFile()
         } catch (ex: Exception) {
-            System.err.println("Invalid file path.")
             return null
         }
     }

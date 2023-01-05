@@ -6,10 +6,10 @@ import nl.utwente.student.metamodel.v2.UnitCall
 import nl.utwente.student.utils.getUniqueName
 import nl.utwente.student.visitors.UnitVisitor
 
-class DepthOfMessageChain: UnitVisitor() {
+class LengthOfMessageChain: UnitVisitor() {
 
     override fun getTag(): String {
-        return "DOC"
+        return "LMC"
     }
 
     private var currentChain: UnitCall? = null
