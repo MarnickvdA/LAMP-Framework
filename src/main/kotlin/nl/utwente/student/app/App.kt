@@ -1,6 +1,6 @@
 package nl.utwente.student.app
 
-import nl.utwente.student.io.GitClient
+import nl.utwente.student.io.GitEngine
 import nl.utwente.student.io.MetricsEngine
 import nl.utwente.student.io.ParserEngine
 import nl.utwente.student.io.WriterEngine
@@ -10,7 +10,8 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 /**
- * Text-based User Interface
+ * Central part of the application. It executes orders given from the CLI or TUI. This class is
+ * mainly responsible for validating the import and propagating orders to one of the engines.
  */
 object App {
 
@@ -45,7 +46,7 @@ object App {
             return null
         }
 
-        val file = GitClient.cloneRepository(url, output)
+        val file = GitEngine.clone(url, output)
 
         return file?.also {
             println("Project located at ${it.absolutePath}")
@@ -66,7 +67,7 @@ object App {
             return null
         }
 
-        return ParserEngine.read(inputFile)?.let { WriterEngine.write(it, outputFile) }
+        return ParserEngine.parse(inputFile)?.let { WriterEngine.write(it, outputFile) }
     }
 
     private fun evaluate(input: String?, output: String?): File? {
@@ -90,7 +91,7 @@ object App {
             return null
         }
 
-        val modules = ParserEngine.read(inputFile)
+        val modules = ParserEngine.parse(inputFile)
 
         if (modules == null) {
             printWarning("No modules to evaluate.")

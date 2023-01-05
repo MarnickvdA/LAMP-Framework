@@ -6,8 +6,8 @@ import java.io.File
 import java.lang.Exception
 import java.nio.file.Paths
 
-object GitClient {
-    fun cloneRepository(url: String, outDir: String?): File? {
+object GitEngine {
+    fun clone(url: String, outDir: String?): File? {
         val projectName = url.split("/").last().dropLast(4)
         val cloneDirectory = outDir ?: "projects/${projectName}"
 
@@ -22,11 +22,11 @@ object GitClient {
                     .setDirectory(file)
                     .setProgressMonitor(GitProcessMonitor(projectName))
                     .call()
-                println("Clone completed.")
+                println("[$projectName] Clone completed.")
 
                 return file
             } catch (ex: Exception) {
-                System.err.println("Clone failed.")
+                System.err.println("[$projectName] Clone failed.")
                 ex.printStackTrace()
             }
         } else {
@@ -34,11 +34,11 @@ object GitClient {
 
             try {
                 Git.open(file).pull().call()
-                println("Pull completed.")
+                println("[$projectName] Pull completed.")
 
                 return file
             } catch (ex: Exception) {
-                System.err.println("Pull failed.")
+                System.err.println("[$projectName] Pull failed.")
                 ex.printStackTrace()
             }
         }
@@ -47,22 +47,17 @@ object GitClient {
     }
 
     private class GitProcessMonitor(val projectName: String) : ProgressMonitor {
-        private var currentTask: String? = ""
 
-        override fun start(totalTasks: Int) {
-            println("[$projectName] Total Tasks: $totalTasks")
-        }
+        override fun start(totalTasks: Int) {}
 
         override fun beginTask(title: String?, totalWork: Int) {
-            currentTask = title
-            println("[$projectName] Starting task ($totalWork): $title")
+            println("[$projectName] $title")
         }
 
         override fun update(completed: Int) {
         }
 
         override fun endTask() {
-            println("[$projectName] Task ended: $currentTask")
         }
 
         override fun isCancelled(): Boolean {

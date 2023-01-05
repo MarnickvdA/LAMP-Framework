@@ -5,22 +5,32 @@ import nl.utwente.student.metamodel.v2.Unit
 import nl.utwente.student.models.SupportedLanguage
 import nl.utwente.student.utils.Log
 import nl.utwente.student.utils.getDepth
+import nl.utwente.student.visitor.java.JavaLexer
 import nl.utwente.student.visitor.java.JavaParser
 import nl.utwente.student.visitor.java.JavaParserBaseVisitor
+import org.antlr.v4.runtime.CharStreams
+import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.RuleNode
 import org.antlr.v4.runtime.tree.TerminalNode
 import org.antlr.v4.runtime.tree.TerminalNodeImpl
 import java.io.File
+import java.io.FileInputStream
 
-class JavaTransformer(private val javaFile: File, private val javaParseTree: ParseTree) :
+class JavaTransformer(override val inputFile: File) :
     JavaParserBaseVisitor<Any?>(), Transformer {
     override val language: SupportedLanguage = SupportedLanguage.JAVA
     private var imports: MutableList<String>? = null
 
     override fun transform(): List<Module> {
-        return (this.visit(javaParseTree) as List<*>).filterIsInstance<Module>()
+        val parseTree: ParseTree = FileInputStream(inputFile).use {
+            val input = CharStreams.fromStream(it)
+            val tokens = CommonTokenStream(JavaLexer(input))
+            JavaParser(tokens).compilationUnit()
+        }
+
+        return (this.visit(parseTree) as List<*>).filterIsInstance<Module>()
     }
 
     /**
@@ -78,8 +88,8 @@ class JavaTransformer(private val javaFile: File, private val javaParseTree: Par
 
     override fun visitTypeDeclaration(ctx: JavaParser.TypeDeclarationContext?): Module {
         val module = Module()
-        module.filePath = javaFile.absolutePath
-        module.fileName = javaFile.name
+        module.filePath = inputFile.absolutePath
+        module.fileName = inputFile.name
         module.moduleScope = (super.visitTypeDeclaration(ctx) as ModuleScope?)?.also {
             it.metadata = getSourceMetadata(ctx!!)
         }
