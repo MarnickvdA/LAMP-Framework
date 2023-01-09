@@ -43,7 +43,7 @@ fun getFile(fileOrDir: String?): File? {
 }
 
 fun Module.getUniqueName(withLocation: Boolean = true): String {
-    return this.moduleScope.getUniqueName(this.packageName, withLocation)
+    return this.moduleScope.getUniqueName(this.componentName, withLocation)
 }
 
 fun ModuleScope.getUniqueName(componentName: String?, withLocation: Boolean = true): String {
@@ -54,17 +54,17 @@ fun ModuleScope.getUniqueName(componentName: String?, withLocation: Boolean = tr
 }
 
 fun Unit.getUniqueName(module: Module?): String {
-    return ((module?.moduleScope?.getUniqueName(module.packageName, false)?.let { "$it://" })
+    return ((module?.moduleScope?.getUniqueName(module.componentName, false)?.let { "$it://" })
         ?: "") + this.identifier.value + getUniquePosition(this.metadata)
 }
 
 fun Property.getUniqueName(module: Module?): String {
-    return ((module?.moduleScope?.getUniqueName(module.packageName, false)?.let { "$it://" })
+    return ((module?.moduleScope?.getUniqueName(module.componentName, false)?.let { "$it://" })
         ?: "") + this.identifier.value + getUniquePosition(this.metadata)
 }
 
 fun Lambda.getUniqueName(module: Module?): String {
-    return ((module?.moduleScope?.getUniqueName(module.packageName, false)?.let { "$it://" })
+    return ((module?.moduleScope?.getUniqueName(module.componentName, false)?.let { "$it://" })
         ?: "") + "Lambda" + getUniquePosition(this.metadata)
 }
 
@@ -78,16 +78,16 @@ private fun getFullSignature(prefix: Expression?): MutableList<String?> {
 }
 
 fun UnitCall.getUniqueName(module: Module?): String {
-    return ((module?.moduleScope?.getUniqueName(module.packageName, false)?.let { "$it://" }) ?: "") +
+    return ((module?.moduleScope?.getUniqueName(module.componentName, false)?.let { "$it://" }) ?: "") +
             getFullSignature(this).joinToString(".") + getUniquePosition(this.metadata)
 }
 
 fun Assignment.getUniqueName(module: Module?): String {
-    return ((module?.moduleScope?.getUniqueName(module.packageName, false)?.let { "$it://" }) ?: "") +
+    return ((module?.moduleScope?.getUniqueName(module.componentName, false)?.let { "$it://" }) ?: "") +
             getFullSignature(this.reference).joinToString(".") + getUniquePosition(this.metadata)
 }
 
-private fun getUniquePosition(metadata: Metadata): String {
+fun getUniquePosition(metadata: Metadata): String {
 //    return "$" + md5("${metadata.startLine}:${metadata.startOffset}:${metadata.endLine}:${metadata.endOffset}").substring(0..8)
     return "$" + "[${metadata.startLine}:${metadata.startOffset},${metadata.endLine}:${metadata.endOffset}]"
 }

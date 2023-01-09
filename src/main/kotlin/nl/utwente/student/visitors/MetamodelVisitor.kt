@@ -21,6 +21,7 @@ abstract class MetamodelVisitor<T, R>: BaseVisitor<T, VisitorException>() {
             is Lambda -> this.visitLambda(expression)
             is UnitCall -> this.visitUnitCall(expression)
             is Catch -> this.visitCatch(expression)
+            is Identifier -> this.visitIdentifier(expression)
             else -> this.visitBlockScope(expression?.nestedScope)
         }
     }
@@ -30,6 +31,7 @@ abstract class MetamodelVisitor<T, R>: BaseVisitor<T, VisitorException>() {
     }
 
     override fun visitUnit(unit: Unit?): T {
+        unit?.parameters?.forEach(this::visitProperty)
         this.visitBlockScope(unit?.body)
 
         return super.visitUnit(unit)
@@ -103,6 +105,7 @@ abstract class MetamodelVisitor<T, R>: BaseVisitor<T, VisitorException>() {
     }
 
     override fun visitUnitCall(unitCall: UnitCall?): T {
+        this.visitExpression(unitCall?.reference)
         unitCall?.arguments?.forEach(this::visitExpression)
         this.visitBlockScope(unitCall?.nestedScope)
 

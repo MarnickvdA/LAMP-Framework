@@ -30,7 +30,7 @@ class InheritanceTreeVisitor(
         return ReferenceNode(
             module.getUniqueName(false),
             module.moduleScope.extensions.firstOrNull(),
-            module.packageName,
+            module.componentName,
             module.imports
         )
     }

@@ -12,7 +12,7 @@
                 </xs:sequence>
                 <xs:element name="ModuleScope" type="ModuleScope"/>
             </xs:sequence>
-            <xs:attribute name="packageName" type="xs:string"/>
+            <xs:attribute name="componentName" type="xs:string"/>
             <xs:attribute name="filePath" type="xs:anyURI"/>
             <xs:attribute name="fileName" type="xs:string"/>
         </xs:complexType>
@@ -26,13 +26,16 @@
     </xs:complexType>
 
     <xs:complexType name="Scope">
+        <xs:sequence>
+            <!-- Metadata about the source location of the expression. -->
+            <xs:element name="Metadata" type="Metadata"/>
+        </xs:sequence>
     </xs:complexType>
 
     <xs:complexType name="ModuleScope">
         <xs:complexContent>
             <xs:extension base="Scope">
                 <xs:sequence>
-                    <xs:element name="Metadata" type="Metadata"/>
                     <xs:element name="Identifier" type="Identifier"/>
                     <xs:sequence id="moduleModifiers" minOccurs="0" maxOccurs="unbounded">
                         <xs:element name="Modifier" type="modifierType"/>
@@ -56,7 +59,6 @@
         <xs:complexContent>
             <xs:extension base="Scope">
                 <xs:sequence>
-                    <xs:element name="Metadata" type="Metadata"/>
                     <xs:element name="Identifier" type="Identifier"/>
                     <xs:sequence id="unitModifiers" minOccurs="0" maxOccurs="unbounded">
                         <xs:element name="Modifier" type="modifierType"/>
@@ -74,7 +76,6 @@
         <xs:complexContent>
             <xs:extension base="Scope">
                 <xs:sequence>
-                    <xs:element name="Metadata" type="Metadata"/>
                     <xs:element name="Identifier" type="Identifier"/>
                     <xs:sequence id="modifiers" minOccurs="0" maxOccurs="unbounded">
                         <xs:element name="Modifier" type="modifierType"/>

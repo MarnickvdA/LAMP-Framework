@@ -64,7 +64,7 @@ class JavaTransformer(override val inputFile: File) :
         val modules = ctx.typeDeclaration()?.mapNotNull { this.visitTypeDeclaration(it) }
 
         this.visitPackageDeclaration(ctx.packageDeclaration())?.let { packageName ->
-            modules?.forEach { it.packageName = packageName }
+            modules?.forEach { it.componentName = packageName }
         }
 
         return modules

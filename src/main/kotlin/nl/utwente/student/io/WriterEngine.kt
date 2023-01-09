@@ -33,7 +33,7 @@ object WriterEngine {
             } else {
                 val outputFile = Paths.get(
                     outputDir.absolutePath,
-                    "${module.packageName}.${module.moduleScope?.identifier?.value}.${SupportedLanguage.METAMODEL.fileExtension}"
+                    "${module.componentName}.${module.moduleScope?.identifier?.value}.${SupportedLanguage.METAMODEL.fileExtension}"
                 ).toFile()
 
                 println("${module.fileName}: Writing module ${module.moduleScope?.identifier?.value} to ${outputFile.name}.")

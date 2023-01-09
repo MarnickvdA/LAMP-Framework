@@ -7,15 +7,6 @@ class Property
 class Expression
 class BlockScope
 
-class Loop
-class Conditional
-class LogicalSequence
-class Jump
-class Declaration
-class Assignment
-class Lambda
-class UnitCall
-
 enum ModuleType {
     CLASS
     ENUM
@@ -35,13 +26,11 @@ enum ModifierType {
     DEFAULT
 }
 
+Module : # componentName: String
 Module : # filePath: String
 Module : # fileName: String
-Module : # componentName: String?
 Module : # imports: List<String>
 Module *-- ModuleScope
-
-Scope : # metadata: Metadata
 
 Scope <|-- ModuleScope
 Scope <|-- Unit
@@ -52,6 +41,7 @@ ModuleScope : # identifier: Identifier
 ModuleScope : # extends: List<String>
 ModuleScope : # implements: List<String>
 ModuleScope : # members: List<Scope>
+ModuleScope : # metadata: Metadata
 ModuleScope "1" *-- "*" ModifierType : modifiers >
 ModuleScope *-- ModuleType : moduleType >
 
@@ -59,50 +49,18 @@ Unit : # identifier: Identifier
 Unit : # parameters: List<Property>
 Unit : # modifiers: List<ModifierType>
 Unit : # body: BlockScope
+Unit : # metadata: Metadata
 
 Property : # identifier: Identifier
 Property : # modifiers: List<ModifierType>
 Property : # value: Expression?
 Property : # getter: Unit?
 Property : # setter: Unit?
+Property : # metadata : Metadata
 
 BlockScope "1" *-- "*" Expression : expressions >
 
 Expression : # nestedScope: BlockScope
 Expression : # metadata: Metadata
-
-Expression <|-- Loop
-Expression <|-- Conditional
-Expression <|-- LogicalSequence
-Expression <|-- Jump
-Expression <|-- Declaration
-Expression <|-- Assignment
-Expression <|-- Lambda
-Expression <|-- UnitCall
-Expression <|-- Catch
-Expression <|-- Identifier
-
-Identifier : # value: String
-
-Catch : # exception: Property
-
-Loop : # evaluations: List<Expression>
-
-Conditional : # ifExpr: Expression
-Conditional : # elseIfExpr: List<Expression>
-Conditional : # elseExpr: Expression
-
-LogicalSequence : # operands: List<Expression>
-
-Jump : # label: String?
-
-Lambda : # parameters: List<Property>
-
-UnitCall : # reference: Expression
-UnitCall : # arguments: List<Expression>
-
-Declaration : # value: Scope
-
-Assignment : # reference: Expression
 
 @enduml

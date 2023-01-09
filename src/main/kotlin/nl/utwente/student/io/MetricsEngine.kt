@@ -32,38 +32,38 @@ object MetricsEngine {
     fun run(modules: List<Module>, output: String?): File? {
         val out = output?.let { getFile(it) }
 
-        val moduleResults = mutableMapOf<String, MutableList<Pair<String, Int>>>()
-        var unitResults = mutableMapOf<String, MutableList<Pair<String, Int>>>()
-        var expressionResults = mutableMapOf<String, MutableList<Pair<String, Int>>>()
-
-        InheritanceTreeVisitor(modules).getResult()
-            .forEach {
-                moduleResults[it.key] = mutableListOf(
-                    Pair("DIT", it.value.getDepthOfInheritanceTree()),
-                    Pair("NOC", it.value.getNumberOfChildren())
-                )
-            }
-
-        modules.filter { it.moduleScope.members.size > 0 }.forEach {
-            calculateModuleMetrics(moduleMetrics, it).forEach { moduleMetrics ->
-                if (moduleResults[moduleMetrics.key] == null)
-                    moduleResults[moduleMetrics.key] = moduleMetrics.value.toMutableList()
-                else moduleResults[moduleMetrics.key]?.addAll(moduleMetrics.value)
-            }
-
-            unitResults = calculateUnitMetrics(unitMetrics, it)
-
-            expressionResults = calculateUnitMetrics(expressionMetrics, it)
-        }
-
-        println("\n==== MODULE METRICS ====")
-        moduleResults.forEach { metric -> printModuleMetrics(metric.key, metric.value) }
-
-        println("\n==== UNIT METRICS ====")
-        unitResults.forEach { metric -> printUnitMetrics(metric.key, metric.value) }
-
-        println("\n==== EXPRESSION METRICS ====")
-        expressionResults.forEach { metric -> printUnitMetrics(metric.key, metric.value) }
+//        val moduleResults = mutableMapOf<String, MutableList<Pair<String, Int>>>()
+//        var unitResults = mutableMapOf<String, MutableList<Pair<String, Int>>>()
+//        var expressionResults = mutableMapOf<String, MutableList<Pair<String, Int>>>()
+//
+//        InheritanceTreeVisitor(modules).getResult()
+//            .forEach {
+//                moduleResults[it.key] = mutableListOf(
+//                    Pair("DIT", it.value.getDepthOfInheritanceTree()),
+//                    Pair("NOC", it.value.getNumberOfChildren())
+//                )
+//            }
+//
+//        modules.filter { it.moduleScope.members.size > 0 }.forEach {
+//            calculateModuleMetrics(moduleMetrics, it).forEach { moduleMetrics ->
+//                if (moduleResults[moduleMetrics.key] == null)
+//                    moduleResults[moduleMetrics.key] = moduleMetrics.value.toMutableList()
+//                else moduleResults[moduleMetrics.key]?.addAll(moduleMetrics.value)
+//            }
+//
+//            unitResults = calculateUnitMetrics(unitMetrics, it)
+//
+//            expressionResults = calculateUnitMetrics(expressionMetrics, it)
+//        }
+//
+//        println("\n==== MODULE METRICS ====")
+//        moduleResults.forEach { metric -> printModuleMetrics(metric.key, metric.value) }
+//
+//        println("\n==== UNIT METRICS ====")
+//        unitResults.forEach { metric -> printUnitMetrics(metric.key, metric.value) }
+//
+//        println("\n==== EXPRESSION METRICS ====")
+//        expressionResults.forEach { metric -> printUnitMetrics(metric.key, metric.value) }
 
         println("\n==== SEMANTIC TREE ====")
         SemanticTreeVisitor("Test", modules).getResult().print()

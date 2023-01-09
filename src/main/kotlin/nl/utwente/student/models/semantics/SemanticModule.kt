@@ -2,8 +2,12 @@ package nl.utwente.student.models.semantics
 
 class SemanticModule(
     override val name: String,
-    val component: SemanticComponent?,
+    override val parent: SemanticElement?,
     override val elements: MutableMap<String, SemanticElement> = mutableMapOf(),
-) : SemanticDeclarable {
+) : SemanticElement {
+    init {
+        parent?.add(this)
+    }
+
     override fun toString(): String = "module://$name"
 }

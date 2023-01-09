@@ -2,9 +2,13 @@ package nl.utwente.student.models.semantics
 
 class SemanticProperty(
     override val name: String,
-    val module: SemanticModule,
-    override val elements: MutableMap<String, SemanticElement> = mutableMapOf()
-) : SemanticDeclarable {
+    override val parent: SemanticElement?,
+    override val elements: MutableMap<String, SemanticElement> = mutableMapOf(),
+) : SemanticElement {
+
+    init {
+        parent?.add(this)
+    }
 
     override fun toString(): String = "property://$name"
 }

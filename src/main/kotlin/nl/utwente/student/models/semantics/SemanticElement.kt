@@ -2,10 +2,15 @@ package nl.utwente.student.models.semantics
 
 interface SemanticElement {
     val name: String
+    val parent: SemanticElement?
     val elements: MutableMap<String, SemanticElement>
 
     fun add(element: SemanticElement) {
         elements[element.name] = element
+    }
+
+    fun remove(element: SemanticElement) {
+        elements.remove(element.name)
     }
 
     fun print(depth: Int = 0) {

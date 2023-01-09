@@ -2,8 +2,12 @@ package nl.utwente.student.models.semantics
 
 class SemanticAssignment(
     override val name: String,
+    override val parent: SemanticElement?,
     override val elements: MutableMap<String, SemanticElement> = mutableMapOf()
-    ) : SemanticElement {
+) : SemanticElement {
+    init {
+        parent?.add(this)
+    }
 
     override fun toString(): String = "assign://$name"
 }

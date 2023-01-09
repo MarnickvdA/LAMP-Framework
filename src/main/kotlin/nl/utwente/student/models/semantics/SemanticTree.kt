@@ -7,17 +7,15 @@ class SemanticTree(
     override val name: String,
     override val elements: MutableMap<String, SemanticElement> = mutableMapOf()
 ) : SemanticElement {
+    override val parent: SemanticElement? = null
     override fun toString(): String {
         return "project://$name"
     }
 
-    private fun addSemanticElement(element: SemanticElement) {
-        if (elements.containsKey(element.name)) return
-        add(element)
-    }
-
     fun addComponent(component: SemanticComponent): SemanticComponent {
-        this.addSemanticElement(component)
+        if (!elements.containsKey(component.name))
+            add(component)
+
         return this.elements[component.name] as SemanticComponent
     }
 
