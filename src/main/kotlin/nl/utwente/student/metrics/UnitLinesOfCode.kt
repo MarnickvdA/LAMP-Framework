@@ -1,10 +1,8 @@
 package nl.utwente.student.metrics
 
-import nl.utwente.student.metamodel.v2.*
-import nl.utwente.student.metamodel.v2.Unit
+import nl.utwente.student.metamodel.v3.Unit
 import nl.utwente.student.utils.getUniqueName
 import nl.utwente.student.visitors.LinesOfCodeVisitor
-import nl.utwente.student.visitors.UnitVisitor
 
 class UnitLinesOfCode : LinesOfCodeVisitor() {
 
@@ -25,9 +23,14 @@ class UnitLinesOfCode : LinesOfCodeVisitor() {
 
         super.visitUnit(unit)
 
-        metricResults.add(Pair(unit.getUniqueName(module), curLinesCovered.size))
+        metricResults.add(Pair(unit.getUniqueName(moduleRoot), curLinesCovered.size))
 
         curLinesCovered.addAll(parentLines)
         currentUnit = parentUnit
+    }
+
+    override fun reset() {
+        currentUnit = null
+        super.reset()
     }
 }

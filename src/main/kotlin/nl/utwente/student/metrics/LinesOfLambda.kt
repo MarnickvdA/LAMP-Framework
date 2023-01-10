@@ -1,7 +1,6 @@
 package nl.utwente.student.metrics
 
-import nl.utwente.student.metamodel.v2.*
-import nl.utwente.student.visitors.UnitVisitor
+import nl.utwente.student.metamodel.v3.Lambda
 import nl.utwente.student.utils.getUniqueName
 import nl.utwente.student.visitors.LinesOfCodeVisitor
 
@@ -23,7 +22,7 @@ class LinesOfLambda: LinesOfCodeVisitor() {
 
         super.visitLambda(lambda)
 
-        metricResults.add(Pair(lambda.getUniqueName(module), curLinesCovered.size))
+        metricResults.add(Pair(lambda.getUniqueName(moduleRoot), curLinesCovered.size))
 
         curLinesCovered.addAll(parentLines)
         currentLambda = parentLambda

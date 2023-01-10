@@ -6,14 +6,14 @@
     <jaxb:globalBindings>
     </jaxb:globalBindings>
 
-    <jaxb:bindings schemaLocation="./metamodel-schema-v3.xsd">
+    <jaxb:bindings schemaLocation="./metamodel-schema-v2.xsd">
         <jaxb:schemaBindings>
-            <jaxb:package name="nl.utwente.student.metamodel.v3"/>
+            <jaxb:package name="nl.utwente.student.metamodel.v2"/>
         </jaxb:schemaBindings>
         <jaxb:bindings node="//xs:sequence[@id='imports']">
             <jaxb:property name="imports"/>
         </jaxb:bindings>
-        <jaxb:bindings node="//xs:sequence[@id='modifiers']">
+        <jaxb:bindings node="//xs:sequence[@id='moduleModifiers']">
             <jaxb:property name="modifiers"/>
         </jaxb:bindings>
         <jaxb:bindings node="//xs:sequence[@id='extends']">
@@ -28,17 +28,20 @@
         <jaxb:bindings node="//xs:sequence[@id='parameters']">
             <jaxb:property name="parameters"/>
         </jaxb:bindings>
-        <jaxb:bindings node="//xs:sequence[@id='innerScope']">
-            <jaxb:property name="innerScope"/>
+        <jaxb:bindings node="//xs:sequence[@id='unitModifiers']">
+            <jaxb:property name="modifiers"/>
         </jaxb:bindings>
-        <jaxb:bindings node="//xs:sequence[@id='evaluations']">
+        <jaxb:bindings node="//xs:sequence[@id='modifiers']">
+            <jaxb:property name="modifiers"/>
+        </jaxb:bindings>
+        <jaxb:bindings node="//xs:complexType[@name='BlockScope']//xs:sequence">
+            <jaxb:property name="expressions"/>
+        </jaxb:bindings>
+        <jaxb:bindings node="//xs:complexType[@name='Loop']//xs:sequence">
             <jaxb:property name="evaluations"/>
         </jaxb:bindings>
-        <jaxb:bindings node="//xs:sequence[@id='operands']">
+        <jaxb:bindings node="//xs:complexType[@name='LogicalSequence']//xs:sequence">
             <jaxb:property name="operands"/>
-        </jaxb:bindings>
-        <jaxb:bindings node="//xs:sequence[@id='switchCases']">
-            <jaxb:property name="cases"/>
         </jaxb:bindings>
         <jaxb:bindings node="//xs:sequence[@id='lambdaParams']">
             <jaxb:property name="parameters"/>

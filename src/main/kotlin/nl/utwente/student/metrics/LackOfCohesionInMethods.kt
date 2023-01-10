@@ -1,10 +1,15 @@
 package nl.utwente.student.metrics
 
-import nl.utwente.student.visitors.ModuleVisitor
-import nl.utwente.student.models.semantics.SemanticMetric
-import nl.utwente.student.models.semantics.SemanticTree
+import nl.utwente.student.models.metrics.SemanticMetric
 
-class LackOfCohesionInMethods(override var semanticTree: SemanticTree) : ModuleVisitor(), SemanticMetric {
-    override var result: Int? = 0
+class LackOfCohesionInMethods : SemanticMetric {
+    var result: Int? = 0
     override fun getTag(): String = "LCOM"
+    override fun getResult(): Map<String, Int> {
+        TODO("Not yet implemented")
+    }
+
+    /**
+     * TODO Document how Lack Of Cohesion In Methods is measured
+     */
 }

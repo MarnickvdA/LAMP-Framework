@@ -1,52 +1,59 @@
 package nl.utwente.student.visitors
 
-import nl.utwente.student.metamodel.v2.*
-import nl.utwente.student.metamodel.v2.Unit
+import nl.utwente.student.metamodel.v3.*
+import nl.utwente.student.metamodel.v3.Unit
 import nl.utwente.student.visitor.BaseVisitor
 
-abstract class MetamodelVisitor<T, R>: BaseVisitor<T, VisitorException>() {
-
-    abstract fun getTag(): String
-
-    abstract fun getResult(): R
+abstract class MetamodelVisitor<T>: BaseVisitor<T, VisitorException>() {
 
     override fun visitExpression(expression: Expression?): T {
+        if (expression == null) return super.visitExpression(expression)
+
         return when (expression) {
             is Loop -> this.visitLoop(expression)
             is Conditional -> this.visitConditional(expression)
             is LogicalSequence -> this.visitLogicalSequence(expression)
             is Jump -> this.visitJump(expression)
-            is Declaration -> this.visitDeclaration(expression)
+            is LocalDeclaration -> this.visitLocalDeclaration(expression)
             is Assignment -> this.visitAssignment(expression)
             is Lambda -> this.visitLambda(expression)
             is UnitCall -> this.visitUnitCall(expression)
             is Catch -> this.visitCatch(expression)
+            is Switch -> this.visitSwitch(expression)
+            is SwitchCase -> this.visitSwitchCase(expression)
             is Identifier -> this.visitIdentifier(expression)
-            else -> this.visitBlockScope(expression?.nestedScope)
+            else -> {
+                this.visitInnerScope(expression.innerScope)
+                super.visitExpression(expression)
+            }
         }
     }
 
-    override fun visitModule(module: Module?): T {
-        return this.visitModuleScope(module?.moduleScope)
+    protected fun visitInnerScope(innerScope: List<Expression?>?) {
+        innerScope?.forEach(this::visitExpression)
+    }
+
+    override fun visitModuleRoot(moduleRoot: ModuleRoot?): T {
+        return this.visitModule(moduleRoot?.module)
     }
 
     override fun visitUnit(unit: Unit?): T {
         unit?.parameters?.forEach(this::visitProperty)
-        this.visitBlockScope(unit?.body)
+        this.visitExpression(unit?.body)
 
         return super.visitUnit(unit)
     }
 
     override fun visitAssignment(assignment: Assignment?): T {
         this.visitExpression(assignment?.reference)
-        this.visitBlockScope(assignment?.nestedScope)
+        this.visitExpression(assignment?.value)
 
         return super.visitAssignment(assignment)
     }
 
     override fun visitCatch(catch: Catch?): T {
         this.visitProperty(catch?.exception)
-        this.visitBlockScope(catch?.nestedScope)
+        this.visitInnerScope(catch?.innerScope)
 
         return super.visitCatch(catch)
     }
@@ -61,17 +68,17 @@ abstract class MetamodelVisitor<T, R>: BaseVisitor<T, VisitorException>() {
 
     override fun visitLoop(loop: Loop?): T {
         loop?.evaluations?.forEach(this::visitExpression)
-        this.visitBlockScope(loop?.nestedScope)
+        this.visitInnerScope(loop?.innerScope)
 
         return super.visitLoop(loop)
     }
 
-    override fun visitDeclaration(declaration: Declaration?): T {
-        return when (declaration?.value) {
-            is Unit -> visitBlockScope((declaration.value as Unit).body)
-            is Property -> visitExpression((declaration.value as Property).value)
-            is ModuleScope -> visitModuleScope(declaration.value as ModuleScope)
-            else -> super.visitDeclaration(declaration)
+    override fun visitLocalDeclaration(declaration: LocalDeclaration?): T {
+        return when (val element = declaration?.declaration) {
+            is Unit -> visitUnit(element)
+            is Property -> visitProperty(element)
+            is Module -> visitModule(element)
+            else -> super.visitLocalDeclaration(declaration)
         }
     }
 
@@ -80,26 +87,34 @@ abstract class MetamodelVisitor<T, R>: BaseVisitor<T, VisitorException>() {
     }
 
     override fun visitLambda(lambda: Lambda?): T {
-        this.visitBlockScope(lambda?.nestedScope)
+        this.visitInnerScope(lambda?.innerScope)
 
         return super.visitLambda(lambda)
     }
 
     override fun visitLogicalSequence(sequence: LogicalSequence?): T {
         sequence?.operands?.forEach(this::visitExpression)
-        this.visitBlockScope(sequence?.nestedScope)
+        this.visitInnerScope(sequence?.innerScope)
 
         return super.visitLogicalSequence(sequence)
     }
 
-    override fun visitModuleScope(module: ModuleScope?): T {
-        module?.members?.forEach(this::visitScope)
+    override fun visitModule(module: Module?): T {
+        module?.members?.forEach {
+            when(it) {
+                is Module -> this.visitModule(it)
+                is Unit -> this.visitUnit(it)
+                is Property -> this.visitProperty(it)
+            }
+        }
 
-        return super.visitModuleScope(module)
+        return super.visitModule(module)
     }
 
     override fun visitProperty(property: Property?): T {
-        this.visitExpression(property?.value)
+        property?.initializer?.also { this.visitAssignment(it) }
+        property?.getter?.also { this.visitUnit(it) }
+        property?.setter?.also { this.visitUnit(it) }
 
         return super.visitProperty(property)
     }
@@ -107,18 +122,13 @@ abstract class MetamodelVisitor<T, R>: BaseVisitor<T, VisitorException>() {
     override fun visitUnitCall(unitCall: UnitCall?): T {
         this.visitExpression(unitCall?.reference)
         unitCall?.arguments?.forEach(this::visitExpression)
-        this.visitBlockScope(unitCall?.nestedScope)
+        this.visitInnerScope(unitCall?.innerScope)
 
         return super.visitUnitCall(unitCall)
     }
 
-    override fun visitBlockScope(scope: BlockScope?): T {
-        scope?.expressions?.forEach(this::visitExpression)
-
-        return super.visitBlockScope(scope)
-    }
-
     override fun visitIdentifier(identifier: Identifier?): T {
+        this.visitInnerScope(identifier?.innerScope)
         return super.visitIdentifier(identifier)
     }
 
@@ -126,13 +136,17 @@ abstract class MetamodelVisitor<T, R>: BaseVisitor<T, VisitorException>() {
         return super.visitMetadata(metadata)
     }
 
-    override fun visitScope(scope: Scope?): T {
-        return when (scope) {
-            is ModuleScope -> this.visitModuleScope(scope)
-            is Unit -> this.visitUnit(scope)
-            is Property -> this.visitProperty(scope)
-            is BlockScope -> this.visitBlockScope(scope)
-            else -> super.visitScope(scope)
-        }
+    override fun visitSwitch(switch: Switch?): T {
+        this.visitExpression(switch?.subject)
+        switch?.cases?.forEach(this::visitExpression)
+
+        return super.visitSwitch(switch)
+    }
+
+    override fun visitSwitchCase(switchCase: SwitchCase?): T {
+        this.visitExpression(switchCase?.pattern)
+        this.visitInnerScope(switchCase?.innerScope)
+
+        return super.visitSwitchCase(switchCase)
     }
 }

@@ -1,7 +1,7 @@
 package nl.utwente.student.metrics
 
-import nl.utwente.student.metamodel.v2.*
-import nl.utwente.student.metamodel.v2.Unit
+import nl.utwente.student.metamodel.v3.*
+import nl.utwente.student.metamodel.v3.Unit
 import nl.utwente.student.visitors.UnitVisitor
 import nl.utwente.student.utils.getUniqueName
 
@@ -10,11 +10,6 @@ class CognitiveComplexity : UnitVisitor() {
 
     private var currentNestingLevel = 0
     private var currentComplexity = 0
-
-    override fun visitModule(module: Module?) {
-        this.module = module
-        this.visitModuleScope(module?.moduleScope)
-    }
 
     override fun visitUnit(unit: Unit?) {
         // Reset the current nesting level to calculate the whole
@@ -25,7 +20,7 @@ class CognitiveComplexity : UnitVisitor() {
         super.visitUnit(unit)
 
         if (unit != null) {
-            metricResults.add(Pair(unit.getUniqueName(module), this.currentComplexity))
+            metricResults.add(Pair(unit.getUniqueName(moduleRoot), this.currentComplexity))
         }
     }
 
@@ -62,6 +57,19 @@ class CognitiveComplexity : UnitVisitor() {
         currentNestingLevel--
     }
 
+    override fun visitSwitch(switch: Switch?) {
+        if (switch == null) return
+
+        currentComplexity += 1
+
+        // TODO Document that we count the subject outside of the nesting level of switch, this is not clear in the whitepaper of Sonarsource.
+        this.visitExpression(switch.subject)
+
+        currentNestingLevel++
+        switch.cases?.forEach(this::visitSwitchCase)
+        currentNestingLevel--
+    }
+
     override fun visitLoop(loop: Loop?) {
         currentComplexity += currentNestingLevel + 1
         logCount(loop, currentNestingLevel + 1)
@@ -69,18 +77,18 @@ class CognitiveComplexity : UnitVisitor() {
         loop?.evaluations?.forEach(this::visitExpression)
 
         currentNestingLevel++
-        visitBlockScope(loop?.nestedScope)
+        this.visitInnerScope(loop?.innerScope)
         currentNestingLevel--
     }
 
-    override fun visitDeclaration(declaration: Declaration?) {
-        when (declaration?.value) {
+    override fun visitLocalDeclaration(declaration: LocalDeclaration?) {
+        when (val d = declaration?.declaration) {
             is Unit -> {
                 currentNestingLevel++
-                visitBlockScope((declaration.value as Unit).body)
+                this.visitUnit(d) // TODO(Document: whitepaper touches upon decorator functions, we do not detect them here. (because we do not use Python.)
                 currentNestingLevel--
             }
-            else -> super.visitDeclaration(declaration)
+            else -> super.visitLocalDeclaration(declaration)
         }
     }
 

@@ -2,11 +2,12 @@ package nl.utwente.student.models.semantics
 
 import nl.utwente.student.metamodel.v3.SourceElement
 
-class SemanticComponent(
+abstract class SemanticDeclarable(
     override val name: String,
+    override val sourceElement: SourceElement,
+    override val parent: SemanticElement?,
 ) : SemanticElement {
-    override val parent: SemanticElement? = null
-    override val sourceElement: SourceElement? = null
     override val children: MutableMap<String, SemanticElement> = mutableMapOf()
-    override fun toString(): String = "component://$name"
+
+    override fun toString(): String = "scope://$name"
 }

@@ -1,9 +1,10 @@
 package nl.utwente.student.visitors
 
-import nl.utwente.student.metamodel.v2.Module
+import nl.utwente.student.metamodel.v3.ModuleRoot
+import nl.utwente.student.models.metrics.ModuleMetric
 import nl.utwente.student.utils.getUniqueName
 
-abstract class ModuleVisitor: MetamodelVisitor<Unit, Pair<String, Int>>() {
+abstract class ModuleVisitor: MetamodelVisitor<Unit>(), ModuleMetric {
 
     abstract override fun getTag(): String
 
@@ -16,8 +17,8 @@ abstract class ModuleVisitor: MetamodelVisitor<Unit, Pair<String, Int>>() {
         return Pair(moduleName!!, result!!)
     }
 
-    override fun visitModule(module: Module?) {
-        this.moduleName = module?.getUniqueName(false)
-        super.visitModule(module)
+    override fun visitModuleRoot(moduleRoot: ModuleRoot?) {
+        this.moduleName = moduleRoot?.getUniqueName(false)
+        super.visitModuleRoot(moduleRoot)
     }
 }

@@ -1,7 +1,13 @@
 package nl.utwente.student.io
 
-import nl.utwente.student.metamodel.v2.Module
+import nl.utwente.student.metamodel.v3.ModuleRoot
 import nl.utwente.student.metrics.*
+import nl.utwente.student.models.metrics.Metric
+import nl.utwente.student.models.inheritance.InheritanceTree
+import nl.utwente.student.models.metrics.InheritanceMetric
+import nl.utwente.student.models.metrics.ModuleMetric
+import nl.utwente.student.models.metrics.UnitMetric
+import nl.utwente.student.models.semantics.SemanticTree
 import nl.utwente.student.visitors.ModuleVisitor
 import nl.utwente.student.visitors.UnitVisitor
 import nl.utwente.student.utils.getFile
@@ -9,64 +15,72 @@ import nl.utwente.student.visitors.InheritanceTreeVisitor
 import nl.utwente.student.visitors.SemanticTreeVisitor
 import java.io.File
 
+typealias MetricResult = MutableMap<String, Pair<String, Int>>
+typealias MetricResults = MutableMap<String, MutableList<Pair<String, Int>>>
+
 object MetricsEngine {
 
-    private val moduleMetrics = listOf(
+    private val metrics = listOf(
+        // Module metrics
         WeightedMethodPerClass(),
         CognitivelyWeightedMethodPerClass(),
-        LambdaCount()
-    )
+        LambdaCount(),
 
-    private val unitMetrics = listOf(
+        // Module Inheritance metrics
+        DepthOfInheritanceTree(),
+        NumberOfChildren(),
+
+        // Module Semantics metrics
+        CouplingBetweenObjectClasses(),
+        LackOfCohesionInMethods(),
+        ResponseForAClass(),
+
+        // Unit metrics
         CyclomaticComplexity(),
         CognitiveComplexity(),
         NumberOfParameters(),
-        UnitLinesOfCode()
-    )
+        UnitLinesOfCode(),
 
-    private val expressionMetrics = listOf(
+        // Expression metrics
         LinesOfLambda(),
 //        LengthOfMessageChain()
     )
 
-    fun run(modules: List<Module>, output: String?): File? {
+    fun MetricResults.add(result: Map.Entry<String, MutableList<Pair<String, Int>>>) {
+        if (this[result.key] == null)
+            this[result.key] = result.value.toMutableList()
+        else this[result.key]?.addAll(result.value)
+    }
+
+    fun run(modules: List<ModuleRoot>, output: String?): File? {
         val out = output?.let { getFile(it) }
 
-//        val moduleResults = mutableMapOf<String, MutableList<Pair<String, Int>>>()
-//        var unitResults = mutableMapOf<String, MutableList<Pair<String, Int>>>()
-//        var expressionResults = mutableMapOf<String, MutableList<Pair<String, Int>>>()
-//
-//        InheritanceTreeVisitor(modules).getResult()
-//            .forEach {
-//                moduleResults[it.key] = mutableListOf(
-//                    Pair("DIT", it.value.getDepthOfInheritanceTree()),
-//                    Pair("NOC", it.value.getNumberOfChildren())
-//                )
-//            }
-//
-//        modules.filter { it.moduleScope.members.size > 0 }.forEach {
-//            calculateModuleMetrics(moduleMetrics, it).forEach { moduleMetrics ->
-//                if (moduleResults[moduleMetrics.key] == null)
-//                    moduleResults[moduleMetrics.key] = moduleMetrics.value.toMutableList()
-//                else moduleResults[moduleMetrics.key]?.addAll(moduleMetrics.value)
-//            }
-//
-//            unitResults = calculateUnitMetrics(unitMetrics, it)
-//
-//            expressionResults = calculateUnitMetrics(expressionMetrics, it)
-//        }
-//
-//        println("\n==== MODULE METRICS ====")
-//        moduleResults.forEach { metric -> printModuleMetrics(metric.key, metric.value) }
-//
-//        println("\n==== UNIT METRICS ====")
-//        unitResults.forEach { metric -> printUnitMetrics(metric.key, metric.value) }
-//
-//        println("\n==== EXPRESSION METRICS ====")
-//        expressionResults.forEach { metric -> printUnitMetrics(metric.key, metric.value) }
+        val moduleResults: MetricResults = mutableMapOf()
+        var unitResults: MetricResults = mutableMapOf()
 
-        println("\n==== SEMANTIC TREE ====")
-        SemanticTreeVisitor("Test", modules).getResult().print()
+        // Calculate the inheritance metrics
+        calculateMetrics(
+            metrics.filterIsInstance<InheritanceMetric>(),
+            inheritanceTree = InheritanceTreeVisitor().visitProject(modules)
+        ).forEach { moduleResults.add(it) }
+
+        // Calculate the semantic metrics
+        val semanticTree = SemanticTreeVisitor().visitProject(modules)
+
+        // Calculate the module specific metrics
+        modules.filter { it.module.members.isNotEmpty() }.forEach {
+            // Calculate metrics for modules
+            calculateMetrics(metrics.filterIsInstance<ModuleMetric>(), it).forEach { entry -> moduleResults.add(entry) }
+
+            // Calculate unit metrics
+            unitResults = calculateMetrics(metrics.filterIsInstance<UnitMetric>(), it)
+        }
+
+        println("\n==== MODULE METRICS ====")
+        moduleResults.forEach { metric -> printModuleMetrics(metric.key, metric.value) }
+
+        println("\n==== SOURCE ELEMENT METRICS ====")
+        unitResults.forEach { metric -> printUnitMetrics(metric.key, metric.value) }
 
         return out
     }
@@ -96,30 +110,30 @@ object MetricsEngine {
         }
     }
 
-    private fun calculateUnitMetrics(
-        unitMetrics: List<UnitVisitor>,
-        module: Module
-    ): MutableMap<String, MutableList<Pair<String, Int>>> {
-        val results = mutableMapOf<String, MutableList<Pair<String, Int>>>()
-        unitMetrics.map { evaluateUnitMetric(it, module) }.forEach { aggregateMultipleMetricOutput(it, results) }
+    private fun calculateMetrics(
+        metrics: List<Metric<*>>,
+        moduleRoot: ModuleRoot? = null,
+        inheritanceTree: InheritanceTree? = null,
+        semanticTree: SemanticTree? = null
+    ): MetricResults {
+        val results: MetricResults = mutableMapOf()
+        metrics.mapNotNull {
+            when (it) {
+                is UnitVisitor -> evaluateUnitMetric(it, moduleRoot!!)
+                is ModuleVisitor -> evaluateModuleMetric(it, moduleRoot!!)
+                is InheritanceMetric -> evaluateInheritanceMetric(it, inheritanceTree!!)
+//                is ModuleSemanticsMetric -> evaluateModuleMetric(it, semanticTree!!)
+                else -> null
+            }
+        }.forEach { aggregateMultipleMetricOutput(it, results) }
         return results
     }
 
-    private fun calculateModuleMetrics(
-        moduleMetrics: List<ModuleVisitor>,
-        module: Module
-    ): MutableMap<String, MutableList<Pair<String, Int>>> {
-        val results = mutableMapOf<String, MutableList<Pair<String, Int>>>()
-        moduleMetrics.map { evaluateModuleMetric(it, module) }
-            .forEach { aggregateMultipleMetricOutput(it, results) }
-        return results
-    }
-
-    private fun evaluateUnitMetric(metric: UnitVisitor, module: Module): Map<String, Pair<String, Int>> {
-        val results = mutableMapOf<String, Pair<String, Int>>()
+    private fun evaluateUnitMetric(metric: UnitVisitor, moduleRoot: ModuleRoot): MetricResult {
+        val results: MetricResult = mutableMapOf()
 
         // Calculate the metric
-        metric.visitModule(module)
+        metric.visitModuleRoot(moduleRoot)
 
         // Put the results in a format grouped by unitId
         metric.getResult().forEach { (unitId, result) ->
@@ -130,16 +144,33 @@ object MetricsEngine {
         return results
     }
 
-    private fun evaluateModuleMetric(metric: ModuleVisitor, module: Module): Map<String, Pair<String, Int>> {
-        val results = mutableMapOf<String, Pair<String, Int>>()
+    private fun evaluateModuleMetric(metric: ModuleVisitor, moduleRoot: ModuleRoot): MetricResult {
+        val results: MetricResult = mutableMapOf()
 
         // Calculate the metric
-        metric.visitModule(module)
+        metric.visitModuleRoot(moduleRoot)
 
         // Put the results in a format grouped by moduleId
         metric.getResult().also { (moduleId, result) ->
             if (results[moduleId] != null) System.err.println("We are overriding ${metric.getTag()} for $moduleId!")
             results[moduleId] = Pair(metric.getTag(), result)
+        }
+
+        return results
+    }
+
+    private fun evaluateInheritanceMetric(
+        metric: InheritanceMetric,
+        inheritanceTree: InheritanceTree
+    ): MetricResult {
+        val results: MetricResult = mutableMapOf()
+
+        // Calculate the metric
+        metric.visitProject(inheritanceTree)
+
+        // Put the results in a format grouped by moduleId
+        metric.getResult().forEach {
+            results[it.first] = Pair(metric.getTag(), it.second)
         }
 
         return results

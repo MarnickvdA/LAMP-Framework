@@ -29,7 +29,7 @@ The final version of this framework and thesis is still a work in progress.
 
 ### Metric Overview
 [//]: # (TODO: Explain all metrics.)
-
+[Read more...](docs/metrics.md)
 
 ## Development
 
@@ -50,7 +50,7 @@ During the development of our metamodel, we went through multiple iterations, wh
 Additionally, the `metamodel-bindings.xjb` file is used to define global bindings to the schema, such as the package name that will be defined for every generated class.
 
 ### Metamodel Class Diagram
-![Metamodel Class Diagram](./docs/metamodel-v2-8.png)
+![Metamodel Class Diagram](docs/metamodel/metamodel-v3.png)
 
 ### Metamodel POJO Generation (with JAXB)
 We use [JAXB 3.0](https://jakarta.ee/specifications/xml-binding/3.0/jakarta-xml-binding-spec-3.0.html) to generate POJOs conforming to the XSD schema.
@@ -64,9 +64,11 @@ The generated visitor is located at `target/generated-sources/xjc/nl.utwente.stu
 
 ### Inheritance Tree
 [//]: # (TODO: Explain how it looks and works.)
+[Read more...](docs/inheritance.md)
 
 ### Semantic Tree
 [//]: # (TODO: Explain how it looks and works.)
+[Read more...](docs/semantics.md)
 
 
 ### Generating Transformers

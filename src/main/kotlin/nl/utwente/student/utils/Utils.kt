@@ -1,15 +1,7 @@
 package nl.utwente.student.utils
 
-import nl.utwente.student.metamodel.v2.Assignment
-import nl.utwente.student.metamodel.v2.Expression
-import nl.utwente.student.metamodel.v2.Identifier
-import nl.utwente.student.metamodel.v2.Lambda
-import nl.utwente.student.metamodel.v2.Metadata
-import nl.utwente.student.metamodel.v2.Module
-import nl.utwente.student.metamodel.v2.ModuleScope
-import nl.utwente.student.metamodel.v2.Property
-import nl.utwente.student.metamodel.v2.Unit
-import nl.utwente.student.metamodel.v2.UnitCall
+import nl.utwente.student.metamodel.v3.*
+import nl.utwente.student.metamodel.v3.Unit
 import org.antlr.v4.runtime.tree.ParseTree
 import java.io.File
 import java.lang.Exception
@@ -42,54 +34,52 @@ fun getFile(fileOrDir: String?): File? {
     }
 }
 
-fun Module.getUniqueName(withLocation: Boolean = true): String {
-    return this.moduleScope.getUniqueName(this.componentName, withLocation)
+fun ModuleRoot.getUniqueName(withLocation: Boolean = true): String {
+    return this.module.getUniqueName(this.componentName, withLocation)
 }
 
-fun ModuleScope.getUniqueName(componentName: String?, withLocation: Boolean = true): String {
+fun Module.getUniqueName(componentName: String?, withLocation: Boolean = true): String {
     return listOfNotNull(
         componentName,
-        this.identifier?.value + if (withLocation) getUniquePosition(this.metadata) else "",
+        this.identifier?.value + if (withLocation) getUniquePosition(this) else "",
     ).joinToString(".")
 }
-
-fun Unit.getUniqueName(module: Module?): String {
-    return ((module?.moduleScope?.getUniqueName(module.componentName, false)?.let { "$it://" })
-        ?: "") + this.identifier.value + getUniquePosition(this.metadata)
+private fun getName(moduleRoot: ModuleRoot?, identifier: String, sourceElement: SourceElement): String {
+    return ((moduleRoot?.module?.getUniqueName(moduleRoot.componentName, false)?.let { "$it://" })
+        ?: "") + identifier + getUniquePosition(sourceElement)
+}
+fun Unit.getUniqueName(moduleRoot: ModuleRoot?): String {
+    return getName(moduleRoot, this.identifier.value, this)
 }
 
-fun Property.getUniqueName(module: Module?): String {
-    return ((module?.moduleScope?.getUniqueName(module.componentName, false)?.let { "$it://" })
-        ?: "") + this.identifier.value + getUniquePosition(this.metadata)
+fun Property.getUniqueName(moduleRoot: ModuleRoot?): String {
+    return getName(moduleRoot, this.identifier.value, this)
 }
 
-fun Lambda.getUniqueName(module: Module?): String {
-    return ((module?.moduleScope?.getUniqueName(module.componentName, false)?.let { "$it://" })
-        ?: "") + "Lambda" + getUniquePosition(this.metadata)
+fun Lambda.getUniqueName(moduleRoot: ModuleRoot?): String {
+    return getName(moduleRoot, "Lambda", this)
 }
 
 private fun getFullSignature(prefix: Expression?): MutableList<String?> {
     return when (prefix) {
-        is UnitCall -> getFullSignature(prefix.nestedScope?.expressions?.first())
+        is UnitCall -> getFullSignature(prefix.innerScope?.firstOrNull())
             .also { it.add(getFullSignature(prefix.reference).joinToString(".")) }
         is Identifier -> mutableListOf(prefix.value)
         else -> mutableListOf()
     }
 }
 
-fun UnitCall.getUniqueName(module: Module?): String {
-    return ((module?.moduleScope?.getUniqueName(module.componentName, false)?.let { "$it://" }) ?: "") +
-            getFullSignature(this).joinToString(".") + getUniquePosition(this.metadata)
+fun UnitCall.getUniqueName(moduleRoot: ModuleRoot?): String {
+    return getName(moduleRoot, getFullSignature(this).joinToString("."), this)
 }
 
-fun Assignment.getUniqueName(module: Module?): String {
-    return ((module?.moduleScope?.getUniqueName(module.componentName, false)?.let { "$it://" }) ?: "") +
-            getFullSignature(this.reference).joinToString(".") + getUniquePosition(this.metadata)
+fun Assignment.getUniqueName(moduleRoot: ModuleRoot?): String {
+    return getName(moduleRoot, getFullSignature(this.reference).joinToString("."), this)
 }
 
-fun getUniquePosition(metadata: Metadata): String {
+fun getUniquePosition(sourceElement: SourceElement): String {
 //    return "$" + md5("${metadata.startLine}:${metadata.startOffset}:${metadata.endLine}:${metadata.endOffset}").substring(0..8)
-    return "$" + "[${metadata.startLine}:${metadata.startOffset},${metadata.endLine}:${metadata.endOffset}]"
+    return "$" + "[${sourceElement.metadata.startLine}:${sourceElement.metadata.startOffset},${sourceElement.metadata.endLine}:${sourceElement.metadata.endOffset}]"
 }
 
 private fun md5(input: String): String {

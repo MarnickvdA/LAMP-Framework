@@ -1,0 +1,275 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="https://www.utwente.nl/v3"
+           xmlns="https://www.utwente.nl/v3"
+           elementFormDefault="qualified">
+
+    <xs:element name="ModuleRoot">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:sequence id="imports" minOccurs="0" maxOccurs="unbounded">
+                    <xs:element name="Import" type="xs:string"/> <!-- e.g. nl.utwente.student.AClass -->
+                </xs:sequence>
+                <xs:element name="Module" type="Module"/>
+            </xs:sequence>
+            <xs:attribute name="componentName" type="xs:string"/>
+            <xs:attribute name="filePath" type="xs:anyURI"/>
+            <xs:attribute name="fileName" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="Metadata">
+        <xs:attribute name="startLine" type="xs:positiveInteger"/>
+        <xs:attribute name="endLine" type="xs:positiveInteger"/>
+        <xs:attribute name="startOffset" type="xs:nonNegativeInteger"/>
+        <xs:attribute name="endOffset" type="xs:nonNegativeInteger"/>
+    </xs:complexType>
+
+    <xs:complexType name="SourceElement" abstract="true">
+        <xs:sequence>
+            <!-- Metadata about the source location of the expression. -->
+            <xs:element name="Metadata" type="Metadata"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="Declarable" abstract="true">
+        <xs:complexContent>
+            <xs:extension base="SourceElement">
+                <xs:sequence>
+                    <xs:element name="Identifier" type="Identifier"/>
+                    <xs:sequence id="modifiers" minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="Modifier" type="modifierType"/>
+                    </xs:sequence>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Module">
+        <xs:complexContent>
+            <xs:extension base="Declarable">
+                <xs:sequence>
+                    <xs:sequence id="extends" minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="Extends" type="xs:string"/> <!-- e.g. nl.utwente.student.AClass -->
+                    </xs:sequence>
+                    <xs:sequence id="implements" minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="Implements" type="xs:string"/> <!-- e.g. nl.utwente.student.AClass -->
+                    </xs:sequence>
+                    <xs:sequence id="members" minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="Member" type="Declarable"/>
+                    </xs:sequence>
+                </xs:sequence>
+                <xs:attribute name="moduleType" type="moduleType"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Unit">
+        <xs:complexContent>
+            <xs:extension base="Declarable">
+                <xs:sequence>
+                    <xs:sequence id="parameters" minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="Parameter" type="Property"/>
+                    </xs:sequence>
+                    <xs:element minOccurs="0" name="Body" type="Expression"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Property">
+        <xs:complexContent>
+            <xs:extension base="Declarable">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="Initializer" type="Assignment"/>
+                    <xs:element minOccurs="0" name="Getter" type="Unit"/>
+                    <xs:element minOccurs="0" name="Setter" type="Unit"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!--    -->
+    <!--    -->
+    <!--    -->
+    <!--    -->
+    <!--    -->
+
+    <xs:complexType name="Expression">
+        <xs:complexContent>
+            <xs:extension base="SourceElement">
+                <xs:sequence>
+                    <!-- Simple expressions do not have an inner scope -->
+                    <xs:sequence id="innerScope" minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="Expression" type="Expression"/>
+                    </xs:sequence>
+                </xs:sequence>
+
+                <!-- Information about the origin of this expression -->
+                <xs:attribute name="context" type="xs:string"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Loop">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+                <xs:sequence id="evaluations" maxOccurs="unbounded">
+                    <xs:element name="Evaluation" type="Expression"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Catch">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+                <xs:sequence>
+                    <xs:element name="Exception" type="Property"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+
+    <xs:complexType name="Conditional">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+                <xs:sequence>
+                    <xs:element name="IfExpr" type="Expression"/>
+                    <xs:sequence id="elseIfs" minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="ElseIfExpr" type="Expression"/>
+                    </xs:sequence>
+                    <xs:element minOccurs="0" name="ElseExpr" type="Expression"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Switch">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+                <xs:sequence>
+                    <xs:element name="Subject" type="Expression" minOccurs="0"/>
+                    <xs:sequence id="switchCases" maxOccurs="unbounded">
+                        <xs:element name="Case" type="SwitchCase"/>
+                    </xs:sequence>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="SwitchCase">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+                <xs:sequence>
+                    <!-- The 'default' or 'else' branch of the switch statement doesn't hold a pattern -->
+                    <xs:element name="Pattern" type="Expression" minOccurs="0"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="LogicalSequence">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+                <!-- Sequence is Expr1 && ... && ExprN, or Expr1 || ... || ExprN. Where && or || chains are seen as 1 Expression -->
+                <xs:sequence id="operands" minOccurs="2" maxOccurs="unbounded">
+                    <xs:element name="Operand" type="Expression"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Jump">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+                <xs:attribute name="label" type="xs:string"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="LocalDeclaration">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+                <xs:sequence>
+                    <xs:element name="Declaration" type="Declarable"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Assignment on an existing object in code, seen as a mutation -->
+    <xs:complexType name="Assignment">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+                <xs:sequence>
+                    <xs:element name="Reference" type="Expression"/>
+                    <xs:element minOccurs="0" name="Value" type="Expression"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Lambda">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+                <xs:sequence>
+                    <xs:sequence minOccurs="0" maxOccurs="unbounded" id="lambdaParams">
+                        <xs:element name="Parameter" type="Property"/>
+                    </xs:sequence>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="UnitCall">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+                <xs:sequence>
+                    <xs:sequence minOccurs="0" maxOccurs="unbounded" id="unitCallArgs">
+                        <xs:element name="Argument" type="Expression"/>
+                    </xs:sequence>
+                    <xs:element name="Reference" type="Expression"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Identifier">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+                <xs:attribute name="value" type="xs:string"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!--    -->
+    <!--    -->
+    <!--    -->
+    <!--    -->
+    <!--    -->
+
+    <xs:simpleType name="moduleType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="class"/>
+            <xs:enumeration value="enum"/>
+            <xs:enumeration value="interface"/>
+            <xs:enumeration value="record"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="modifierType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="public"/>
+            <xs:enumeration value="protected"/>
+            <xs:enumeration value="private"/>
+            <xs:enumeration value="static"/>
+            <xs:enumeration value="final"/>
+            <xs:enumeration value="open"/>
+            <xs:enumeration value="sealed"/>
+            <xs:enumeration value="abstract"/>
+            <xs:enumeration value="default"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

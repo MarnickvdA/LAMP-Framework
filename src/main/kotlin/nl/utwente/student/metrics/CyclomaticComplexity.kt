@@ -1,7 +1,7 @@
 package nl.utwente.student.metrics
 
-import nl.utwente.student.metamodel.v2.*
-import nl.utwente.student.metamodel.v2.Unit
+import nl.utwente.student.metamodel.v3.*
+import nl.utwente.student.metamodel.v3.Unit
 import nl.utwente.student.visitors.UnitVisitor
 import nl.utwente.student.utils.getUniqueName
 
@@ -10,22 +10,19 @@ import nl.utwente.student.utils.getUniqueName
  * Unit
  * If
  * Loop (for, foreach, while, do while)
- * Switch (TODO: create a 'Switch' Expression. Increment for cases, fallthrough cases and default is currently not supported)
+ * Switch (TODO: add support for fallthrough cases)
  * Catch Clause
  * Logical Sequence
  * ReturnValue (throw, return, yield)
  *
  * TODO(evaluate CC for getWords (CC=2, expected 5), toRegexp(CC=15, excepted 12)
+ * TODO(Document: we do not count for 'default' case, because this is not part of the official McCabe CC.)
+ *
  */
 class CyclomaticComplexity: UnitVisitor() {
     override fun getTag(): String = "CC"
 
     private var currentComplexity = 0
-
-    override fun visitModule(module: Module?) {
-        this.module = module
-        super.visitModule(module)
-    }
 
     override fun visitUnit(unit: Unit?) {
         // Visit the body and register the complexity as a metric result
@@ -39,7 +36,7 @@ class CyclomaticComplexity: UnitVisitor() {
         super.visitUnit(unit)
 
         if (unit != null) {
-            metricResults.add(Pair(unit.getUniqueName(module), currentComplexity))
+            metricResults.add(Pair(unit.getUniqueName(moduleRoot), currentComplexity))
         }
     }
 
@@ -67,6 +64,15 @@ class CyclomaticComplexity: UnitVisitor() {
             logCount(it, 1)
             this.visitExpression(it)
         }
+    }
+
+    override fun visitSwitchCase(switchCase: SwitchCase?) {
+        if (switchCase != null && switchCase.pattern != null) {
+            currentComplexity++
+            logCount(switchCase, 1)
+        }
+
+        super.visitSwitchCase(switchCase)
     }
 
     override fun visitLoop(loop: Loop?) {

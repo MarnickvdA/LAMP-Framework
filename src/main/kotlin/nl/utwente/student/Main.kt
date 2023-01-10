@@ -10,7 +10,7 @@ fun main(args: Array<String>) {
                 val userInput = readln()
                 App.execute(userInput)
             } catch (ex: Exception) {
-                println(ex.message)
+                ex.printStackTrace()
             }
         }
     } else {

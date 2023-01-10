@@ -1,55 +1,52 @@
 package nl.utwente.student.visitors
 
-import nl.utwente.student.metamodel.v2.Module
-import nl.utwente.student.metamodel.v2.ModuleType
+import nl.utwente.student.metamodel.v3.ModuleRoot
+import nl.utwente.student.metamodel.v3.ModuleType
 import nl.utwente.student.models.inheritance.InheritanceNode
+import nl.utwente.student.models.inheritance.InheritanceTree
 import nl.utwente.student.models.inheritance.ReferenceNode
 import nl.utwente.student.utils.getUniqueName
 
-class InheritanceTreeVisitor(
-    private val modules: List<Module>
-) : MetamodelVisitor<ReferenceNode?, Map<String, InheritanceNode>>() {
+class InheritanceTreeVisitor: MetamodelVisitor<ReferenceNode?>() {
 
-    override fun getTag(): String {
-        return "InheritanceTree"
-    }
-
-    override fun getResult(): Map<String, InheritanceNode> {
+    /**
+     * @return a map of Inheritance Tree relationships, indexed by Module reference
+     */
+    fun visitProject(modules: List<ModuleRoot>): InheritanceTree {
         // Visit all modules to get the reference nodes which we can connect later.
         val nodeMap = mutableMapOf<String, ReferenceNode>()
-        modules.mapNotNull(this::visitModule).forEach { nodeMap[it.name] = it }
+        modules.mapNotNull(this::visitModuleRoot).forEach { nodeMap[it.name] = it }
 
         // Process the node references and output the mapping of inheritance nodes
         return processNodeReferences(nodeMap)
     }
 
-    override fun visitModule(module: Module?): ReferenceNode? {
-        if (module == null || module.moduleScope.moduleType == ModuleType.INTERFACE) return null
-
+    override fun visitModuleRoot(moduleRoot: ModuleRoot?): ReferenceNode? {
+        if (moduleRoot == null || moduleRoot.module.moduleType == ModuleType.INTERFACE) return null // TODO (Document that we are excluding interfaces)
 
         return ReferenceNode(
-            module.getUniqueName(false),
-            module.moduleScope.extensions.firstOrNull(),
-            module.componentName,
-            module.imports
+            moduleRoot.getUniqueName(false),
+            moduleRoot.module.extensions.firstOrNull(),
+            moduleRoot.componentName,
+            moduleRoot.imports
         )
     }
 
-    private fun processNodeReferences(refMap: Map<String, ReferenceNode>): Map<String, InheritanceNode> {
-        val nodeMap = mutableMapOf<String, InheritanceNode>()
+    private fun processNodeReferences(refMap: Map<String, ReferenceNode>): InheritanceTree {
+        val inheritanceTree: InheritanceTree = mutableMapOf()
 
         // First iteration, populate empty inheritance nodes in the map.
         refMap.forEach { (name, _) ->
-            nodeMap[name] = InheritanceNode(name, null, mutableListOf())
+            inheritanceTree[name] = InheritanceNode(name, null, mutableListOf())
         }
 
         // Second iteration, populate parent and child relations in inheritance nodes.
         refMap.forEach { (name, node) ->
-            val current = nodeMap[name]!!
-            current.parent = findParent(node, refMap, nodeMap)?.also { p -> p.children.add(current) }
+            val current = inheritanceTree[name]!!
+            current.parent = findParent(node, refMap, inheritanceTree)?.also { p -> p.children.add(current) }
         }
 
-        return nodeMap
+        return inheritanceTree
     }
 
     /**

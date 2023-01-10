@@ -1,6 +1,6 @@
 package nl.utwente.student.io
 
-import nl.utwente.student.metamodel.v2.Module
+import nl.utwente.student.metamodel.v3.ModuleRoot
 import nl.utwente.student.models.SupportedLanguage
 import nl.utwente.student.transformers.JavaTransformer
 import nl.utwente.student.transformers.MetamodelTransformer
@@ -8,7 +8,7 @@ import java.io.File
 
 object ParserEngine {
 
-    fun parse(input: File): List<Module>? {
+    fun parse(input: File): List<ModuleRoot>? {
         return when {
             input.isDirectory -> parseDirectory(input)
             isValidFile(input) -> parseFile(input)
@@ -25,7 +25,7 @@ object ParserEngine {
         }
     }
 
-    private fun parseFile(file: File): List<Module>? {
+    private fun parseFile(file: File): List<ModuleRoot>? {
         if (!isValidFile(file)) return emptyList()
 
         return when (file.extension) {
@@ -35,7 +35,7 @@ object ParserEngine {
         }?.transform()
     }
 
-    private fun parseDirectory(directory: File): List<Module> {
+    private fun parseDirectory(directory: File): List<ModuleRoot> {
         return directory.walk().mapNotNull { parseFile(it) }.flatten().toList()
     }
 }

@@ -1,7 +1,6 @@
 package nl.utwente.student.metrics
 
-import nl.utwente.student.metamodel.v2.Lambda
-import nl.utwente.student.metamodel.v2.Module
+import nl.utwente.student.metamodel.v3.Lambda
 import nl.utwente.student.visitors.ModuleVisitor
 
 class LambdaCount : ModuleVisitor() {

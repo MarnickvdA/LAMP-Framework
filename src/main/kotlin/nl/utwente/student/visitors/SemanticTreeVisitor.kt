@@ -1,199 +1,149 @@
 package nl.utwente.student.visitors
 
-import nl.utwente.student.metamodel.v2.*
-import nl.utwente.student.metamodel.v2.Unit
+import nl.utwente.student.metamodel.v3.*
+import nl.utwente.student.metamodel.v3.Unit
 import nl.utwente.student.models.semantics.*
 import nl.utwente.student.utils.getUniqueName
 import nl.utwente.student.utils.getUniquePosition
 
-class SemanticTreeVisitor(
-    private val projectName: String, private val modules: List<Module>
-) : MetamodelVisitor<kotlin.Unit, SemanticTree>() {
-
+/**
+ * Map all semantic objects correctly.
+ * - UnitCall always references a Unit
+ * - Access always references a Property
+ * - Assignment always references a Property
+ */
+class SemanticTreeVisitor: MetamodelVisitor<kotlin.Unit>() {
     private lateinit var semanticTree: SemanticTree
-    private val unitCallsToEvaluate = mutableListOf<Triple<UnitCall, Module, SemanticElement>>()
+    private lateinit var curSemanticElement: SemanticElement
 
-    private var currentModule: Module? = null
-    private var currentScope: Scope? = null
-    private var currentSemanticScope: SemanticElement? = null
+    fun visitProject(modules: List<ModuleRoot>): SemanticTree {
+        semanticTree = SemanticTree()
+        curSemanticElement = semanticTree
 
-    override fun getTag(): String = "SemanticTree"
-
-    override fun getResult(): SemanticTree {
-        semanticTree = SemanticTree(projectName)
-
-        modules.forEach(this::visitModule)
-
-        unitCallsToEvaluate.forEach {
-            it.third.add(
-                SemanticUnitCall(
-                    name = it.first.getUniqueName(it.second), // TODO Handle dependencies
-                    parent = it.third,
-                )
-            )
-        }
+        modules.forEach(this::visitModuleRoot)
 
         return semanticTree
+    }
+
+    override fun visitModuleRoot(moduleRoot: ModuleRoot?) {
+        if (moduleRoot == null) return
+
+        if (moduleRoot.componentName != null) {
+            curSemanticElement = semanticTree.add(SemanticComponent(moduleRoot.componentName))
+        }
+
+        this.visitModule(moduleRoot.module)
     }
 
     override fun visitModule(module: Module?) {
         if (module == null) return
 
-        if (module.componentName != null) {
-            currentSemanticScope = semanticTree.addComponent(SemanticComponent(module.componentName))
-        }
-
-        currentModule = module
-        this.visitModuleScope(module.moduleScope)
-    }
-
-    override fun visitModuleScope(module: ModuleScope?) {
-        if (module == null) return
-
-        val parentSemanticScope = currentSemanticScope
-        val semanticModule = SemanticModule(module.getUniqueName(currentSemanticScope?.name), parentSemanticScope)
-
-        if (currentSemanticScope == null) {
-            semanticTree.addModule(semanticModule)
-        }
-
-        currentSemanticScope = semanticModule
-
-        super.visitModuleScope(module)
-
-        currentSemanticScope = parentSemanticScope
-    }
-
-    override fun visitBlockScope(scope: BlockScope?) {
-        if (scope == null) return
-
-        val parentSemanticScope = currentSemanticScope
-        currentSemanticScope = SemanticScope(scope.hashCode().toString(), parentSemanticScope) // TODO Add metadata to blockscope.
-
-        super.visitBlockScope(scope)
-
-        currentSemanticScope = parentSemanticScope
+        curSemanticElement = curSemanticElement.add(
+            SemanticModule(
+                module.getUniqueName(curSemanticElement.name),
+                module,
+                curSemanticElement
+            )
+        )
+        super.visitModule(module)
+        curSemanticElement = curSemanticElement.parent!!
     }
 
     override fun visitProperty(property: Property?) {
         if (property == null) return
 
-        val parentScope = currentScope
-        currentScope = property
-
-        val parentSemanticScope = currentSemanticScope
-        currentSemanticScope = SemanticProperty(
-            property.getUniqueName(currentModule),
-            parentSemanticScope
-        ) // Might want to change this to currentSemanticModule instead. (not in some cases, where we use property as a parameter.
-
-        // If the property has a value, we must treat it as an assignment TODO(maybe change the 'value' type to Assignment in the metamodel)
-        property.value?.also {
-            val assignment = Assignment().also { a ->
-                a.reference = property.identifier
-                a.metadata = property.value.metadata
-                a.nestedScope = BlockScope().also { b -> b.expressions.add(property.value) }
-            }
-
-            this.visitAssignment(assignment)
-        }
-
-        property.getter?.also { this.visitUnit(it) }
-        property.setter?.also { this.visitUnit(it) }
-
-        currentScope = parentScope
-        currentSemanticScope = parentSemanticScope
+        curSemanticElement = curSemanticElement.add(SemanticProperty(property, curSemanticElement))
+        super.visitProperty(property)
+        curSemanticElement = curSemanticElement.parent!!
     }
 
     override fun visitUnit(unit: Unit?) {
         if (unit == null) return
 
-        val parentSemanticScope = currentSemanticScope
-        currentSemanticScope = SemanticUnit(unit.getUniqueName(currentModule), parentSemanticScope)
-
-        val parentScope = currentScope
-        currentScope = unit
-
+        curSemanticElement = curSemanticElement.add(SemanticUnit(unit, curSemanticElement))
         super.visitUnit(unit)
-
-        currentSemanticScope = parentSemanticScope
-        currentScope = parentScope
+        curSemanticElement = curSemanticElement.parent!!
     }
 
-    override fun visitDeclaration(declaration: Declaration?) {
-        if (declaration == null) return
+    /**
+     * Helper method to check if an expression, or its children contains at least 1 useful semantic object that we must
+     * keep track of. Otherwise, we can get rid of the expression within our semantic model.
+     */
+    private fun containsSemanticInformation(expression: Expression?): Boolean {
+        // Match by expressions that contain semantic information FOR SURE.
+        when (expression) {
+            null -> return false
+            is Assignment, is UnitCall, is LocalDeclaration, is Identifier, is Catch -> return true
+            is Lambda -> if (expression.parameters.isNotEmpty()) return true
+            is SwitchCase -> if (containsSemanticInformation(expression.pattern)) return true
+            is Switch -> if (containsSemanticInformation(expression.subject)) return true
+            is Loop -> if (expression.evaluations.map { containsSemanticInformation(it) }.contains(true)) return true
+            is Conditional -> {
+                if (containsSemanticInformation(expression.ifExpr)) {
+                    return true
+                } else if (expression.elseIfExpr.map { containsSemanticInformation(it) }.contains(true)) {
+                    return true
+                } else if (containsSemanticInformation(expression.elseExpr)) {
+                    return true
+                }
+            }
 
-        when (declaration.value) {
-            is Unit -> visitUnit((declaration.value as Unit))
-            is Property -> visitProperty((declaration.value as Property))
-            is ModuleScope -> visitModuleScope(declaration.value as ModuleScope)
+            is LogicalSequence -> if (expression.operands.map { containsSemanticInformation(it) }
+                    .contains(true)) return true
+        }
+
+        return when {
+            expression?.innerScope == null -> false
+            expression.innerScope.isEmpty() -> false
+            else -> expression.innerScope.map { containsSemanticInformation(it) }.contains(true)
+        }
+    }
+
+    override fun visitExpression(expression: Expression?) {
+        if (!containsSemanticInformation(expression)) return
+
+        when (expression) {
+            null -> return
+            is UnitCall, // Do not introduce a scope for unit calls
+            is Assignment, // Do not introduce a scope for assignments
+            is LocalDeclaration, // Introduces its own scope
+            is Identifier, // Do not introduce a scope for identifiers
+            is LogicalSequence // Do not introduce a scope for logical sequence
+            -> super.visitExpression(expression)
+
+            else -> {
+                // Unknown Expression, we have to introduce a scope.
+                curSemanticElement = curSemanticElement.add(SemanticExpression(
+                    "${expression.context}${getUniquePosition(expression)}",
+                    expression,
+                    curSemanticElement
+                ))
+                super.visitExpression(expression)
+                curSemanticElement = curSemanticElement.parent!!
+            }
         }
     }
 
     override fun visitUnitCall(unitCall: UnitCall?) {
         if (unitCall == null) return
 
-        unitCallsToEvaluate.add(Triple(unitCall, currentModule!!, currentSemanticScope!!))
-
-        super.visitUnitCall(unitCall)
+        curSemanticElement = curSemanticElement.add(SemanticUnitCall(unitCall, curSemanticElement))
+        unitCall.arguments?.forEach(this::visitExpression)
+        this.visitInnerScope(unitCall.innerScope)
+        curSemanticElement = curSemanticElement.parent!!
     }
 
     override fun visitAssignment(assignment: Assignment?) {
         if (assignment == null) return
 
-        // TODO(Look if I do not have to do anything with the scoping here?)
-        SemanticAssignment(assignment.getUniqueName(currentModule), currentSemanticScope)
-
+        curSemanticElement = curSemanticElement.add(SemanticAssignment(assignment, curSemanticElement))
         super.visitAssignment(assignment)
-    }
-
-    override fun visitCatch(catch: Catch?) {
-        if (catch == null) return
-
-        val parentScope = currentSemanticScope
-        currentSemanticScope = SemanticScope(getUniquePosition(catch.metadata), parentScope)
-
-        super.visitCatch(catch)
-
-        currentSemanticScope = parentScope
-    }
-
-    override fun visitConditional(conditional: Conditional?) {
-        if (conditional == null) return
-
-        val parentScope = currentSemanticScope
-        currentSemanticScope = SemanticScope(getUniquePosition(conditional.metadata), parentScope)
-
-        super.visitConditional(conditional)
-
-        currentSemanticScope = parentScope
-    }
-
-    override fun visitLoop(loop: Loop?) {
-        if (loop == null) return
-
-        val parentScope = currentSemanticScope
-        currentSemanticScope = SemanticScope(getUniquePosition(loop.metadata), parentScope)
-
-        super.visitLoop(loop)
-
-        currentSemanticScope = parentScope
-    }
-
-    override fun visitLambda(lambda: Lambda?) {
-        if (lambda == null) return
-
-        val parentScope = currentSemanticScope
-        currentSemanticScope = SemanticScope(getUniquePosition(lambda.metadata), parentScope)
-
-        super.visitLambda(lambda)
-
-        currentSemanticScope = parentScope
+        curSemanticElement = curSemanticElement.parent!!
     }
 
     override fun visitIdentifier(identifier: Identifier?) {
         if (identifier == null) return
 
-        SemanticAccess(identifier.value, currentSemanticScope)
+        curSemanticElement.add(SemanticAccess(identifier, curSemanticElement))
     }
 }

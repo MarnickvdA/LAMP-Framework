@@ -153,7 +153,6 @@ public class CognitiveComplexityExamples {
                 antPattern.startsWith("\\") ? 1 : 0;            // +1
 
         while (i < antPattern.length()) {                       // +1
-
             final char ch = antPattern.charAt(i);
             if (SPECIAL_CHARS.indexOf(ch) != -1) {              // +2 (nesting = 1)
                 sb.append('\\').append(ch);

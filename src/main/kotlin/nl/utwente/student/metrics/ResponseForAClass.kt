@@ -1,10 +1,10 @@
 package nl.utwente.student.metrics
 
-import nl.utwente.student.visitors.ModuleVisitor
-import nl.utwente.student.models.semantics.SemanticMetric
-import nl.utwente.student.models.semantics.SemanticTree
+import nl.utwente.student.models.metrics.SemanticMetric
 
-class ResponseForAClass(override var semanticTree: SemanticTree) : ModuleVisitor(), SemanticMetric {
-    override var result: Int? = 0
+class ResponseForAClass : SemanticMetric {
     override fun getTag(): String = "RFC"
+    override fun getResult(): Map<String, Int> {
+        TODO("Not yet implemented")
+    }
 }
