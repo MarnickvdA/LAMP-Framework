@@ -41,6 +41,19 @@ interface SemanticElement {
         }
     }
 
+    fun findAllInChildren(typeCheck: (element: SemanticElement) -> Boolean): List<SemanticElement> {
+        val found = mutableListOf<SemanticElement>()
+        if(typeCheck(this)) {
+            found.add(this)
+        }
+
+        val children = this.children.map { it.value.findAllInChildren(typeCheck) }.flatten()
+
+        found.addAll(children)
+
+        return found
+    }
+
     /**
      * Find an element in the scope of this element, only looking up for references.
      * If no element is found, the reference is located in a dependency.

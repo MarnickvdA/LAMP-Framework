@@ -1,0 +1,62 @@
+@startuml
+class ModuleRoot
+abstract class SourceElement
+class Module
+class Unit
+class Property
+class Expression
+abstract class Declarable
+
+enum ModuleType {
+    CLASS
+    ENUM
+    INTERFACE
+    RECORD
+}
+
+enum ModifierType {
+    PUBLIC
+    PROTECTED
+    PRIVATE
+    STATIC
+    FINAL
+    OPEN
+    SEALED
+    ABSTRACT
+    DEFAULT
+}
+
+
+ModuleRoot : # filePath: String
+ModuleRoot : # fileName: String
+ModuleRoot : # componentName: String?
+ModuleRoot : # imports: List<String>
+ModuleRoot *-- Module
+
+SourceElement : # metadata: Metadata
+
+SourceElement <|-- Declarable
+SourceElement <|-- Expression
+
+Declarable : # identifier: Identifier
+Declarable "1" *-- "*" ModifierType : modifiers >
+
+Declarable <|-- Module
+Declarable <|-- Unit
+Declarable <|-- Property
+
+Module : # extends: List<String>
+Module : # implements: List<String>
+Module : # members: List<Declarable>
+Module *-- ModuleType : moduleType >
+
+Unit : # parameters: List<Property>
+Unit : # body: Expression
+
+Property : # initializer: Assignment?
+Property : # getter: Unit?
+Property : # setter: Unit?
+
+Expression : # innerScope: List<Expression>
+
+@enduml

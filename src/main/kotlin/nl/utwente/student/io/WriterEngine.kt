@@ -12,23 +12,23 @@ import java.nio.file.Paths
 object WriterEngine {
 
     fun write(modules: List<ModuleRoot>?, output: File): File? {
-        val file = modules?.let { writeModules(it, output) }
-
-        return file?.also {
-            println("Transformed ${modules.size} module(s), now located in ${it.absolutePath}")
-        }
+        return modules
+            ?.let { writeModules(it, output) }
+            ?.also { (file, successCount) ->
+                println("Transformed $successCount of ${modules.size} file(s) to .${SupportedLanguage.METAMODEL.fileExtension} files, now located in ${file.absolutePath}")
+            }?.first
     }
 
-    private fun writeModules(modules: List<ModuleRoot>, outputDir: File): File {
+    private fun writeModules(modules: List<ModuleRoot>, outputDir: File): Pair<File, Int> {
         val jaxbMarshaller: Marshaller = JAXBContext.newInstance(ModuleRoot::class.java.packageName).createMarshaller()
         jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
 
         outputDir.mkdirs()
-
+        var successCount = 0
         modules.forEach { moduleRoot ->
             if (moduleRoot.module == null) {
                 System.err.println(
-                    "Cannot write module in ${moduleRoot.fileName}"
+                    "Cannot write module for ${moduleRoot.filePath}"
                 )
             } else {
                 val outputFile = Paths.get(
@@ -36,18 +36,18 @@ object WriterEngine {
                     "${moduleRoot.componentName}.${moduleRoot.module?.identifier?.value}.${SupportedLanguage.METAMODEL.fileExtension}"
                 ).toFile()
 
-                println("${moduleRoot.fileName}: Writing module ${moduleRoot.module?.identifier?.value} to ${outputFile.name}.")
                 try {
                     val output = FileOutputStream(outputFile)
                     jaxbMarshaller.marshal(moduleRoot, output)
                     output.close()
+                    successCount++
                 } catch (e: JAXBException) {
-                    System.err.println("Writing ${moduleRoot.fileName} failed!")
+                    System.err.println("Writing ${moduleRoot.filePath} failed!")
                     e.printStackTrace()
                 }
             }
         }
 
-        return outputDir
+        return Pair(outputDir, successCount)
     }
 }

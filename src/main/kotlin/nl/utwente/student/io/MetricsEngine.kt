@@ -2,11 +2,8 @@ package nl.utwente.student.io
 
 import nl.utwente.student.metamodel.v3.ModuleRoot
 import nl.utwente.student.metrics.*
-import nl.utwente.student.models.metrics.Metric
 import nl.utwente.student.models.inheritance.InheritanceTree
-import nl.utwente.student.models.metrics.InheritanceMetric
-import nl.utwente.student.models.metrics.ModuleMetric
-import nl.utwente.student.models.metrics.UnitMetric
+import nl.utwente.student.models.metrics.*
 import nl.utwente.student.models.semantics.SemanticTree
 import nl.utwente.student.visitors.ModuleVisitor
 import nl.utwente.student.visitors.UnitVisitor
@@ -31,9 +28,9 @@ object MetricsEngine {
         NumberOfChildren(),
 
         // Module Semantics metrics
-        CouplingBetweenObjectClasses(),
-        LackOfCohesionInMethods(),
-        ResponseForAClass(),
+//        ResponseForAClass(),
+//        CouplingBetweenObjectClasses(),
+//        LackOfCohesionInMethods(),
 
         // Unit metrics
         CyclomaticComplexity(),
@@ -65,7 +62,10 @@ object MetricsEngine {
         ).forEach { moduleResults.add(it) }
 
         // Calculate the semantic metrics
-        val semanticTree = SemanticTreeVisitor().visitProject(modules)
+//        calculateMetrics(
+//            metrics.filterIsInstance<SemanticMetric>(),
+//            semanticTree = SemanticTreeVisitor().visitProject(modules)
+//        ).forEach { moduleResults.add(it) }
 
         // Calculate the module specific metrics
         modules.filter { it.module.members.isNotEmpty() }.forEach {
@@ -122,7 +122,7 @@ object MetricsEngine {
                 is UnitVisitor -> evaluateUnitMetric(it, moduleRoot!!)
                 is ModuleVisitor -> evaluateModuleMetric(it, moduleRoot!!)
                 is InheritanceMetric -> evaluateInheritanceMetric(it, inheritanceTree!!)
-//                is ModuleSemanticsMetric -> evaluateModuleMetric(it, semanticTree!!)
+                is SemanticMetric -> evaluateSemanticMetric(it, semanticTree!!)
                 else -> null
             }
         }.forEach { aggregateMultipleMetricOutput(it, results) }
@@ -167,6 +167,23 @@ object MetricsEngine {
 
         // Calculate the metric
         metric.visitProject(inheritanceTree)
+
+        // Put the results in a format grouped by moduleId
+        metric.getResult().forEach {
+            results[it.first] = Pair(metric.getTag(), it.second)
+        }
+
+        return results
+    }
+
+    private fun evaluateSemanticMetric(
+        metric: SemanticMetric,
+        semanticTree: SemanticTree
+    ): MetricResult {
+        val results: MetricResult = mutableMapOf()
+
+        // Calculate the metric
+        metric.visitProject(semanticTree)
 
         // Put the results in a format grouped by moduleId
         metric.getResult().forEach {

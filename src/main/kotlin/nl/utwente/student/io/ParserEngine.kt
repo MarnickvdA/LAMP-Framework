@@ -9,6 +9,7 @@ import java.io.File
 object ParserEngine {
 
     fun parse(input: File): List<ModuleRoot>? {
+        println("Parsing file(s) located in ${input.absolutePath}.")
         return when {
             input.isDirectory -> parseDirectory(input)
             isValidFile(input) -> parseFile(input)
@@ -36,6 +37,9 @@ object ParserEngine {
     }
 
     private fun parseDirectory(directory: File): List<ModuleRoot> {
-        return directory.walk().mapNotNull { parseFile(it) }.flatten().toList()
+        return directory.walk()
+            .mapNotNull(this::parseFile)
+            .flatten()
+            .toList()
     }
 }

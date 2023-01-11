@@ -125,8 +125,7 @@ object App {
             Available commands:
             $ clone             -url    [gitUrl] 
                                 -out    [outputDir]
-            $ transform         -lang   ["java"]
-                                -in     [inputFile/inputDir]
+            $ transform         -in     [inputFile/inputDir]
                                 -out    [outputDir]
             $ evaluate          -in     [inputFile/inputDir]
                                 -out    [outputDir]
