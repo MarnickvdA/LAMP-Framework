@@ -1,41 +1,31 @@
 package nl.utwente.student.metrics
 
-import nl.utwente.student.metamodel.v3.Identifier
+import nl.utwente.student.metamodel.v3.Module
+import nl.utwente.student.metamodel.v3.Unit
 import nl.utwente.student.metamodel.v3.UnitCall
-import nl.utwente.student.models.metrics.SemanticMetric
-import nl.utwente.student.models.semantics.*
-import nl.utwente.student.utils.getUniqueName
+import nl.utwente.student.visitors.ModuleVisitor
+import nl.utwente.student.visitors.SemanticHelper.findAllByExpressionType
 
-class ResponseForAClass : SemanticMetric {
-    private var moduleResults = mutableListOf<Pair<String, Int>>()
-
+class ResponseForAClass : ModuleVisitor() {
+    override var result: Int? = 0
     override fun getTag(): String = "RFC"
-    override fun getResult(): List<Pair<String, Int>> {
-        return moduleResults
-    }
 
-    override fun visitProject(semanticTree: SemanticTree) {
-        moduleResults = mutableListOf()
+    override fun visitModule(module: Module?) {
+        if (module == null) return
 
-        // Get all top level modules
-        val modules = mutableListOf<SemanticModule>()
-        modules.addAll(semanticTree.children.values.filterIsInstance<SemanticModule>())
-        modules.addAll(semanticTree.children.values.filterIsInstance<SemanticComponent>()
-            .flatMap { it.children.values }.filterIsInstance<SemanticModule>())
+        val units = module.members.filterIsInstance<Unit>()
+        val unitCallReferences = units
+            .map { findAllByExpressionType<UnitCall>(it.body) { e -> e is UnitCall } }
+            .flatten()
+            .mapNotNull { it.declarableId } // FIXME Type information required to implement this correctly (right?)
 
-        modules.forEach {
-            val result = getCount(it)
+        val constructorCalls = unitCallReferences.filter { it == "constructor" }
+        val unitCalls = unitCallReferences
+            .filter { it != "constructor" && units.map { u -> u.id }.contains(it) }
+            .toSet()
 
-            moduleResults.add(Pair(it.sourceElement.getUniqueName(it.parent?.name, false), result))
-        }
-    }
+        // TODO(Document: How to handle records, should you see the primary constructor as a +1, should you include the 'generated' functions as methods? Should you include getters and setters on properties as methods?)
 
-    private fun getCount(semanticModule: SemanticModule): Int {
-        val methodDeclarations = semanticModule.children.values.filterIsInstance<SemanticUnit>().size
-        val methodInvocations = semanticModule.findAllInChildren { it is SemanticUnitCall }
-            .mapNotNull { ((it.sourceElement as UnitCall).reference as? Identifier)?.value }
-            .toSet().also { print(it.joinToString(", ")) }.size
-
-        return methodDeclarations + methodInvocations
+        result = units.size + constructorCalls.size + unitCalls.size
     }
 }

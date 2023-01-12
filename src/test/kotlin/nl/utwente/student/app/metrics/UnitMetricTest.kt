@@ -30,7 +30,7 @@ abstract class UnitMetricTest(private val metric: UnitVisitor, private val resou
     }
 
     protected fun testByReference(module: Module, unitName: String): Pair<String, Int> {
-        val unitUnderTest = module.members.find { it.identifier.value == unitName } as Unit
+        val unitUnderTest = module.members.find { it.id == unitName } as Unit
 
         metric.visitUnit(unitUnderTest)
         val result = metric.getResult().first()

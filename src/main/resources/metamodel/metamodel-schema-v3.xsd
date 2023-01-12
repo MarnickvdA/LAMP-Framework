@@ -36,11 +36,11 @@
         <xs:complexContent>
             <xs:extension base="SourceElement">
                 <xs:sequence>
-                    <xs:element name="Identifier" type="Identifier"/>
                     <xs:sequence id="modifiers" minOccurs="0" maxOccurs="unbounded">
                         <xs:element name="Modifier" type="modifierType"/>
                     </xs:sequence>
                 </xs:sequence>
+                <xs:attribute name="id" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -204,9 +204,9 @@
         <xs:complexContent>
             <xs:extension base="Expression">
                 <xs:sequence>
-                    <xs:element name="Reference" type="Expression"/>
                     <xs:element minOccurs="0" name="Value" type="Expression"/>
                 </xs:sequence>
+                <xs:attribute name="propertyId" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -223,23 +223,22 @@
         </xs:complexContent>
     </xs:complexType>
 
-    <xs:complexType name="UnitCall">
+    <xs:complexType name="ReferenceCall">
         <xs:complexContent>
             <xs:extension base="Expression">
-                <xs:sequence>
-                    <xs:sequence minOccurs="0" maxOccurs="unbounded" id="unitCallArgs">
-                        <xs:element name="Argument" type="Expression"/>
-                    </xs:sequence>
-                    <xs:element name="Reference" type="Expression"/>
-                </xs:sequence>
+                <xs:attribute name="declarableId" type="xs:string"/>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
 
-    <xs:complexType name="Identifier">
+    <xs:complexType name="UnitCall">
         <xs:complexContent>
-            <xs:extension base="Expression">
-                <xs:attribute name="value" type="xs:string"/>
+            <xs:extension base="ReferenceCall">
+                <xs:sequence>
+                    <xs:sequence minOccurs="0" maxOccurs="unbounded" id="unitCallArgs">
+                        <xs:element name="Argument" type="Expression"/>
+                    </xs:sequence>
+                </xs:sequence>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>

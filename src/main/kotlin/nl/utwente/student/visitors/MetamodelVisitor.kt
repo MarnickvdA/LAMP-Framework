@@ -18,10 +18,10 @@ abstract class MetamodelVisitor<T>: BaseVisitor<T, VisitorException>() {
             is Assignment -> this.visitAssignment(expression)
             is Lambda -> this.visitLambda(expression)
             is UnitCall -> this.visitUnitCall(expression)
+            is ReferenceCall -> this.visitReferenceCall(expression)
             is Catch -> this.visitCatch(expression)
             is Switch -> this.visitSwitch(expression)
             is SwitchCase -> this.visitSwitchCase(expression)
-            is Identifier -> this.visitIdentifier(expression)
             else -> {
                 this.visitInnerScope(expression.innerScope)
                 super.visitExpression(expression)
@@ -45,7 +45,6 @@ abstract class MetamodelVisitor<T>: BaseVisitor<T, VisitorException>() {
     }
 
     override fun visitAssignment(assignment: Assignment?): T {
-        this.visitExpression(assignment?.reference)
         this.visitExpression(assignment?.value)
 
         return super.visitAssignment(assignment)
@@ -120,16 +119,14 @@ abstract class MetamodelVisitor<T>: BaseVisitor<T, VisitorException>() {
     }
 
     override fun visitUnitCall(unitCall: UnitCall?): T {
-        this.visitExpression(unitCall?.reference)
         unitCall?.arguments?.forEach(this::visitExpression)
         this.visitInnerScope(unitCall?.innerScope)
-
         return super.visitUnitCall(unitCall)
     }
 
-    override fun visitIdentifier(identifier: Identifier?): T {
-        this.visitInnerScope(identifier?.innerScope)
-        return super.visitIdentifier(identifier)
+    override fun visitReferenceCall(referenceCall: ReferenceCall?): T {
+        this.visitInnerScope(referenceCall?.innerScope)
+        return super.visitReferenceCall(referenceCall)
     }
 
     override fun visitMetadata(metadata: Metadata?): T {

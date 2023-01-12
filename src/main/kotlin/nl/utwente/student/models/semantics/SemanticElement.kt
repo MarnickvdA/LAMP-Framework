@@ -36,7 +36,7 @@ interface SemanticElement {
     fun findClosestModule(): Module? {
         return when (parent) {
             null -> null
-            is SemanticModule -> (parent as SemanticModule).sourceElement
+//            is SemanticModule -> (parent as SemanticModule).sourceElement
             else -> parent!!.findClosestModule()
         }
     }

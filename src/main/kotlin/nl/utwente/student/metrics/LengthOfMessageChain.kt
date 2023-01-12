@@ -1,7 +1,6 @@
 package nl.utwente.student.metrics
 
 import nl.utwente.student.metamodel.v3.Expression
-import nl.utwente.student.metamodel.v3.Identifier
 import nl.utwente.student.metamodel.v3.UnitCall
 import nl.utwente.student.utils.getUniqueName
 import nl.utwente.student.visitors.UnitVisitor
@@ -23,7 +22,6 @@ class LengthOfMessageChain: UnitVisitor() {
         fun traverse(expression: Expression?): Int {
             return when(val child = expression?.innerScope?.firstOrNull()) {
                 is UnitCall -> traverse(child) + 1
-                is Identifier -> 1
                 else -> 0
             }
         }

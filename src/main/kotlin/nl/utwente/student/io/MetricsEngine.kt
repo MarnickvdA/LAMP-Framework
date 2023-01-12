@@ -5,11 +5,10 @@ import nl.utwente.student.metrics.*
 import nl.utwente.student.models.inheritance.InheritanceTree
 import nl.utwente.student.models.metrics.*
 import nl.utwente.student.models.semantics.SemanticTree
-import nl.utwente.student.visitors.ModuleVisitor
-import nl.utwente.student.visitors.UnitVisitor
 import nl.utwente.student.utils.getFile
 import nl.utwente.student.visitors.InheritanceTreeVisitor
-import nl.utwente.student.visitors.SemanticTreeVisitor
+import nl.utwente.student.visitors.ModuleVisitor
+import nl.utwente.student.visitors.UnitVisitor
 import java.io.File
 
 typealias MetricResult = MutableMap<String, Pair<String, Int>>
@@ -17,31 +16,31 @@ typealias MetricResults = MutableMap<String, MutableList<Pair<String, Int>>>
 
 object MetricsEngine {
 
-    private val metrics = listOf(
-        // Module metrics
-        WeightedMethodPerClass(),
-        CognitivelyWeightedMethodPerClass(),
-        LambdaCount(),
+    private fun getMetrics(): List<Metric<*>> {
+        return listOf(
+            // Module metrics
+            WeightedMethodPerClass(),
+            CognitivelyWeightedMethodPerClass(),
+            LambdaCount(),
+            ResponseForAClass(),
+            LackOfCohesionInMethods(),
 
-        // Module Inheritance metrics
-        DepthOfInheritanceTree(),
-        NumberOfChildren(),
-
-        // Module Semantics metrics
-//        ResponseForAClass(),
+            // Module Relationship metrics
+            DepthOfInheritanceTree(),
+            NumberOfChildren(),
 //        CouplingBetweenObjectClasses(),
-//        LackOfCohesionInMethods(),
 
-        // Unit metrics
-        CyclomaticComplexity(),
-        CognitiveComplexity(),
-        NumberOfParameters(),
-        UnitLinesOfCode(),
+            // Unit metrics
+            CyclomaticComplexity(),
+            CognitiveComplexity(),
+            NumberOfParameters(),
+            UnitLinesOfCode(),
 
-        // Expression metrics
-        LinesOfLambda(),
+            // Expression metrics
+            LinesOfLambda(),
 //        LengthOfMessageChain()
-    )
+        )
+    }
 
     fun MetricResults.add(result: Map.Entry<String, MutableList<Pair<String, Int>>>) {
         if (this[result.key] == null)
@@ -51,6 +50,7 @@ object MetricsEngine {
 
     fun run(modules: List<ModuleRoot>, output: String?): File? {
         val out = output?.let { getFile(it) }
+        val metrics = getMetrics()
 
         val moduleResults: MetricResults = mutableMapOf()
         var unitResults: MetricResults = mutableMapOf()
@@ -64,7 +64,8 @@ object MetricsEngine {
         // Calculate the semantic metrics
 //        calculateMetrics(
 //            metrics.filterIsInstance<SemanticMetric>(),
-//            semanticTree = SemanticTreeVisitor().visitProject(modules)
+//            semanticTree = SemanticTreeVisitor().visitProject(modules),
+//            modules = modules
 //        ).forEach { moduleResults.add(it) }
 
         // Calculate the module specific metrics
@@ -114,7 +115,8 @@ object MetricsEngine {
         metrics: List<Metric<*>>,
         moduleRoot: ModuleRoot? = null,
         inheritanceTree: InheritanceTree? = null,
-        semanticTree: SemanticTree? = null
+        semanticTree: SemanticTree? = null,
+        modules: List<ModuleRoot>? = null,
     ): MetricResults {
         val results: MetricResults = mutableMapOf()
         metrics.mapNotNull {
@@ -122,7 +124,7 @@ object MetricsEngine {
                 is UnitVisitor -> evaluateUnitMetric(it, moduleRoot!!)
                 is ModuleVisitor -> evaluateModuleMetric(it, moduleRoot!!)
                 is InheritanceMetric -> evaluateInheritanceMetric(it, inheritanceTree!!)
-                is SemanticMetric -> evaluateSemanticMetric(it, semanticTree!!)
+                is SemanticMetric -> evaluateSemanticMetric(it, modules!!, semanticTree!!)
                 else -> null
             }
         }.forEach { aggregateMultipleMetricOutput(it, results) }
@@ -178,12 +180,13 @@ object MetricsEngine {
 
     private fun evaluateSemanticMetric(
         metric: SemanticMetric,
+        modules: List<ModuleRoot>,
         semanticTree: SemanticTree
     ): MetricResult {
         val results: MetricResult = mutableMapOf()
 
         // Calculate the metric
-        metric.visitProject(semanticTree)
+        metric.visitProject(modules, semanticTree)
 
         // Put the results in a format grouped by moduleId
         metric.getResult().forEach {

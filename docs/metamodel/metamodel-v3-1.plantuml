@@ -1,0 +1,113 @@
+@startuml
+class ModuleRoot
+abstract class SourceElement
+class Module
+class Unit
+class Property
+class Expression
+abstract class Declarable
+
+class Loop
+class Conditional
+class LogicalSequence
+class Jump
+class LocalDeclaration
+class Assignment
+class Lambda
+class ReferenceCall
+class UnitCall
+
+enum ModuleType {
+    CLASS
+    ENUM
+    INTERFACE
+    RECORD
+}
+
+enum ModifierType {
+    PUBLIC
+    PROTECTED
+    PRIVATE
+    STATIC
+    FINAL
+    OPEN
+    SEALED
+    ABSTRACT
+    DEFAULT
+}
+
+ModuleRoot : # filePath: String
+ModuleRoot : # fileName: String
+ModuleRoot : # componentName: String?
+ModuleRoot : # imports: List<String>
+ModuleRoot *-- Module
+
+SourceElement : # metadata: Metadata
+
+SourceElement <|-- Declarable
+SourceElement <|-- Expression
+
+Declarable : # id: String
+Declarable *-- "*" ModifierType : modifiers >
+
+Declarable <|-- Module
+Declarable <|-- Unit
+Declarable <|-- Property
+
+Module : # extends: List<String>
+Module : # implements: List<String>
+Module : # members: List<Declarable>
+Module *-- ModuleType : moduleType >
+
+Unit : # parameters: List<Property>
+Unit : # body: Expression
+
+Property : # initializer: Assignment?
+Property : # getter: Unit?
+Property : # setter: Unit?
+
+Expression : # innerScope: List<Expression>
+
+Expression <|-- Loop
+Expression <|-- Conditional
+Expression <|-- LogicalSequence
+Expression <|-- Jump
+Expression <|-- LocalDeclaration
+Expression <|-- Assignment
+Expression <|-- Lambda
+Expression <|-- Catch
+Expression <|-- ReferenceCall
+Expression <|-- Switch
+Expression <|-- SwitchCase
+
+ReferenceCall <|-- UnitCall
+
+ReferenceCall : # declarableId : String
+
+Catch : # exception: Property
+
+Loop : # evaluations: List<Expression>
+
+Conditional : # ifExpr: Expression
+Conditional : # elseIfExpr: List<Expression>
+Conditional : # elseExpr: Expression
+
+LogicalSequence : # operands: List<Expression>
+
+Jump : # label: String?
+
+Lambda : # parameters: List<Property>
+
+UnitCall : # arguments: List<Expression>
+
+LocalDeclaration : # declaration: Declarable
+
+Assignment : # propertyId: String
+Assignment : # value: Expression?
+
+Switch : # subject: Expression?
+Switch *-- "*" SwitchCase : cases >
+
+SwitchCase : # pattern: Expression?
+
+@enduml

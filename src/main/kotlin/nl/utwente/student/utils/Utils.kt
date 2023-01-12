@@ -5,6 +5,7 @@ import nl.utwente.student.metamodel.v3.Unit
 import org.antlr.v4.runtime.tree.ParseTree
 import java.io.File
 import java.lang.Exception
+import java.lang.ref.Reference
 import java.math.BigInteger
 import java.nio.file.Paths
 import java.security.MessageDigest
@@ -41,7 +42,7 @@ fun ModuleRoot.getUniqueName(withLocation: Boolean = true): String {
 fun Module.getUniqueName(componentName: String?, withLocation: Boolean = true): String {
     return listOfNotNull(
         componentName,
-        this.identifier?.value + if (withLocation) getUniquePosition(this) else "",
+        this.id + if (withLocation) getUniquePosition(this) else "",
     ).joinToString(".")
 }
 private fun getName(moduleRoot: ModuleRoot?, identifier: String, sourceElement: SourceElement): String {
@@ -49,32 +50,31 @@ private fun getName(moduleRoot: ModuleRoot?, identifier: String, sourceElement: 
         ?: "") + identifier + getUniquePosition(sourceElement)
 }
 fun Unit.getUniqueName(moduleRoot: ModuleRoot?): String {
-    return getName(moduleRoot, this.identifier.value, this)
+    return getName(moduleRoot, this.id, this)
 }
 
 fun Property.getUniqueName(moduleRoot: ModuleRoot?): String {
-    return getName(moduleRoot, this.identifier.value, this)
+    return getName(moduleRoot, this.id, this)
 }
 
 fun Lambda.getUniqueName(moduleRoot: ModuleRoot?): String {
     return getName(moduleRoot, "Lambda", this)
 }
 
+// FIXME Fix getFullSignature
 private fun getFullSignature(prefix: Expression?): MutableList<String?> {
     return when (prefix) {
-        is UnitCall -> getFullSignature(prefix.innerScope?.firstOrNull())
-            .also { it.add(getFullSignature(prefix.reference).joinToString(".")) }
-        is Identifier -> mutableListOf(prefix.value)
+        is ReferenceCall -> getFullSignature(prefix.innerScope?.firstOrNull()).also { it.add(prefix.declarableId) }
         else -> mutableListOf()
     }
 }
 
-fun UnitCall.getUniqueName(moduleRoot: ModuleRoot?): String {
+fun ReferenceCall.getUniqueName(moduleRoot: ModuleRoot?): String {
     return getName(moduleRoot, getFullSignature(this).joinToString("."), this)
 }
 
 fun Assignment.getUniqueName(moduleRoot: ModuleRoot?): String {
-    return getName(moduleRoot, getFullSignature(this.reference).joinToString("."), this)
+    return getName(moduleRoot, getFullSignature(this).joinToString("."), this)
 }
 
 fun getUniquePosition(sourceElement: SourceElement): String {
