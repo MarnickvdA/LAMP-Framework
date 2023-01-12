@@ -19,9 +19,9 @@ class ResponseForAClass : ModuleVisitor() {
             .flatten()
             .mapNotNull { it.declarableId } // FIXME Type information required to implement this correctly (right?)
 
-        val constructorCalls = unitCallReferences.filter { it == "constructor" }
+        val constructorCalls = unitCallReferences.filter { it.endsWith(".constructor") }
         val unitCalls = unitCallReferences
-            .filter { it != "constructor" && units.map { u -> u.id }.contains(it) }
+            .filter { !it.endsWith(".constructor") && units.map { u -> u.id }.contains(it) }
             .toSet()
 
         // TODO(Document: How to handle records, should you see the primary constructor as a +1, should you include the 'generated' functions as methods? Should you include getters and setters on properties as methods?)

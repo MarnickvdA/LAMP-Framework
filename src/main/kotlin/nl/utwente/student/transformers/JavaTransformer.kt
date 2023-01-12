@@ -18,12 +18,12 @@ import org.antlr.v4.runtime.tree.TerminalNode
 import org.antlr.v4.runtime.tree.TerminalNodeImpl
 import java.io.File
 import java.io.FileInputStream
-import java.lang.ref.Reference
 
 class JavaTransformer(override val inputFile: File) :
     JavaParserBaseVisitor<Any?>(), Transformer {
     override val language: SupportedLanguage = SupportedLanguage.JAVA
     private var imports: MutableList<String>? = null
+    private var currentModule: Module? = null
 
     override fun transform(): List<ModuleRoot> {
         val parseTree: ParseTree = FileInputStream(inputFile).use {
@@ -140,6 +140,7 @@ class JavaTransformer(override val inputFile: File) :
 
     override fun visitClassDeclaration(ctx: JavaParser.ClassDeclarationContext?): Module {
         val module = Module()
+        currentModule = module
         module.metadata = ctx?.let { getSourceMetadata(it) }
         module.id = this.visitIdentifier(ctx?.identifier())
         module.moduleType = ModuleType.CLASS
@@ -160,12 +161,13 @@ class JavaTransformer(override val inputFile: File) :
 
     override fun visitRecordDeclaration(ctx: JavaParser.RecordDeclarationContext?): Module {
         val module = Module()
+        currentModule = module
         module.metadata = ctx?.let { getSourceMetadata(it) }
         module.id = this.visitIdentifier(ctx?.identifier())
         module.moduleType = ModuleType.RECORD
 
         val unit = Unit().addMetadata(ctx)
-        unit.id = "constructor"
+        unit.id = module.id + ".constructor"
 
         ctx?.recordHeader()?.recordComponentList()?.recordComponent()
             ?.map { this.visitRecordComponent(it) }
@@ -184,6 +186,7 @@ class JavaTransformer(override val inputFile: File) :
 
     override fun visitInterfaceDeclaration(ctx: JavaParser.InterfaceDeclarationContext?): Module {
         val module = Module()
+        currentModule = module
         module.metadata = ctx?.let { getSourceMetadata(it) }
         module.id = this.visitIdentifier(ctx?.identifier())
         module.moduleType = ModuleType.INTERFACE
@@ -200,6 +203,7 @@ class JavaTransformer(override val inputFile: File) :
 
     override fun visitEnumDeclaration(ctx: JavaParser.EnumDeclarationContext?): Module {
         val module = Module()
+        currentModule = module
         module.metadata = ctx?.let { getSourceMetadata(it) }
         module.id = this.visitIdentifier(ctx?.identifier())
         module.moduleType = ModuleType.ENUM
@@ -472,7 +476,7 @@ class JavaTransformer(override val inputFile: File) :
 
     override fun visitConstructorDeclaration(ctx: JavaParser.ConstructorDeclarationContext?): Unit {
         val constructor = Unit().addMetadata(ctx)
-        constructor.id = "constructor"
+        constructor.id = currentModule?.id + ".constructor"
         constructor.body = this.visitBlock(ctx?.block())
 
         this.visitFormalParameters(ctx?.formalParameters()).let { constructor.addParameters(it) }
@@ -1082,6 +1086,7 @@ class JavaTransformer(override val inputFile: File) :
             ctx.identifier() != null -> ReferenceCall().also {
                 it.addMetadata(ctx)
                 it.declarableId = this.visitIdentifier(ctx.identifier())
+                it.context = "java:PrimaryIdentifier"
             }
 
             ctx.expression() != null -> this.visitExpression(ctx.expression())
@@ -1097,10 +1102,10 @@ class JavaTransformer(override val inputFile: File) :
         }
     }
 
-    private fun visitCallExpression(ctx: JavaParser.ExpressionContext): ReferenceCall {
+    private fun visitCallExpression(ctx: JavaParser.ExpressionContext): Call {
         val prefix = this.visitExpression(ctx.expression().first())
 
-        val call: ReferenceCall = when {
+        val call: Call = when {
             ctx.identifier() != null -> ReferenceCall().also {
                 it.context = "java:VariableAccessCall"
                 it.declarableId = this.visitIdentifier(ctx.identifier())
@@ -1117,7 +1122,7 @@ class JavaTransformer(override val inputFile: File) :
                 it.context = "java:ConstructorReference"
 
                 // TODO(Document: We change the call to 'constructor' and put the identifier in the nested scope)
-                it.declarableId = "constructor"
+                it.declarableId = (prefix as? ReferenceCall)?.declarableId + ".constructor"
                 it.addAll(
                     this.createAnonymousClass(
                         ctx.innerCreator().classCreatorRest(),
@@ -1220,7 +1225,7 @@ class JavaTransformer(override val inputFile: File) :
                             ?.let { args -> unit.arguments.addAll(args) }
 
                         // TODO(document: we did the constructor reference again.)
-                        unit.declarableId = "constructor"
+                        unit.declarableId = referenceCall.declarableId + ".constructor"
                         unit.addAll(
                             createAnonymousClass(
                                 ctx.classCreatorRest(),
@@ -1266,6 +1271,7 @@ class JavaTransformer(override val inputFile: File) :
             ReferenceCall().also { call ->
                 call.addMetadata(ctx)
                 call.declarableId = ctx.identifier()?.mapNotNull { this.visitIdentifier(it) }?.joinToString(".")
+                call.context = "java:AnonymousClassReference"
             }
         }
     }
@@ -1428,8 +1434,9 @@ class JavaTransformer(override val inputFile: File) :
 
                 else -> null
             })?.also { rf ->
+                rf.context = "java:MethodReference"
                 rf.add(UnitCall().addMetadata(ctx).also { uc ->
-                    uc.declarableId = if (ctx.NEW() == null) this.visitIdentifier(ctx.identifier()) else "constructor"
+                    uc.declarableId = if (ctx.NEW() == null) this.visitIdentifier(ctx.identifier()) else rf.declarableId + ".constructor"
                 })
             })
         }

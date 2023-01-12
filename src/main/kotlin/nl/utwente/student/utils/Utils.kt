@@ -64,12 +64,12 @@ fun Lambda.getUniqueName(moduleRoot: ModuleRoot?): String {
 // FIXME Fix getFullSignature
 private fun getFullSignature(prefix: Expression?): MutableList<String?> {
     return when (prefix) {
-        is ReferenceCall -> getFullSignature(prefix.innerScope?.firstOrNull()).also { it.add(prefix.declarableId) }
+        is Call -> getFullSignature(prefix.innerScope?.firstOrNull()).also { it.add(prefix.declarableId) }
         else -> mutableListOf()
     }
 }
 
-fun ReferenceCall.getUniqueName(moduleRoot: ModuleRoot?): String {
+fun Call.getUniqueName(moduleRoot: ModuleRoot?): String {
     return getName(moduleRoot, getFullSignature(this).joinToString("."), this)
 }
 

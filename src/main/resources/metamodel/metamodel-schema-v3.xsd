@@ -223,7 +223,7 @@
         </xs:complexContent>
     </xs:complexType>
 
-    <xs:complexType name="ReferenceCall">
+    <xs:complexType name="Call" abstract="true">
         <xs:complexContent>
             <xs:extension base="Expression">
                 <xs:attribute name="declarableId" type="xs:string"/>
@@ -231,9 +231,16 @@
         </xs:complexContent>
     </xs:complexType>
 
+    <xs:complexType name="ReferenceCall">
+        <xs:complexContent>
+            <xs:extension base="Call">
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
     <xs:complexType name="UnitCall">
         <xs:complexContent>
-            <xs:extension base="ReferenceCall">
+            <xs:extension base="Call">
                 <xs:sequence>
                     <xs:sequence minOccurs="0" maxOccurs="unbounded" id="unitCallArgs">
                         <xs:element name="Argument" type="Expression"/>

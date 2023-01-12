@@ -1,6 +1,8 @@
 package nl.utwente.student.metrics
 
+import nl.utwente.student.metamodel.v3.Call
 import nl.utwente.student.metamodel.v3.Expression
+import nl.utwente.student.metamodel.v3.ReferenceCall
 import nl.utwente.student.metamodel.v3.UnitCall
 import nl.utwente.student.utils.getUniqueName
 import nl.utwente.student.visitors.UnitVisitor
@@ -11,23 +13,31 @@ class LengthOfMessageChain: UnitVisitor() {
         return "LMC"
     }
 
-    private var currentChain: UnitCall? = null
+    private var currentChain: Call? = null
     override fun visitUnitCall(unitCall: UnitCall?) {
-        if (unitCall == null) return
+        this.visitCall(unitCall)
+    }
 
-        if (currentChain == null) currentChain = unitCall
+    override fun visitReferenceCall(referenceCall: ReferenceCall?) {
+        this.visitReferenceCall(referenceCall)
+    }
 
-        if (currentChain != unitCall) return // only process the root of the call chain
+    private fun visitCall(call: Call?) {
+        if (call == null) return
+
+        if (currentChain == null) currentChain = call
+
+        if (currentChain != call) return // only process the root of the call chain
 
         fun traverse(expression: Expression?): Int {
             return when(val child = expression?.innerScope?.firstOrNull()) {
-                is UnitCall -> traverse(child) + 1
+                is Call -> traverse(child) + 1
                 else -> 0
             }
         }
 
-        if (currentChain == unitCall) {
-            metricResults.add(Pair(unitCall.getUniqueName(moduleRoot), traverse(unitCall)))
+        if (currentChain == call) {
+            metricResults.add(Pair(call.getUniqueName(moduleRoot), traverse(call)))
             currentChain = null
         }
     }

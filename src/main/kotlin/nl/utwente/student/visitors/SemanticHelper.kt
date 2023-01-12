@@ -16,7 +16,7 @@ object SemanticHelper {
         }
     }
 
-    private fun <T: Expression> findAllInModule(module: Module?, typeCheck: (element: Expression) -> Boolean): MutableList<T> {
+    fun <T: Expression> findAllInModule(module: Module?, typeCheck: (element: Expression) -> Boolean): MutableList<T> {
         if (module == null) return mutableListOf()
         return module.members.map { findAllInDeclarable<T>(it, typeCheck) }.flatten().toMutableList()
     }

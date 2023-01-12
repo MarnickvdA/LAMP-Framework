@@ -14,6 +14,8 @@ class Jump
 class LocalDeclaration
 class Assignment
 class Lambda
+
+abstract class Call
 class ReferenceCall
 class UnitCall
 
@@ -48,6 +50,7 @@ SourceElement <|-- Declarable
 SourceElement <|-- Expression
 
 Declarable : # id: String
+Declarable : # returnType : String
 Declarable *-- "*" ModifierType : modifiers >
 
 Declarable <|-- Module
@@ -76,13 +79,15 @@ Expression <|-- LocalDeclaration
 Expression <|-- Assignment
 Expression <|-- Lambda
 Expression <|-- Catch
-Expression <|-- ReferenceCall
+Expression <|-- Call
 Expression <|-- Switch
 Expression <|-- SwitchCase
 
-ReferenceCall <|-- UnitCall
+Call <|-- ReferenceCall
+Call <|-- UnitCall
 
-ReferenceCall : # declarableId : String
+Call : # declarableId : String
+Call : # returnType : String
 
 Catch : # exception: Property
 

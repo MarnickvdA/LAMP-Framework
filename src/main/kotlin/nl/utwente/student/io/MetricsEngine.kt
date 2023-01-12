@@ -28,7 +28,7 @@ object MetricsEngine {
             // Module Relationship metrics
             DepthOfInheritanceTree(),
             NumberOfChildren(),
-//        CouplingBetweenObjectClasses(),
+            CouplingBetweenObjectClasses(),
 
             // Unit metrics
             CyclomaticComplexity(),
@@ -62,11 +62,10 @@ object MetricsEngine {
         ).forEach { moduleResults.add(it) }
 
         // Calculate the semantic metrics
-//        calculateMetrics(
-//            metrics.filterIsInstance<SemanticMetric>(),
-//            semanticTree = SemanticTreeVisitor().visitProject(modules),
-//            modules = modules
-//        ).forEach { moduleResults.add(it) }
+        calculateMetrics(
+            metrics.filterIsInstance<SemanticMetric>(),
+            modules = modules
+        ).forEach { moduleResults.add(it) }
 
         // Calculate the module specific metrics
         modules.filter { it.module.members.isNotEmpty() }.forEach {
@@ -124,7 +123,7 @@ object MetricsEngine {
                 is UnitVisitor -> evaluateUnitMetric(it, moduleRoot!!)
                 is ModuleVisitor -> evaluateModuleMetric(it, moduleRoot!!)
                 is InheritanceMetric -> evaluateInheritanceMetric(it, inheritanceTree!!)
-                is SemanticMetric -> evaluateSemanticMetric(it, modules!!, semanticTree!!)
+                is SemanticMetric -> evaluateSemanticMetric(it, modules!!)
                 else -> null
             }
         }.forEach { aggregateMultipleMetricOutput(it, results) }
@@ -180,13 +179,12 @@ object MetricsEngine {
 
     private fun evaluateSemanticMetric(
         metric: SemanticMetric,
-        modules: List<ModuleRoot>,
-        semanticTree: SemanticTree
+        modules: List<ModuleRoot>
     ): MetricResult {
         val results: MetricResult = mutableMapOf()
 
         // Calculate the metric
-        metric.visitProject(modules, semanticTree)
+        metric.visitProject(modules)
 
         // Put the results in a format grouped by moduleId
         metric.getResult().forEach {

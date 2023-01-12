@@ -6,7 +6,7 @@ import nl.utwente.student.models.semantics.SemanticTree
 
 // TODO (Create: We have a lambda function that is mutating outside of its own scope)
 class MutatingLambdaFunction : SemanticMetric {
-    override fun visitProject(modules: List<ModuleRoot>, semanticTree: SemanticTree) {
+    override fun visitProject(modules: List<ModuleRoot>) {
         TODO("Not yet implemented")
     }
 
