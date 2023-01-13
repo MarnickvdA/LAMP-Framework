@@ -2,12 +2,11 @@ package nl.utwente.student.io
 
 import nl.utwente.student.metamodel.v3.ModuleRoot
 import nl.utwente.student.metrics.*
-import nl.utwente.student.models.inheritance.InheritanceTree
+import nl.utwente.student.models.symbol.SymbolTree
 import nl.utwente.student.models.metrics.*
-import nl.utwente.student.models.semantics.SemanticTree
 import nl.utwente.student.utils.getFile
-import nl.utwente.student.visitors.InheritanceTreeVisitor
 import nl.utwente.student.visitors.ModuleVisitor
+import nl.utwente.student.visitors.SymbolVisitor
 import nl.utwente.student.visitors.UnitVisitor
 import java.io.File
 
@@ -24,8 +23,9 @@ object MetricsEngine {
             LambdaCount(),
             ResponseForAClass(),
             LackOfCohesionInMethods(),
+            ModuleLinesOfCode(),
 
-            // Module Relationship metrics
+            // Symbolic relationship metrics
             DepthOfInheritanceTree(),
             NumberOfChildren(),
             CouplingBetweenObjectClasses(),
@@ -38,7 +38,6 @@ object MetricsEngine {
 
             // Expression metrics
             LinesOfLambda(),
-//        LengthOfMessageChain()
         )
     }
 
@@ -55,16 +54,10 @@ object MetricsEngine {
         val moduleResults: MetricResults = mutableMapOf()
         var unitResults: MetricResults = mutableMapOf()
 
-        // Calculate the inheritance metrics
         calculateMetrics(
-            metrics.filterIsInstance<InheritanceMetric>(),
-            inheritanceTree = InheritanceTreeVisitor().visitProject(modules)
-        ).forEach { moduleResults.add(it) }
-
-        // Calculate the semantic metrics
-        calculateMetrics(
-            metrics.filterIsInstance<SemanticMetric>(),
-            modules = modules
+            metrics.filterIsInstance<SymbolMetric>(),
+            modules = modules,
+            symbolTree = SymbolVisitor().visitProject(modules)
         ).forEach { moduleResults.add(it) }
 
         // Calculate the module specific metrics
@@ -113,8 +106,7 @@ object MetricsEngine {
     private fun calculateMetrics(
         metrics: List<Metric<*>>,
         moduleRoot: ModuleRoot? = null,
-        inheritanceTree: InheritanceTree? = null,
-        semanticTree: SemanticTree? = null,
+        symbolTree: SymbolTree? = null,
         modules: List<ModuleRoot>? = null,
     ): MetricResults {
         val results: MetricResults = mutableMapOf()
@@ -122,8 +114,7 @@ object MetricsEngine {
             when (it) {
                 is UnitVisitor -> evaluateUnitMetric(it, moduleRoot!!)
                 is ModuleVisitor -> evaluateModuleMetric(it, moduleRoot!!)
-                is InheritanceMetric -> evaluateInheritanceMetric(it, inheritanceTree!!)
-                is SemanticMetric -> evaluateSemanticMetric(it, modules!!)
+                is SymbolMetric -> evaluateSymbolMetric(it, modules!!, symbolTree!!)
                 else -> null
             }
         }.forEach { aggregateMultipleMetricOutput(it, results) }
@@ -160,31 +151,15 @@ object MetricsEngine {
         return results
     }
 
-    private fun evaluateInheritanceMetric(
-        metric: InheritanceMetric,
-        inheritanceTree: InheritanceTree
+    private fun evaluateSymbolMetric(
+        metric: SymbolMetric,
+        modules: List<ModuleRoot>,
+        symbolTree: SymbolTree
     ): MetricResult {
         val results: MetricResult = mutableMapOf()
 
         // Calculate the metric
-        metric.visitProject(inheritanceTree)
-
-        // Put the results in a format grouped by moduleId
-        metric.getResult().forEach {
-            results[it.first] = Pair(metric.getTag(), it.second)
-        }
-
-        return results
-    }
-
-    private fun evaluateSemanticMetric(
-        metric: SemanticMetric,
-        modules: List<ModuleRoot>
-    ): MetricResult {
-        val results: MetricResult = mutableMapOf()
-
-        // Calculate the metric
-        metric.visitProject(modules)
+        metric.visitProject(modules, symbolTree)
 
         // Put the results in a format grouped by moduleId
         metric.getResult().forEach {

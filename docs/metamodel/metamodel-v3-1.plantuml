@@ -50,7 +50,7 @@ SourceElement <|-- Declarable
 SourceElement <|-- Expression
 
 Declarable : # id: String
-Declarable : # returnType : String
+Declarable : # returnType : String?
 Declarable *-- "*" ModifierType : modifiers >
 
 Declarable <|-- Module
@@ -86,8 +86,7 @@ Expression <|-- SwitchCase
 Call <|-- ReferenceCall
 Call <|-- UnitCall
 
-Call : # declarableId : String
-Call : # returnType : String
+Call : # referenceId : String
 
 Catch : # exception: Property
 

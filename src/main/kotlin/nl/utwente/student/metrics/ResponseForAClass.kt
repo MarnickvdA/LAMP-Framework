@@ -4,7 +4,7 @@ import nl.utwente.student.metamodel.v3.Module
 import nl.utwente.student.metamodel.v3.Unit
 import nl.utwente.student.metamodel.v3.UnitCall
 import nl.utwente.student.visitors.ModuleVisitor
-import nl.utwente.student.visitors.SemanticHelper.findAllByExpressionType
+import nl.utwente.student.visitors.SourceElementFinder.findAllByExpressionType
 
 class ResponseForAClass : ModuleVisitor() {
     override var result: Int? = 0
@@ -17,7 +17,7 @@ class ResponseForAClass : ModuleVisitor() {
         val unitCallReferences = units
             .map { findAllByExpressionType<UnitCall>(it.body) { e -> e is UnitCall } }
             .flatten()
-            .mapNotNull { it.declarableId } // FIXME Type information required to implement this correctly (right?)
+            .mapNotNull { it.referenceId } // FIXME Type information required to implement this correctly (right?)
 
         val constructorCalls = unitCallReferences.filter { it.endsWith(".constructor") }
         val unitCalls = unitCallReferences

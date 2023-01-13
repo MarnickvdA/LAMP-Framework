@@ -3,7 +3,7 @@ package nl.utwente.student.visitors
 import nl.utwente.student.metamodel.v3.*
 import nl.utwente.student.metamodel.v3.Unit
 
-object SemanticHelper {
+object SourceElementFinder {
     private fun <T: Expression> findAllInDeclarable(
         declarable: Declarable,
         typeCheck: (element: Expression) -> Boolean

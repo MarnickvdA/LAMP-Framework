@@ -3,7 +3,7 @@ package nl.utwente.student.metrics
 import nl.utwente.student.metamodel.v3.*
 import nl.utwente.student.metamodel.v3.Unit
 import nl.utwente.student.visitors.ModuleVisitor
-import nl.utwente.student.visitors.SemanticHelper.findAllByExpressionType
+import nl.utwente.student.visitors.SourceElementFinder.findAllByExpressionType
 
 
 class LackOfCohesionInMethods : ModuleVisitor() {
@@ -15,7 +15,9 @@ class LackOfCohesionInMethods : ModuleVisitor() {
 
         // FIXME: Check on return type to create 'method pairs'
 
-        val units = module.members.filterIsInstance<Unit>()
+        val units = module.members.filterIsInstance<Unit>().toMutableList()
+        units.addAll(module.members.filterIsInstance<Property>().map { listOf(it.getter, it.setter) }.flatten())
+
         val propertiesPerUnit = getPropertiesPerUnit(units)
         val linkedUnits = getLinkedUnits(units)
         result = calculateComponents(units, propertiesPerUnit, linkedUnits).size
@@ -33,7 +35,7 @@ class LackOfCohesionInMethods : ModuleVisitor() {
 
         units.forEach {
             properties[it.id] =
-                findAllByExpressionType<ReferenceCall>(it.body) { e -> e is ReferenceCall }.map { c -> c.declarableId }
+                findAllByExpressionType<ReferenceCall>(it.body) { e -> e is ReferenceCall }.map { c -> c.referenceId }
                     .toSet()
         }
 
@@ -58,7 +60,7 @@ class LackOfCohesionInMethods : ModuleVisitor() {
 
         units.forEach {
             linkages[it.id] =
-                findAllByExpressionType<UnitCall>(it.body) { e -> e is UnitCall }.map { c -> c.declarableId }
+                findAllByExpressionType<UnitCall>(it.body) { e -> e is UnitCall }.map { c -> c.referenceId }
                     .toMutableSet()
         }
 
@@ -181,7 +183,7 @@ class LackOfCohesionInMethods : ModuleVisitor() {
 
         val unitProperties = mutableMapOf<String, MutableSet<String>>()
         module.members.filterIsInstance<Unit>()
-            .filter { it.id != "constructor" && it.id != "initializer" }
+            .filter { it.id.endsWith(".constructor") && it.id.endsWith("initializer") }
             .forEach {
                 val properties = mutableSetOf<String>()
 

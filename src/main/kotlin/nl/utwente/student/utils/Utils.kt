@@ -64,7 +64,7 @@ fun Lambda.getUniqueName(moduleRoot: ModuleRoot?): String {
 // FIXME Fix getFullSignature
 private fun getFullSignature(prefix: Expression?): MutableList<String?> {
     return when (prefix) {
-        is Call -> getFullSignature(prefix.innerScope?.firstOrNull()).also { it.add(prefix.declarableId) }
+        is Call -> getFullSignature(prefix.innerScope?.firstOrNull()).also { it.add(prefix.referenceId) }
         else -> mutableListOf()
     }
 }

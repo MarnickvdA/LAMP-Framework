@@ -3,11 +3,10 @@ package nl.utwente.student.metrics
 import nl.utwente.student.metamodel.v3.Call
 import nl.utwente.student.metamodel.v3.ModuleRoot
 import nl.utwente.student.metamodel.v3.ReferenceCall
-import nl.utwente.student.models.metrics.SemanticMetric
-import nl.utwente.student.models.semantics.SemanticTree
-import nl.utwente.student.visitors.SemanticHelper
-import nl.utwente.student.visitors.SemanticHelper.findAllByExpressionType
-import nl.utwente.student.visitors.SemanticHelper.findAllInModule
+import nl.utwente.student.metamodel.v3.UnitCall
+import nl.utwente.student.models.symbol.SymbolTree
+import nl.utwente.student.models.metrics.SymbolMetric
+import nl.utwente.student.visitors.SourceElementFinder.findAllInModule
 
 /**
  * Count of references in both directions between two classes (property access or unit calls (excluding constructor calls?))
@@ -15,7 +14,7 @@ import nl.utwente.student.visitors.SemanticHelper.findAllInModule
  *
  * TODO Q: Should library references to be included or only classes written in the project?
  */
-class CouplingBetweenObjectClasses : SemanticMetric {
+class CouplingBetweenObjectClasses : SymbolMetric {
     private lateinit var classCoupling: MutableMap<String, Int>
 
     override fun getTag(): String = "CBO"
@@ -24,24 +23,45 @@ class CouplingBetweenObjectClasses : SemanticMetric {
         return classCoupling.toList()
     }
 
-    override fun visitProject(modules: List<ModuleRoot>) {
+    override fun visitProject(modules: List<ModuleRoot>, symbolTree: SymbolTree) {
         classCoupling = mutableMapOf()
-        val outgoingReferences = mutableMapOf<String, Set<String>>() // ReferenceCall, Set<Declarable>
+
+//        symbolTree.print()
+
+        val outgoingReferences = mutableMapOf<String, Set<Call>>() // ReferenceCall, Set<Declarable>
 
         for (moduleRoot in modules) {
             val module = moduleRoot.module
 
+//            println("Module = ${module.id}")
+
             val callsInModule = findAllInModule<Call>(module) { it is Call }
+//            println("[${module.id}] Calls in module: ${callsInModule.joinToString(", ") { it.referenceId }}")
 
             val outgoingCalls = callsInModule
-                .filter { it.innerScope.firstOrNull() is ReferenceCall }
-                .map {
-                    // FIXME: Get Type Information from call.declarableId to find what type we are referencing to.
-                    (it.innerScope.first() as ReferenceCall).declarableId
+                .filter {
+                    val reference = it.innerScope.firstOrNull()
+                    reference is ReferenceCall && reference.referenceId != module.id
+                }
+                .also {
+//                    println("[${module.id}] (external) refs: ${it.joinToString(", ") { c -> (c.innerScope.firstOrNull() as ReferenceCall).referenceId }}")
                 }.toSet()
 
+            val indirectOutgoingCalls = callsInModule
+                .filter { it.innerScope.firstOrNull() is UnitCall }
+                .filter {
+                    true // TODO Check the return type of the unit call to see if it is going to another module.
+                }
 
-            outgoingReferences[module.id] = outgoingCalls
+//            println("[${module.id}] Direct outgoing calls: ${outgoingCalls.joinToString(", ")}")
+
+//            *      for each declarable identifier:
+//            *          val type = semanticTree.getTypeOf(identifier)
+//            *          if type is defined (= reference type):
+//            *              references.add(type)
+//            *
+
+            outgoingReferences[module.id] = outgoingCalls.map { it }.toSet()
         }
 
         for (moduleId in outgoingReferences.keys) {
@@ -51,8 +71,10 @@ class CouplingBetweenObjectClasses : SemanticMetric {
             outgoingReferences[moduleId]?.forEach { reference ->
                 classCoupling[moduleId] = classCoupling[moduleId]!! + 1
 
-                classCoupling[reference] =
-                    if (classCoupling.containsKey(reference)) classCoupling[reference]!! + 1 else 1
+                // TODO Check the referenceId, is it a class or a property? Need to find it in the scope using the symbol tree.
+                val moduleRef = (reference.innerScope.first() as ReferenceCall).referenceId
+                classCoupling[moduleRef] =
+                    if (classCoupling.containsKey(moduleRef)) classCoupling[moduleRef]!! + 1 else 1
             }
         }
 

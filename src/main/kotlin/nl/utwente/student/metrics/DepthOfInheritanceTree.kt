@@ -1,15 +1,15 @@
 package nl.utwente.student.metrics
 
-import nl.utwente.student.models.inheritance.InheritanceNode
-import nl.utwente.student.models.inheritance.InheritanceTree
-import nl.utwente.student.models.metrics.InheritanceMetric
+import nl.utwente.student.metamodel.v3.ModuleRoot
+import nl.utwente.student.models.symbol.*
+import nl.utwente.student.models.metrics.SymbolMetric
 
-class DepthOfInheritanceTree: InheritanceMetric {
+class DepthOfInheritanceTree: SymbolMetric {
     private var moduleResults = mutableListOf<Pair<String, Int>>()
 
-    override fun visitProject(inheritanceTree: InheritanceTree) {
+    override fun visitProject(modules: List<ModuleRoot>, symbolTree: SymbolTree) {
         moduleResults = mutableListOf()
-        inheritanceTree.forEach {
+        symbolTree.modules.forEach {
             moduleResults.add(Pair(it.key, getDepthOfInheritanceTree(it.value)))
         }
     }
@@ -20,10 +20,10 @@ class DepthOfInheritanceTree: InheritanceMetric {
         return moduleResults
     }
 
-    private fun getDepthOfInheritanceTree(inheritanceTree: InheritanceNode): Int {
+    private fun getDepthOfInheritanceTree(module: SourceSymbol): Int {
         return when {
-            inheritanceTree.children.isEmpty() -> 1
-            else -> inheritanceTree.children.maxOf { getDepthOfInheritanceTree(it) } + 1
+            module.parent != null -> getDepthOfInheritanceTree(module.parent!!) + 1
+            else -> 0
         }
     }
 }

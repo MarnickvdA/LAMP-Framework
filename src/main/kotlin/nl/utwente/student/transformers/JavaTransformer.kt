@@ -143,6 +143,7 @@ class JavaTransformer(override val inputFile: File) :
         currentModule = module
         module.metadata = ctx?.let { getSourceMetadata(it) }
         module.id = this.visitIdentifier(ctx?.identifier())
+        module.returnType = module.id
         module.moduleType = ModuleType.CLASS
 
         ctx?.EXTENDS()?.let {
@@ -164,10 +165,12 @@ class JavaTransformer(override val inputFile: File) :
         currentModule = module
         module.metadata = ctx?.let { getSourceMetadata(it) }
         module.id = this.visitIdentifier(ctx?.identifier())
+        module.returnType = module.id
         module.moduleType = ModuleType.RECORD
 
         val unit = Unit().addMetadata(ctx)
         unit.id = module.id + ".constructor"
+        unit.returnType = module.returnType
 
         ctx?.recordHeader()?.recordComponentList()?.recordComponent()
             ?.map { this.visitRecordComponent(it) }
@@ -189,6 +192,7 @@ class JavaTransformer(override val inputFile: File) :
         currentModule = module
         module.metadata = ctx?.let { getSourceMetadata(it) }
         module.id = this.visitIdentifier(ctx?.identifier())
+        module.returnType = module.id
         module.moduleType = ModuleType.INTERFACE
 
         ctx?.EXTENDS()?.let {
@@ -206,10 +210,12 @@ class JavaTransformer(override val inputFile: File) :
         currentModule = module
         module.metadata = ctx?.let { getSourceMetadata(it) }
         module.id = this.visitIdentifier(ctx?.identifier())
+        module.returnType = module.id
         module.moduleType = ModuleType.ENUM
 
         ctx?.enumConstants()?.enumConstant()
             ?.map { this.visitEnumConstant(it) }
+            ?.onEach { it.returnType = module.returnType }
             ?.also { module.members.addAll(it) }
 
         ctx?.IMPLEMENTS()?.let {
@@ -234,23 +240,28 @@ class JavaTransformer(override val inputFile: File) :
     override fun visitRecordComponent(ctx: JavaParser.RecordComponentContext?): Property {
         val property = Property().addMetadata(ctx)
         property.id = this.visitIdentifier(ctx?.identifier())
+        property.returnType = this.visitTypeType(ctx?.typeType())
 
         return property
     }
 
     override fun visitConstDeclaration(ctx: JavaParser.ConstDeclarationContext?): List<Property>? {
-        return ctx?.constantDeclarator()?.mapNotNull(this::visitConstantDeclarator)
+        return ctx?.constantDeclarator()
+            ?.mapNotNull(this::visitConstantDeclarator)
+            ?.onEach { it.returnType = this.visitTypeType(ctx.typeType()) }
     }
 
     override fun visitConstantDeclarator(ctx: JavaParser.ConstantDeclaratorContext?): Property {
         return Property().also {
             it.addMetadata(ctx)
             it.id = this.visitIdentifier(ctx?.identifier())
-            it.initializer = Assignment().also { assignment ->
-                assignment.addMetadata(ctx?.variableInitializer())
-                assignment.context = "java:ConstantInitializer"
-                assignment.propertyId = it.id
-                assignment.value = this.visitVariableInitializer(ctx?.variableInitializer())
+            it.initializer = ctx?.variableInitializer()?.let { varCtx ->
+                Assignment().also { assignment ->
+                    assignment.addMetadata(varCtx)
+                    assignment.context = "java:ConstantInitializer"
+                    assignment.propertyId = it.id
+                    assignment.value = this.visitVariableInitializer(varCtx)
+                }
             }
         }
     }
@@ -265,6 +276,7 @@ class JavaTransformer(override val inputFile: File) :
             modifierCtx?.mapNotNull(this::visitInterfaceMethodModifier)?.let { m -> it.modifiers.addAll(m) }
             it.addParameters(this.visitFormalParameters(bodyCtx?.formalParameters()))
             it.id = this.visitIdentifier(bodyCtx?.identifier())
+            it.returnType = this.visitTypeTypeOrVoid(bodyCtx?.typeTypeOrVoid())
             it.body = this.visitMethodBody(bodyCtx?.methodBody())
         }
     }
@@ -306,6 +318,10 @@ class JavaTransformer(override val inputFile: File) :
         }
     }
 
+    override fun visitTypeTypeOrVoid(ctx: JavaParser.TypeTypeOrVoidContext?): String? {
+        return ctx?.typeType()?.let { this.visitTypeType(it) }
+    }
+
     override fun visitClassOrInterfaceType(ctx: JavaParser.ClassOrInterfaceTypeContext?): String? {
         return ctx?.text
     }
@@ -334,7 +350,7 @@ class JavaTransformer(override val inputFile: File) :
 
         return if (ctx?.block() != null) {
             val initializer = Unit().addMetadata(ctx)
-            initializer.id = "initializer"
+            initializer.id = "${currentModule!!.id}.initializer"
             ctx.STATIC()?.let { initializer.modifiers.add(ModifierType.STATIC) }
             initializer.body = this.visitBlock(ctx.block())
             initializer.modifiers.addAll(modifiers)
@@ -383,6 +399,7 @@ class JavaTransformer(override val inputFile: File) :
     override fun visitMethodDeclaration(ctx: JavaParser.MethodDeclarationContext?): Unit {
         val method = Unit().addMetadata(ctx)
         method.id = this.visitIdentifier(ctx?.identifier())
+        method.returnType = this.visitTypeTypeOrVoid(ctx?.typeTypeOrVoid())
         method.body = this.visitMethodBody(ctx?.methodBody())
         this.visitFormalParameters(ctx?.formalParameters()).let { method.addParameters(it) }
 
@@ -400,6 +417,7 @@ class JavaTransformer(override val inputFile: File) :
             list.add(Property().also { p ->
                 p.addMetadata(ctx?.receiverParameter())
                 p.id = id
+                p.returnType = visitTypeType(ctx?.receiverParameter()?.typeType())
             })
         }
 
@@ -477,6 +495,7 @@ class JavaTransformer(override val inputFile: File) :
     override fun visitConstructorDeclaration(ctx: JavaParser.ConstructorDeclarationContext?): Unit {
         val constructor = Unit().addMetadata(ctx)
         constructor.id = currentModule?.id + ".constructor"
+        constructor.returnType = currentModule?.returnType
         constructor.body = this.visitBlock(ctx?.block())
 
         this.visitFormalParameters(ctx?.formalParameters()).let { constructor.addParameters(it) }
@@ -490,7 +509,11 @@ class JavaTransformer(override val inputFile: File) :
 
     override fun visitFieldDeclaration(ctx: JavaParser.FieldDeclarationContext?): List<Property> {
         val properties = mutableListOf<Property>()
-        this.visitVariableDeclarators(ctx?.variableDeclarators())?.let { properties.addAll(it) }
+        this.visitVariableDeclarators(ctx?.variableDeclarators())
+            ?.onEach {
+                it.returnType = this.visitTypeType(ctx?.typeType())
+                properties.add(it)
+            }
 
         return properties
     }
@@ -503,11 +526,13 @@ class JavaTransformer(override val inputFile: File) :
     override fun visitVariableDeclarator(ctx: JavaParser.VariableDeclaratorContext?): Property {
         val property = Property().addMetadata(ctx)
         property.id = this.visitVariableDeclaratorId(ctx?.variableDeclaratorId())
-        property.initializer = Assignment().also { assignment ->
-            assignment.addMetadata(ctx?.variableInitializer())
-            assignment.context = "java:VariableInitializer"
-            assignment.propertyId = property.id
-            assignment.value = this.visitVariableInitializer(ctx?.variableInitializer())
+        property.initializer = ctx?.variableInitializer()?.let {
+            Assignment().also { assignment ->
+                assignment.addMetadata(it)
+                assignment.context = "java:VariableInitializer"
+                assignment.propertyId = property.id
+                assignment.value = this.visitVariableInitializer(it)
+            }
         }
 
         return property
@@ -522,29 +547,31 @@ class JavaTransformer(override val inputFile: File) :
             this.visitExpression(ctx.expression())
         } else {
             this.visitArrayInitializer(ctx?.arrayInitializer())
-        }
+        }?.addMetadata(ctx)
     }
 
     private fun visitParameter(
         ctx: ParserRuleContext?,
         idCtx: JavaParser.VariableDeclaratorIdContext?,
-        modifierCtx: List<JavaParser.VariableModifierContext>?
+        modifierCtx: List<JavaParser.VariableModifierContext>?,
+        typeCtx: JavaParser.TypeTypeContext?
     ): Property? {
         if (ctx == null) return null
 
         return Property().also {
             it.addMetadata(ctx)
             it.id = this.visitVariableDeclaratorId(idCtx)
+            it.returnType = this.visitTypeType(typeCtx)
             this.visitModifiers(modifierCtx)?.let { m -> it.modifiers.addAll(m) }
         }
     }
 
     override fun visitFormalParameter(ctx: JavaParser.FormalParameterContext?): Property? {
-        return visitParameter(ctx, ctx?.variableDeclaratorId(), ctx?.variableModifier())
+        return visitParameter(ctx, ctx?.variableDeclaratorId(), ctx?.variableModifier(), ctx?.typeType())
     }
 
     override fun visitLastFormalParameter(ctx: JavaParser.LastFormalParameterContext?): Property? {
-        return visitParameter(ctx, ctx?.variableDeclaratorId(), ctx?.variableModifier())
+        return visitParameter(ctx, ctx?.variableDeclaratorId(), ctx?.variableModifier(), ctx?.typeType())
     }
 
     override fun visitLocalVariableDeclaration(ctx: JavaParser.LocalVariableDeclarationContext?): Expression? {
@@ -552,6 +579,7 @@ class JavaTransformer(override val inputFile: File) :
 
         return if (ctx?.VAR() != null) {
             val varDeclaration = Property().addMetadata(ctx)
+            // FIXME: Can we infer the type of this var?
 
             varDeclaration.id = this.visitIdentifier(ctx.identifier())
             varDeclaration.initializer = Assignment().also { assignment ->
@@ -572,6 +600,7 @@ class JavaTransformer(override val inputFile: File) :
                 LocalDeclaration().addMetadata(ctx)
                     .also { ld ->
                         ld.declaration = p
+                        p.returnType = this.visitTypeType(ctx?.typeType())
                         ld.context = "java:VariableDeclaration"
                     }
             }
@@ -741,6 +770,7 @@ class JavaTransformer(override val inputFile: File) :
         val property = Property().addMetadata(ctx)
         this.visitModifiers(ctx.variableModifier())?.let { property.modifiers.addAll(it) }
         property.id = this.visitVariableDeclaratorId(ctx.variableDeclaratorId())
+        property.returnType = this.visitTypeType(ctx.typeType()) // FIXME: Look if we can infer the type of VAR
         declaration.declaration = property
 
         this.visitExpression(ctx.expression())?.let { e -> declaration.add(e) }
@@ -786,6 +816,7 @@ class JavaTransformer(override val inputFile: File) :
             it.addMetadata(ctx)
             this.visitModifiers(ctx?.variableModifier())?.let { m -> it.modifiers.addAll(m) }
             it.id = this.visitIdentifier(ctx?.identifier())
+            it.returnType = this.visitCatchType(ctx?.catchType())
         }
 
         return Catch().also {
@@ -795,6 +826,10 @@ class JavaTransformer(override val inputFile: File) :
             this.visitBlock(ctx?.block())?.innerScope?.let { expressions -> it.innerScope.addAll(expressions) } // TODO Document: flattening applied here.
 
         }
+    }
+
+    override fun visitCatchType(ctx: JavaParser.CatchTypeContext?): String? {
+        return this.visitQualifiedName(ctx?.qualifiedName()?.firstOrNull())  // FIXME: catch type can be a union of multiple types. How to handle that?
     }
 
     override fun visitFinallyBlock(ctx: JavaParser.FinallyBlockContext?): Expression? {
@@ -847,6 +882,7 @@ class JavaTransformer(override val inputFile: File) :
 
         property.id = this.visitVariableDeclaratorId(ctx?.variableDeclaratorId())
             ?: this.visitIdentifier(ctx?.identifier())
+        property.id = this.visitClassOrInterfaceType(ctx?.classOrInterfaceType()) // FIXME: Inferred types here applicable.
         property.initializer = Assignment().also { assignment ->
             assignment.addMetadata(ctx?.expression())
             assignment.context = "java:TryResourceInitializer"
@@ -900,6 +936,7 @@ class JavaTransformer(override val inputFile: File) :
                 it.declaration = Property().also { p ->
                     p.addMetadata(ctx)
                     p.id = this.visitIdentifier(ctx.varName)
+                    p.returnType = this.visitTypeType(ctx.typeType())
                 }
                 it.context = "java:DeclarationSwitchLabel"
             }
@@ -1085,7 +1122,7 @@ class JavaTransformer(override val inputFile: File) :
             ctx == null -> null
             ctx.identifier() != null -> ReferenceCall().also {
                 it.addMetadata(ctx)
-                it.declarableId = this.visitIdentifier(ctx.identifier())
+                it.referenceId = this.visitIdentifier(ctx.identifier())
                 it.context = "java:PrimaryIdentifier"
             }
 
@@ -1108,12 +1145,12 @@ class JavaTransformer(override val inputFile: File) :
         val call: Call = when {
             ctx.identifier() != null -> ReferenceCall().also {
                 it.context = "java:VariableAccessCall"
-                it.declarableId = this.visitIdentifier(ctx.identifier())
+                it.referenceId = this.visitIdentifier(ctx.identifier())
             }
 
             ctx.THIS() != null -> ReferenceCall().also {
                 it.context = "java:ThisAccessCall"
-                it.declarableId = "this"
+                it.referenceId = "this"
             }
 
             ctx.methodCall() != null -> this.visitMethodCall(ctx.methodCall())
@@ -1122,7 +1159,7 @@ class JavaTransformer(override val inputFile: File) :
                 it.context = "java:ConstructorReference"
 
                 // TODO(Document: We change the call to 'constructor' and put the identifier in the nested scope)
-                it.declarableId = (prefix as? ReferenceCall)?.declarableId + ".constructor"
+                it.referenceId = (prefix as? ReferenceCall)?.referenceId + ".constructor"
                 it.addAll(
                     this.createAnonymousClass(
                         ctx.innerCreator().classCreatorRest(),
@@ -1135,7 +1172,7 @@ class JavaTransformer(override val inputFile: File) :
             }
 
             ctx.SUPER() != null -> UnitCall().also {
-                it.declarableId = "super"
+                it.referenceId = "super"
                 it.context = "SuperCall"
                 // TODO(Document: We do not handle super suffix.)
             }
@@ -1146,10 +1183,10 @@ class JavaTransformer(override val inputFile: File) :
                 val obj = ctx.explicitGenericInvocation().explicitGenericInvocationSuffix()
                 if (obj.SUPER() != null) {
                     // TODO(Document: We do not handle superSuffix correctly, with the possibility of super.identifier(args) )
-                    it.declarableId = "super"
+                    it.referenceId = "super"
                     this.visitArguments(obj.superSuffix().arguments())?.let { args -> it.arguments.addAll(args) }
                 } else {
-                    it.declarableId = this.visitIdentifier(obj.identifier())
+                    it.referenceId = this.visitIdentifier(obj.identifier())
                     this.visitArguments(obj.arguments())?.let { args -> it.arguments.addAll(args) }
                 }
             }
@@ -1178,6 +1215,7 @@ class JavaTransformer(override val inputFile: File) :
                     m.metadata = ctx?.let { getSourceMetadata(it) }
                     // TODO(Document: we have unique names for anonymous classes.
                     m.id = moduleReference + ctx?.start.hashCode()
+                    m.returnType = moduleReference
                     m.members.addAll(members)
                 }
             })
@@ -1189,7 +1227,7 @@ class JavaTransformer(override val inputFile: File) :
     override fun visitMethodCall(ctx: JavaParser.MethodCallContext?): UnitCall {
         val call = UnitCall()
         call.context = "java:MethodCall"
-        call.declarableId = when {
+        call.referenceId = when {
             ctx?.identifier() != null -> this.visitIdentifier(ctx.identifier())
             ctx?.THIS() != null -> "this"
             ctx?.SUPER() != null -> "super"
@@ -1225,11 +1263,11 @@ class JavaTransformer(override val inputFile: File) :
                             ?.let { args -> unit.arguments.addAll(args) }
 
                         // TODO(document: we did the constructor reference again.)
-                        unit.declarableId = referenceCall.declarableId + ".constructor"
+                        unit.referenceId = referenceCall.referenceId + ".constructor"
                         unit.addAll(
                             createAnonymousClass(
                                 ctx.classCreatorRest(),
-                                referenceCall.declarableId
+                                referenceCall.referenceId
                             )?.innerScope
                         )
                     })
@@ -1270,7 +1308,7 @@ class JavaTransformer(override val inputFile: File) :
         return ctx?.let {
             ReferenceCall().also { call ->
                 call.addMetadata(ctx)
-                call.declarableId = ctx.identifier()?.mapNotNull { this.visitIdentifier(it) }?.joinToString(".")
+                call.referenceId = ctx.identifier()?.mapNotNull { this.visitIdentifier(it) }?.joinToString(".")
                 call.context = "java:AnonymousClassReference"
             }
         }
@@ -1289,7 +1327,7 @@ class JavaTransformer(override val inputFile: File) :
                 Assignment().also { assign ->
                     ctx.postfix?.also { t -> assign.addMetadata(t) }
                     ctx.prefix?.also { t -> assign.addMetadata(t) }
-                    assign.propertyId = it.declarableId
+                    assign.propertyId = it.referenceId
                 }
             }
         } else {
@@ -1311,7 +1349,7 @@ class JavaTransformer(override val inputFile: File) :
             "=", "+=", "-=", "*=", "/=", "&=", "|=", "^=", ">>=", ">>>=", "<<=", "%=" -> (leftSide as? ReferenceCall)
                 ?.also { call ->
                     call.add(Assignment().also {
-                        it.propertyId = leftSide.declarableId
+                        it.propertyId = leftSide.referenceId
                         it.value = rightSide
                         it.context = "java:Assignment"
                         it.addMetadata(ctx)
@@ -1372,6 +1410,7 @@ class JavaTransformer(override val inputFile: File) :
         ctx?.identifier()?.mapNotNull { this.visitIdentifier(it) }?.forEachIndexed { i, id ->
             params.add(Property().also { p ->
                 p.id = id
+                // FIXME: Type is inferred
                 p.addMetadata(ctx.identifier(i))
             })
         }
@@ -1396,6 +1435,7 @@ class JavaTransformer(override val inputFile: File) :
         return Property().also {
             it.addMetadata(ctx)
             it.id = this.visitIdentifier(ctx?.identifier())
+            // FIXME: Type is inferred
             (this.visitModifiers(ctx?.variableModifier()))?.let { m -> it.modifiers.addAll(m) }
         }
     }
@@ -1423,12 +1463,12 @@ class JavaTransformer(override val inputFile: File) :
                     ctx.expression().firstOrNull()
                 ) as? ReferenceCall // TODO Check if comes through correctly.
                 ctx.typeType()?.isNotEmpty() == true -> ReferenceCall().also { rf ->
-                    rf.declarableId = ctx.typeType().first().text
+                    rf.referenceId = ctx.typeType().first().text
                     rf.addMetadata(ctx.typeType().first())
                 }
 
                 ctx.classType() != null -> ReferenceCall().also { rf ->
-                    rf.declarableId = this.visitIdentifier(ctx.classType().identifier())
+                    rf.referenceId = this.visitIdentifier(ctx.classType().identifier())
                     rf.addMetadata(ctx.classType())
                 }
 
@@ -1436,7 +1476,8 @@ class JavaTransformer(override val inputFile: File) :
             })?.also { rf ->
                 rf.context = "java:MethodReference"
                 rf.add(UnitCall().addMetadata(ctx).also { uc ->
-                    uc.declarableId = if (ctx.NEW() == null) this.visitIdentifier(ctx.identifier()) else rf.declarableId + ".constructor"
+                    uc.referenceId =
+                        if (ctx.NEW() == null) this.visitIdentifier(ctx.identifier()) else rf.referenceId + ".constructor"
                 })
             })
         }

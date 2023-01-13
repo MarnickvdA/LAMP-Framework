@@ -1,15 +1,16 @@
 package nl.utwente.student.metrics
 
-import nl.utwente.student.models.inheritance.InheritanceTree
-import nl.utwente.student.models.metrics.InheritanceMetric
+import nl.utwente.student.metamodel.v3.ModuleRoot
+import nl.utwente.student.models.symbol.SymbolTree
+import nl.utwente.student.models.metrics.SymbolMetric
 
-class NumberOfChildren: InheritanceMetric {
+class NumberOfChildren: SymbolMetric {
     private var moduleResults = mutableListOf<Pair<String, Int>>()
 
-    override fun visitProject(inheritanceTree: InheritanceTree) {
+    override fun visitProject(modules: List<ModuleRoot>, symbolTree: SymbolTree) {
         moduleResults = mutableListOf()
-        inheritanceTree.forEach {
-            moduleResults.add(Pair(it.key, it.value.children.size))
+        symbolTree.modules.forEach {
+            moduleResults.add(Pair(it.key, it.value.subModules.size))
         }
     }
 
