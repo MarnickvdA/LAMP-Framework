@@ -19,6 +19,31 @@ object WriterEngine {
             }?.first
     }
 
+    fun writeToCSV(output: File, moduleMetrics: MetricResults, unitMetrics: MetricResults) {
+        if (!output.exists()) {
+            output.mkdirs()
+        }
+
+        fun writeMetricResults(toFile: File, results: MetricResults) {
+            FileOutputStream(toFile).apply {
+                val writer = bufferedWriter()
+                writer.write(""""Module";${results.values.first().joinToString(";") { "\"${it.first}\"" }}""")
+                writer.newLine()
+                results.forEach { (moduleId, results) ->
+                    writer.write("\"${moduleId}\";${results.map { it.second }.joinToString(";")}")
+                    writer.newLine()
+                }
+                writer.flush()
+            }
+        }
+
+        if (moduleMetrics.isNotEmpty())
+            writeMetricResults(Paths.get(output.absolutePath, "modules.csv").toFile(), moduleMetrics)
+
+        if (unitMetrics.isNotEmpty())
+            writeMetricResults(Paths.get(output.absolutePath, "units.csv").toFile(), unitMetrics)
+    }
+
     private fun writeModules(modules: List<ModuleRoot>, outputDir: File): Pair<File, Int> {
         val jaxbMarshaller: Marshaller = JAXBContext.newInstance(ModuleRoot::class.java.packageName).createMarshaller()
         jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)

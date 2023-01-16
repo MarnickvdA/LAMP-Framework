@@ -9,6 +9,7 @@ import nl.utwente.student.visitors.ModuleVisitor
 import nl.utwente.student.visitors.SymbolVisitor
 import nl.utwente.student.visitors.UnitVisitor
 import java.io.File
+import java.io.Writer
 
 typealias MetricResult = MutableMap<String, Pair<String, Int>>
 typealias MetricResults = MutableMap<String, MutableList<Pair<String, Int>>>
@@ -47,8 +48,7 @@ object MetricsEngine {
         else this[result.key]?.addAll(result.value)
     }
 
-    fun run(modules: List<ModuleRoot>, output: String?): File? {
-        val out = output?.let { getFile(it) }
+    fun run(modules: List<ModuleRoot>, output: File): File? {
         val metrics = getMetrics()
 
         val moduleResults: MetricResults = mutableMapOf()
@@ -75,7 +75,9 @@ object MetricsEngine {
         println("\n==== SOURCE ELEMENT METRICS ====")
         unitResults.forEach { metric -> printUnitMetrics(metric.key, metric.value) }
 
-        return out
+        WriterEngine.writeToCSV(output, moduleResults, unitResults)
+
+        return output
     }
 
     private fun printUnitMetrics(unitId: String, metrics: List<Pair<String, Int>>) {

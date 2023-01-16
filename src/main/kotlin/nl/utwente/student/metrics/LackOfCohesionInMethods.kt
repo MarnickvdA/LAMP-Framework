@@ -16,7 +16,7 @@ class LackOfCohesionInMethods : ModuleVisitor() {
         // FIXME: Check on return type to create 'method pairs'
 
         val units = module.members.filterIsInstance<Unit>().toMutableList()
-        units.addAll(module.members.filterIsInstance<Property>().map { listOf(it.getter, it.setter) }.flatten())
+        units.addAll(module.members.filterIsInstance<Property>().map { listOf(it.getter, it.setter) }.flatten().filterNotNull())
 
         val propertiesPerUnit = getPropertiesPerUnit(units)
         val linkedUnits = getLinkedUnits(units)

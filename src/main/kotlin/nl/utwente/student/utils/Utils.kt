@@ -30,6 +30,7 @@ fun getFile(fileOrDir: String?): File? {
         try {
             Paths.get(fileOrDir).toFile()
         } catch (ex: Exception) {
+            ex.printStackTrace()
             return null
         }
     }
