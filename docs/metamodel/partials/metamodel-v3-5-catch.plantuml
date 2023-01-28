@@ -1,0 +1,7 @@
+@startuml
+left to right direction
+skinparam dpi 300
+
+Catch *-- "1" Property : # exception >
+
+@enduml

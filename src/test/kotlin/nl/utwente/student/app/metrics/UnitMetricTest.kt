@@ -1,7 +1,8 @@
 package nl.utwente.student.app.metrics
 
-import nl.utwente.student.io.ParserEngine
+import nl.utwente.student.io.TransformEngine
 import nl.utwente.student.metamodel.v3.Module
+import nl.utwente.student.metamodel.v3.ModuleRoot
 import nl.utwente.student.metamodel.v3.Unit
 import nl.utwente.student.visitors.UnitVisitor
 import org.junit.jupiter.api.BeforeEach
@@ -11,30 +12,27 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 abstract class UnitMetricTest(private val metric: UnitVisitor, private val resourceFile: String) {
-    protected var module: Module? = null
+    var moduleRoot: ModuleRoot? = null
+        set(value) {
+            field = value
+            metric.visitModuleRoot(moduleRoot)
+        }
+
 
     @BeforeEach
     fun setup() {
-        if (module == null)
-            module = ParserEngine.parse(File(UnitMetricTest::class.java.classLoader.getResource(resourceFile)!!.file))?.get(0)?.module
+        if (moduleRoot == null) {
+            moduleRoot = TransformEngine.transform(File(UnitMetricTest::class.java.classLoader.getResource(resourceFile)!!.file))?.first()
+        }
     }
 
-    fun parseCode(code: String): Module {
+    fun parseCode(code: String) {
         val tempFile: Path = kotlin.io.path.createTempFile(suffix = ".java")
         Files.write(tempFile, code.toByteArray(StandardCharsets.UTF_8))
-        return ParserEngine.parse(tempFile.toFile())?.get(0)?.module!!
+        moduleRoot = TransformEngine.transform(tempFile.toFile())?.first()!!
     }
 
     protected fun testByReference(unitName: String): Pair<String, Int> {
-        return testByReference(module!!, unitName)
-    }
-
-    protected fun testByReference(module: Module, unitName: String): Pair<String, Int> {
-        val unitUnderTest = module.members.find { it.id == unitName } as Unit
-
-        metric.visitUnit(unitUnderTest)
-        val result = metric.getResult().first()
-        metric.reset()
-        return result
+        return metric.getResult().find { it.first.split("$").first().endsWith(unitName) }!!
     }
 }

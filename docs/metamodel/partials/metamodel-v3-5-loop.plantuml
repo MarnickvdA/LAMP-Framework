@@ -1,0 +1,9 @@
+@startuml
+left to right direction
+skinparam dpi 300
+
+class Loop
+
+Loop *-- "*" Expression : # evaluations >
+
+@enduml

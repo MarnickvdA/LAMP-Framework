@@ -2,7 +2,7 @@ package nl.utwente.student.models.symbol
 
 import nl.utwente.student.metamodel.v3.Assignment
 
-open class PropertyAccessSymbol(
+open class ReferenceAccessSymbol(
     private val referenceId: String,
     parent: SourceSymbol,
     assignment: Assignment

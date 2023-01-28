@@ -1,0 +1,58 @@
+@startuml
+left to right direction
+skinparam dpi 300
+
+class Loop
+class Conditional
+class LogicalSequence
+class Jump
+class Lambda
+
+abstract class Access
+class ReferenceAccess
+class UnitCall
+class Assignment
+
+Expression : # context: String?
+Expression : # innerScope: List<SourceElement>
+
+Expression <|-- Loop
+Expression <|-- Conditional
+Expression <|-- LogicalSequence
+Expression <|-- Jump
+Expression <|-- Lambda
+Expression <|-- Catch
+Expression <|-- Access
+Expression <|-- Switch
+Expression <|-- SwitchCase
+
+Access : # declarableId: String
+
+Access <|-- UnitCall
+Access <|-- ReferenceAccess
+Access <|-- Assignment
+
+UnitCall : # arguments: List<Expression>
+
+Assignment : # value: Expression
+
+Catch : # exception: Property
+
+Loop : # evaluations: List<Expression>
+
+Conditional : # ifExpr: Expression
+Conditional : # elseIfExpr: List<Expression>
+Conditional : # elseExpr: Expression
+
+LogicalSequence : # operands: List<Expression>
+
+Jump : # label: String?
+
+Lambda : # unit: Unit
+
+Switch : # subject: Expression?
+Switch *-- "*" SwitchCase : cases >
+
+SwitchCase : # pattern: Expression?
+
+@enduml

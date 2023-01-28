@@ -62,9 +62,8 @@ class CyclomaticComplexityTest : UnitMetricTest(CyclomaticComplexity(),"java/Com
 
     @Test
     fun testCase1() {
-        val result = testByReference(
-            parseCode(
-                """
+        parseCode(
+            """
             class ComplexFunction {
                 int fn1(int n) {
                     final int k = 4;
@@ -86,9 +85,9 @@ class CyclomaticComplexityTest : UnitMetricTest(CyclomaticComplexity(),"java/Com
                     return r;
                 }
             }
-        """.trimIndent()
-            ), "fn1"
-        )
+        """.trimIndent())
+
+        val result = testByReference("fn1")
 
         assertEquals(6, result.second)
     }

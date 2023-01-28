@@ -14,11 +14,10 @@ abstract class MetamodelVisitor<T>: BaseVisitor<T, VisitorException>() {
             is Conditional -> this.visitConditional(expression)
             is LogicalSequence -> this.visitLogicalSequence(expression)
             is Jump -> this.visitJump(expression)
-            is LocalDeclaration -> this.visitLocalDeclaration(expression)
-            is Assignment -> this.visitAssignment(expression)
             is Lambda -> this.visitLambda(expression)
             is UnitCall -> this.visitUnitCall(expression)
-            is ReferenceCall -> this.visitReferenceCall(expression)
+            is ReferenceAccess -> this.visitReferenceAccess(expression)
+            is Assignment -> this.visitAssignment(expression)
             is Catch -> this.visitCatch(expression)
             is Switch -> this.visitSwitch(expression)
             is SwitchCase -> this.visitSwitchCase(expression)
@@ -29,12 +28,31 @@ abstract class MetamodelVisitor<T>: BaseVisitor<T, VisitorException>() {
         }
     }
 
-    protected fun visitInnerScope(innerScope: List<Expression?>?) {
-        innerScope?.forEach(this::visitExpression)
+    protected fun visitInnerScope(innerScope: List<SourceElement?>?) {
+        innerScope?.forEach {
+            when(it) {
+                is Expression -> this.visitExpression(it)
+                is Unit -> visitUnit(it)
+                is Property -> visitProperty(it)
+                is Module -> visitModule(it)
+            }
+        }
     }
 
     override fun visitModuleRoot(moduleRoot: ModuleRoot?): T {
         return this.visitModule(moduleRoot?.module)
+    }
+
+    override fun visitModule(module: Module?): T {
+        module?.members?.forEach {
+            when(it) {
+                is Module -> this.visitModule(it)
+                is Unit -> this.visitUnit(it)
+                is Property -> this.visitProperty(it)
+            }
+        }
+
+        return super.visitModule(module)
     }
 
     override fun visitUnit(unit: Unit?): T {
@@ -43,6 +61,13 @@ abstract class MetamodelVisitor<T>: BaseVisitor<T, VisitorException>() {
 
         return super.visitUnit(unit)
     }
+
+    override fun visitProperty(property: Property?): T {
+        property?.initializer?.also { this.visitExpression(it) }
+
+        return super.visitProperty(property)
+    }
+
 
     override fun visitAssignment(assignment: Assignment?): T {
         this.visitExpression(assignment?.value)
@@ -72,21 +97,12 @@ abstract class MetamodelVisitor<T>: BaseVisitor<T, VisitorException>() {
         return super.visitLoop(loop)
     }
 
-    override fun visitLocalDeclaration(declaration: LocalDeclaration?): T {
-        return when (val element = declaration?.declaration) {
-            is Unit -> visitUnit(element)
-            is Property -> visitProperty(element)
-            is Module -> visitModule(element)
-            else -> super.visitLocalDeclaration(declaration)
-        }
-    }
-
     override fun visitJump(jump: Jump?): T {
         return super.visitJump(jump)
     }
 
     override fun visitLambda(lambda: Lambda?): T {
-        this.visitInnerScope(lambda?.innerScope)
+        this.visitUnit(lambda?.unit)
 
         return super.visitLambda(lambda)
     }
@@ -98,35 +114,15 @@ abstract class MetamodelVisitor<T>: BaseVisitor<T, VisitorException>() {
         return super.visitLogicalSequence(sequence)
     }
 
-    override fun visitModule(module: Module?): T {
-        module?.members?.forEach {
-            when(it) {
-                is Module -> this.visitModule(it)
-                is Unit -> this.visitUnit(it)
-                is Property -> this.visitProperty(it)
-            }
-        }
-
-        return super.visitModule(module)
-    }
-
-    override fun visitProperty(property: Property?): T {
-        property?.initializer?.also { this.visitAssignment(it) }
-        property?.getter?.also { this.visitUnit(it) }
-        property?.setter?.also { this.visitUnit(it) }
-
-        return super.visitProperty(property)
-    }
-
     override fun visitUnitCall(unitCall: UnitCall?): T {
         unitCall?.arguments?.forEach(this::visitExpression)
         this.visitInnerScope(unitCall?.innerScope)
         return super.visitUnitCall(unitCall)
     }
 
-    override fun visitReferenceCall(referenceCall: ReferenceCall?): T {
+    override fun visitReferenceAccess(referenceCall: ReferenceAccess?): T {
         this.visitInnerScope(referenceCall?.innerScope)
-        return super.visitReferenceCall(referenceCall)
+        return super.visitReferenceAccess(referenceCall)
     }
 
     override fun visitMetadata(metadata: Metadata?): T {

@@ -59,22 +59,28 @@ fun Property.getUniqueName(moduleRoot: ModuleRoot?): String {
 }
 
 fun Lambda.getUniqueName(moduleRoot: ModuleRoot?): String {
-    return getName(moduleRoot, "Lambda", this)
+    return getName(moduleRoot, "Lambda", this) // TODO fix this naming.
 }
 
 // FIXME Fix getFullSignature
-private fun getFullSignature(prefix: Expression?): MutableList<String?> {
+private fun getFullSignature(prefix: SourceElement?): MutableList<String?> {
     return when (prefix) {
-        is Call -> getFullSignature(prefix.innerScope?.firstOrNull()).also { it.add(prefix.referenceId) }
+        is Access -> getFullSignature(prefix.innerScope?.firstOrNull()).also { it.add(prefix.declarableId) }
         else -> mutableListOf()
     }
 }
 
-fun Call.getUniqueName(moduleRoot: ModuleRoot?): String {
-    return getName(moduleRoot, getFullSignature(this).joinToString("."), this)
-}
+//fun SourceElement.getUniqueName(moduleRoot: ModuleRoot?): String? {
+//    return when(this) {
+//        is Access -> this.getUniqueName(moduleRoot)
+//        is Unit -> this.getUniqueName(moduleRoot)
+//        is Property -> this.getUniqueName(moduleRoot)
+//        is Module -> this.getUniqueName(moduleRoot?.componentName, false)
+//        else -> null
+//    }
+//}
 
-fun Assignment.getUniqueName(moduleRoot: ModuleRoot?): String {
+fun Access.getUniqueName(moduleRoot: ModuleRoot?): String {
     return getName(moduleRoot, getFullSignature(this).joinToString("."), this)
 }
 

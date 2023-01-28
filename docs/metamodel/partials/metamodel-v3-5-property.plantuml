@@ -1,0 +1,10 @@
+@startuml
+left to right direction
+skinparam dpi 300
+
+class Property
+class Expression
+
+Property *-- "0..1" Expression : # initializer
+
+@enduml

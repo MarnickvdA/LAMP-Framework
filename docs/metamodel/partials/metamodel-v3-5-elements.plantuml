@@ -1,11 +1,10 @@
 @startuml
+skinparam dpi 300
+
 class ModuleRoot
-abstract class SourceElement
 class Module
-class Unit
-class Property
-class Expression
 abstract class Declarable
+abstract class SourceElement
 
 enum ModuleType {
     CLASS
@@ -20,26 +19,24 @@ enum ModifierType {
     PRIVATE
     STATIC
     FINAL
-    OPEN
-    SEALED
     ABSTRACT
-    DEFAULT
+    OVERRIDE
 }
-
 
 ModuleRoot : # filePath: String
 ModuleRoot : # fileName: String
 ModuleRoot : # componentName: String?
 ModuleRoot : # imports: List<String>
-ModuleRoot *-- Module
+ModuleRoot *-- Module: # module >
 
 SourceElement : # metadata: Metadata
 
 SourceElement <|-- Declarable
 SourceElement <|-- Expression
 
-Declarable : # identifier: Identifier
-Declarable "1" *-- "*" ModifierType : modifiers >
+Declarable : # id: String
+Declarable : # returnType : String?
+Declarable *-- "*" ModifierType : modifiers >
 
 Declarable <|-- Module
 Declarable <|-- Unit
@@ -51,12 +48,11 @@ Module : # members: List<Declarable>
 Module *-- ModuleType : moduleType >
 
 Unit : # parameters: List<Property>
-Unit : # body: Expression
+Unit : # body: Expression?
 
-Property : # initializer: Assignment?
-Property : # getter: Unit?
-Property : # setter: Unit?
+Property : # initializer: Expression?
 
-Expression : # innerScope: List<Expression>
+Expression : # context: String?
+Expression : # innerScope: List<SourceElement>
 
 @enduml

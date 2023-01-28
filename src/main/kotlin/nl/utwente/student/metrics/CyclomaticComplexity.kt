@@ -24,19 +24,21 @@ class CyclomaticComplexity: UnitVisitor() {
 
     private var currentComplexity = 0
 
-    override fun visitUnit(unit: Unit?) {
-        // Visit the body and register the complexity as a metric result
-        logCount(unit?.let { Expression() }?.also {
-            it.context = "Unit"
-            it.metadata = unit.metadata
-        }, 1)
+    override fun visitModuleRoot(moduleRoot: ModuleRoot?) {
+        this.moduleRoot = moduleRoot
 
-        currentComplexity = 1
+        moduleRoot?.module?.members?.filterIsInstance<Unit>()?.forEach {
+            // Reset the current nesting level to calculate the whole
+            logCount(it.let { Expression() }.also {e ->
+                e.context = "Unit"
+                e.metadata = it.metadata
+            }, 1)
 
-        super.visitUnit(unit)
+            this.currentComplexity = 1
 
-        if (unit != null) {
-            metricResults.add(Pair(unit.getUniqueName(moduleRoot), currentComplexity))
+            this.visitUnit(it)
+
+            metricResults.add(Pair(it.getUniqueName(moduleRoot), this.currentComplexity))
         }
     }
 

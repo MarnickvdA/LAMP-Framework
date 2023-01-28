@@ -1,0 +1,7 @@
+@startuml
+left to right direction
+skinparam dpi 300
+
+SwitchCase *-- "0..1" Expression : # pattern >
+
+@enduml

@@ -24,13 +24,17 @@ object WriterEngine {
             output.mkdirs()
         }
 
-        fun writeMetricResults(toFile: File, results: MetricResults) {
+        fun writeMetricResults(toFile: File, results: MetricResults, metrics: Array<String>) {
             FileOutputStream(toFile).apply {
                 val writer = bufferedWriter()
-                writer.write(""""Module";${results.values.first().joinToString(";") { "\"${it.first}\"" }}""")
+                writer.write(""""DeclarableId";${metrics.joinToString(";") { "\"${it}\"" }}""")
                 writer.newLine()
                 results.forEach { (moduleId, results) ->
-                    writer.write("\"${moduleId}\";${results.map { it.second }.joinToString(";")}")
+                    writer.write(
+                        "\"${moduleId}\";${
+                            metrics.map { results.find { p -> p.first == it }?.second ?: 0 }.joinToString(";")
+                        }"
+                    )
                     writer.newLine()
                 }
                 writer.flush()
@@ -38,10 +42,16 @@ object WriterEngine {
         }
 
         if (moduleMetrics.isNotEmpty())
-            writeMetricResults(Paths.get(output.absolutePath, "modules.csv").toFile(), moduleMetrics)
+            writeMetricResults(
+                Paths.get(output.absolutePath, "modules.csv").toFile(), moduleMetrics,
+                arrayOf("MLOC", "WMC", "CWMC", "DIT", "NOC", "CBO", "RFC", "LCOM", "NOU", "LC")
+            )
 
         if (unitMetrics.isNotEmpty())
-            writeMetricResults(Paths.get(output.absolutePath, "units.csv").toFile(), unitMetrics)
+            writeMetricResults(
+                Paths.get(output.absolutePath, "units.csv").toFile(), unitMetrics,
+                arrayOf("ULOC", "CC", "COCO", "PC", "LLOC")
+            )
     }
 
     private fun writeModules(modules: List<ModuleRoot>, outputDir: File): Pair<File, Int> {

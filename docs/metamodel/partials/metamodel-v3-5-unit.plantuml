@@ -1,0 +1,10 @@
+@startuml
+left to right direction
+skinparam dpi 300
+
+class Unit
+
+Unit *-- "*" Property : # parameters >
+Unit *-- "0..1" Expression : # body >
+
+@enduml

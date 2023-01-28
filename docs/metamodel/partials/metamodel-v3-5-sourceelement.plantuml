@@ -1,0 +1,19 @@
+@startuml
+skinparam dpi 300
+left to right direction
+
+abstract class SourceElement
+class Expression
+abstract class Declarable
+
+SourceElement <|-- Declarable
+SourceElement <|-- Expression
+
+SourceElement *-- "1" Metadata : # metadata >
+
+Metadata : # startLine: Int
+Metadata : # endLine: Int
+Metadata : # startOffset: Int
+Metadata : # endOffset: Int
+
+@enduml

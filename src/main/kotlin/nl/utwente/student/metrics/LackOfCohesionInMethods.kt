@@ -16,7 +16,6 @@ class LackOfCohesionInMethods : ModuleVisitor() {
         // FIXME: Check on return type to create 'method pairs'
 
         val units = module.members.filterIsInstance<Unit>().toMutableList()
-        units.addAll(module.members.filterIsInstance<Property>().map { listOf(it.getter, it.setter) }.flatten().filterNotNull())
 
         val propertiesPerUnit = getPropertiesPerUnit(units)
         val linkedUnits = getLinkedUnits(units)
@@ -35,7 +34,7 @@ class LackOfCohesionInMethods : ModuleVisitor() {
 
         units.forEach {
             properties[it.id] =
-                findAllByExpressionType<ReferenceCall>(it.body) { e -> e is ReferenceCall }.map { c -> c.referenceId }
+                findAllByExpressionType<ReferenceAccess>(it.body) { e -> e is ReferenceAccess }.map { c -> c.declarableId }
                     .toSet()
         }
 
@@ -60,7 +59,7 @@ class LackOfCohesionInMethods : ModuleVisitor() {
 
         units.forEach {
             linkages[it.id] =
-                findAllByExpressionType<UnitCall>(it.body) { e -> e is UnitCall }.map { c -> c.referenceId }
+                findAllByExpressionType<UnitCall>(it.body) { e -> e is UnitCall }.map { c -> c.declarableId }
                     .toMutableSet()
         }
 
@@ -187,11 +186,11 @@ class LackOfCohesionInMethods : ModuleVisitor() {
             .forEach {
                 val properties = mutableSetOf<String>()
 
-                properties.addAll(
-                    findAllByExpressionType<LocalDeclaration>(it.body) { e -> e is LocalDeclaration }
-                        .filter { ld -> ld.declaration is Property }
-                        .map { ld -> ld.declaration.id }
-                )
+//                properties.addAll( TODO Refactor from localdeclaration to sourceleemnts.
+//                    findAllByExpressionType<LocalDeclaration>(it.body) { e -> e is LocalDeclaration }
+//                        .filter { ld -> ld.declaration is Property }
+//                        .map { ld -> ld.declaration.id }
+//                )
 
                 if (unitProperties.containsKey(it.id)) {
                     unitProperties[it.id]!!.union(properties)

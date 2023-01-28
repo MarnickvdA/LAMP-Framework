@@ -13,19 +13,20 @@ class ResponseForAClass : ModuleVisitor() {
     override fun visitModule(module: Module?) {
         if (module == null) return
 
-        val units = module.members.filterIsInstance<Unit>()
-        val unitCallReferences = units
+        val methods = module.members.filterIsInstance<Unit>()
+            .filter { !it.id.endsWith(".constructor") && !it.id.endsWith(".initializer") }
+
+        val calls = methods
             .map { findAllByExpressionType<UnitCall>(it.body) { e -> e is UnitCall } }
             .flatten()
-            .mapNotNull { it.referenceId } // FIXME Type information required to implement this correctly (right?)
-
-        val constructorCalls = unitCallReferences.filter { it.endsWith(".constructor") }
-        val unitCalls = unitCallReferences
-            .filter { !it.endsWith(".constructor") && units.map { u -> u.id }.contains(it) }
+            .mapNotNull { it.declarableId }
             .toSet()
 
         // TODO(Document: How to handle records, should you see the primary constructor as a +1, should you include the 'generated' functions as methods? Should you include getters and setters on properties as methods?)
 
-        result = units.size + constructorCalls.size + unitCalls.size
+        result = mutableSetOf<String>().also {
+            it.addAll(methods.map { m -> m.id })
+            it.addAll(calls)
+        }.size
     }
 }

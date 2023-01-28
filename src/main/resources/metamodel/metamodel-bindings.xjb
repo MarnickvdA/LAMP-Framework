@@ -40,9 +40,6 @@
         <jaxb:bindings node="//xs:sequence[@id='switchCases']">
             <jaxb:property name="cases"/>
         </jaxb:bindings>
-        <jaxb:bindings node="//xs:sequence[@id='lambdaParams']">
-            <jaxb:property name="parameters"/>
-        </jaxb:bindings>
         <jaxb:bindings node="//xs:sequence[@id='unitCallArgs']">
             <jaxb:property name="arguments"/>
         </jaxb:bindings>

@@ -5,6 +5,7 @@ import nl.utwente.student.metamodel.v3.Unit
 import nl.utwente.student.models.SupportedLanguage
 import nl.utwente.student.utils.Log
 import nl.utwente.student.utils.getDepth
+import nl.utwente.student.utils.getUniqueName
 import nl.utwente.student.visitor.java.JavaLexer
 import nl.utwente.student.visitor.java.JavaParser
 import nl.utwente.student.visitor.java.JavaParserBaseVisitor
@@ -23,6 +24,7 @@ class JavaTransformer(override val inputFile: File) :
     JavaParserBaseVisitor<Any?>(), Transformer {
     override val language: SupportedLanguage = SupportedLanguage.JAVA
     private var imports: MutableList<String>? = null
+    private var currentModuleRoot: ModuleRoot? = null
     private var currentModule: Module? = null
 
     override fun transform(): List<ModuleRoot> {
@@ -95,6 +97,7 @@ class JavaTransformer(override val inputFile: File) :
 
     override fun visitTypeDeclaration(ctx: JavaParser.TypeDeclarationContext?): ModuleRoot {
         val moduleRoot = ModuleRoot()
+        currentModuleRoot = moduleRoot
         moduleRoot.filePath = inputFile.absolutePath
         moduleRoot.fileName = inputFile.name
         moduleRoot.module = (super.visitTypeDeclaration(ctx) as Module?)?.also {
@@ -255,14 +258,7 @@ class JavaTransformer(override val inputFile: File) :
         return Property().also {
             it.addMetadata(ctx)
             it.id = this.visitIdentifier(ctx?.identifier())
-            it.initializer = ctx?.variableInitializer()?.let { varCtx ->
-                Assignment().also { assignment ->
-                    assignment.addMetadata(varCtx)
-                    assignment.context = "java:ConstantInitializer"
-                    assignment.propertyId = it.id
-                    assignment.value = this.visitVariableInitializer(varCtx)
-                }
-            }
+            it.initializer = this.visitVariableInitializer(ctx?.variableInitializer())
         }
     }
 
@@ -289,7 +285,6 @@ class JavaTransformer(override val inputFile: File) :
         return when {
             ctx?.PUBLIC() != null -> ModifierType.PUBLIC
             ctx?.ABSTRACT() != null -> ModifierType.ABSTRACT
-            ctx?.DEFAULT() != null -> ModifierType.DEFAULT
             ctx?.STATIC() != null -> ModifierType.STATIC
             else -> null
         }
@@ -475,19 +470,19 @@ class JavaTransformer(override val inputFile: File) :
 
         val body = Expression().addMetadata(ctx).also { it.context = "java:Block" }
 
-        ctxList.mapNotNull(this::visitBlockStatement).let {
+        ctxList.mapNotNull(this::visitBlockStatement).flatten().filterNotNull().let {
             body.innerScope.addAll(it)
         }
 
         return body
     }
 
-    override fun visitBlockStatement(ctx: JavaParser.BlockStatementContext?): Expression? {
+    override fun visitBlockStatement(ctx: JavaParser.BlockStatementContext?): List<SourceElement?>? {
         return when {
             ctx == null -> null
             ctx.localVariableDeclaration() != null -> this.visitLocalVariableDeclaration(ctx.localVariableDeclaration())
-            ctx.localTypeDeclaration() != null -> this.visitLocalTypeDeclaration(ctx.localTypeDeclaration())
-            ctx.statement() != null -> this.visitStatement(ctx.statement())
+            ctx.localTypeDeclaration() != null -> listOf(this.visitLocalTypeDeclaration(ctx.localTypeDeclaration()))
+            ctx.statement() != null -> listOf(this.visitStatement(ctx.statement()))
             else -> null
         }
     }
@@ -526,14 +521,7 @@ class JavaTransformer(override val inputFile: File) :
     override fun visitVariableDeclarator(ctx: JavaParser.VariableDeclaratorContext?): Property {
         val property = Property().addMetadata(ctx)
         property.id = this.visitVariableDeclaratorId(ctx?.variableDeclaratorId())
-        property.initializer = ctx?.variableInitializer()?.let {
-            Assignment().also { assignment ->
-                assignment.addMetadata(it)
-                assignment.context = "java:VariableInitializer"
-                assignment.propertyId = property.id
-                assignment.value = this.visitVariableInitializer(it)
-            }
-        }
+        property.initializer = this.visitVariableInitializer(ctx?.variableInitializer())
 
         return property
     }
@@ -574,7 +562,7 @@ class JavaTransformer(override val inputFile: File) :
         return visitParameter(ctx, ctx?.variableDeclaratorId(), ctx?.variableModifier(), ctx?.typeType())
     }
 
-    override fun visitLocalVariableDeclaration(ctx: JavaParser.LocalVariableDeclarationContext?): Expression? {
+    override fun visitLocalVariableDeclaration(ctx: JavaParser.LocalVariableDeclarationContext?): List<SourceElement>? {
         val modifiers = this.visitModifiers(ctx?.variableModifier())
 
         return if (ctx?.VAR() != null) {
@@ -582,57 +570,34 @@ class JavaTransformer(override val inputFile: File) :
             // FIXME: Can we infer the type of this var?
 
             varDeclaration.id = this.visitIdentifier(ctx.identifier())
-            varDeclaration.initializer = Assignment().also { assignment ->
-                assignment.addMetadata(ctx.expression())
-                assignment.context = "java:InferTypeVariableInitializer"
-                assignment.propertyId = varDeclaration.id
-                assignment.value = this.visitExpression(ctx.expression())
-            }
+            varDeclaration.initializer = this.visitExpression(ctx.expression())
             modifiers?.let { varDeclaration.modifiers.addAll(it) }
 
-            LocalDeclaration().also {
-                it.addMetadata(ctx)
-                it.context = "java:VariableDeclaration"
-                it.declaration = varDeclaration
-            }
+            listOf(varDeclaration)
         } else {
-            val declarations = this.visitVariableDeclarators(ctx?.variableDeclarators())?.mapIndexed { i, p ->
-                LocalDeclaration().addMetadata(ctx)
-                    .also { ld ->
-                        ld.declaration = p
-                        p.returnType = this.visitTypeType(ctx?.typeType())
-                        ld.context = "java:VariableDeclaration"
-                    }
+            val declarations = this.visitVariableDeclarators(ctx?.variableDeclarators())?.map {
+                it.also { p -> p.returnType = this.visitTypeType(ctx?.typeType()) }
             }
 
-            return if ((declarations?.size ?: 0) > 1) {
-                return Expression().addMetadata(ctx).also {
-                    it.addAll(declarations)
-
-                    it.context = "java:MultiVariableDeclaration"
-                }
-            } else {
-                declarations?.get(0)
-            }
+            return declarations
         }
     }
 
-    override fun visitLocalTypeDeclaration(ctx: JavaParser.LocalTypeDeclarationContext?): LocalDeclaration? {
+    override fun visitLocalTypeDeclaration(ctx: JavaParser.LocalTypeDeclarationContext?): Declarable? {
         val module = super.visitLocalTypeDeclaration(ctx) as? Module
 
         // TODO Fix local enum declaration, it is broken atm.
 
         return module?.let {
             this.visitModuleModifierList(ctx?.classOrInterfaceModifier())?.let { m -> it.modifiers.addAll(m) }
-            LocalDeclaration().addMetadata(ctx)
-                .also { ld -> ld.declaration = it }// Wrap the module in a LocalDeclaration
+            it
         }
     }
 
     /**
      * @return List<Expression>?
      */
-    override fun visitStatement(ctx: JavaParser.StatementContext?): Expression? {
+    override fun visitStatement(ctx: JavaParser.StatementContext?): SourceElement? {
         if (ctx == null) return null
 
         val expression: Expression? = when {
@@ -746,16 +711,14 @@ class JavaTransformer(override val inputFile: File) :
         val forControl = Expression().addMetadata(ctx).also { it.context = "java:ForControl" }
 
         this.visitEnhancedForControl(ctx?.enhancedForControl()).let { forControl.add(it) }
-        this.visitForInit(ctx?.forInit())?.let { forControl.add(it) }
+        this.visitForInit(ctx?.forInit())?.forEach { forControl.add(it) }
         this.visitExpression(ctx?.expression())?.let { forControl.add(it) }
-
-        // TODO(Document: flattening of the expression list.)
-        this.visitExpressionList(ctx?.expressionList()).let { forControl.addAll(it?.innerScope) }
+        this.visitExpressionList(ctx?.expressionList())?.forEach { forControl.add(it) }
 
         return forControl
     }
 
-    override fun visitForInit(ctx: JavaParser.ForInitContext?): Expression? {
+    override fun visitForInit(ctx: JavaParser.ForInitContext?): List<SourceElement?>? {
         return when {
             ctx?.localVariableDeclaration() != null -> this.visitLocalVariableDeclaration(ctx.localVariableDeclaration())
             ctx?.expressionList() != null -> this.visitExpressionList(ctx.expressionList())
@@ -766,16 +729,16 @@ class JavaTransformer(override val inputFile: File) :
     override fun visitEnhancedForControl(ctx: JavaParser.EnhancedForControlContext?): Expression? {
         if (ctx == null) return null
 
-        val declaration = LocalDeclaration().addMetadata(ctx).also { it.context = "java:EnhancedForControl" }
+        val forControl = Expression().addMetadata(ctx).also { it.context = "java:EnhancedForControl" }
         val property = Property().addMetadata(ctx)
         this.visitModifiers(ctx.variableModifier())?.let { property.modifiers.addAll(it) }
         property.id = this.visitVariableDeclaratorId(ctx.variableDeclaratorId())
         property.returnType = this.visitTypeType(ctx.typeType()) // FIXME: Look if we can infer the type of VAR
-        declaration.declaration = property
 
-        this.visitExpression(ctx.expression())?.let { e -> declaration.add(e) }
+        forControl.add(property)
+        this.visitExpression(ctx.expression())?.let { e -> forControl.add(e) }
 
-        return declaration
+        return forControl
     }
 
     private fun visitWhileStatement(ctx: JavaParser.StatementContext): Loop {
@@ -868,33 +831,24 @@ class JavaTransformer(override val inputFile: File) :
         return tryWithResources
     }
 
-    override fun visitResourceSpecification(ctx: JavaParser.ResourceSpecificationContext?): List<LocalDeclaration>? {
+    override fun visitResourceSpecification(ctx: JavaParser.ResourceSpecificationContext?): List<Property>? {
         return this.visitResources(ctx?.resources())
     }
 
-    override fun visitResources(ctx: JavaParser.ResourcesContext?): List<LocalDeclaration>? {
+    override fun visitResources(ctx: JavaParser.ResourcesContext?): List<Property>? {
         return ctx?.resource()?.mapNotNull(this::visitResource)
     }
 
-    override fun visitResource(ctx: JavaParser.ResourceContext?): LocalDeclaration {
+    override fun visitResource(ctx: JavaParser.ResourceContext?): Property {
         val property = Property().addMetadata(ctx)
         this.visitModifiers(ctx?.variableModifier())?.let { property.modifiers.addAll(it) }
 
         property.id = this.visitVariableDeclaratorId(ctx?.variableDeclaratorId())
             ?: this.visitIdentifier(ctx?.identifier())
         property.id = this.visitClassOrInterfaceType(ctx?.classOrInterfaceType()) // FIXME: Inferred types here applicable.
-        property.initializer = Assignment().also { assignment ->
-            assignment.addMetadata(ctx?.expression())
-            assignment.context = "java:TryResourceInitializer"
-            assignment.propertyId = property.id
-            assignment.value = this.visitExpression(ctx?.expression())
-        }
+        property.initializer = this.visitExpression(ctx?.expression())
 
-        return LocalDeclaration().also {
-            it.addMetadata(ctx)
-            it.context = "java:TryResourceDeclaration"
-            it.declaration = property
-        }
+        return property
     }
 
     private fun visitSwitchStatement(ctx: JavaParser.StatementContext): Switch {
@@ -913,7 +867,7 @@ class JavaTransformer(override val inputFile: File) :
 
         ctx?.switchLabel()?.forEachIndexed { i, l ->
             this.visitSwitchLabel(l).also {
-                it?.add(this.visitBlockStatement(ctx.blockStatement(i)))
+                it?.addAll(this.visitBlockStatement(ctx.blockStatement(i)))
             }?.let { cases.add(it) }
         }
 
@@ -931,14 +885,14 @@ class JavaTransformer(override val inputFile: File) :
             ctx.enumConstantName != null -> Expression().addMetadata(ctx.IDENTIFIER())
                 .also { it.context = "java:EnumConstantSwitchLabel" }
 
-            ctx.varName != null -> LocalDeclaration().also {
+            ctx.varName != null -> Expression().also {
                 it.addMetadata(ctx)
-                it.declaration = Property().also { p ->
+                it.context = "java:DeclarationSwitchLabel"
+                it.add(Property().also { p ->
                     p.addMetadata(ctx)
                     p.id = this.visitIdentifier(ctx.varName)
                     p.returnType = this.visitTypeType(ctx.typeType())
-                }
-                it.context = "java:DeclarationSwitchLabel"
+                })
             }
 
             else -> {
@@ -966,8 +920,15 @@ class JavaTransformer(override val inputFile: File) :
 
         val switchCase = SwitchCase().addMetadata(ctx).also { it.context = "java:SwitchCase" }
         switchCase.pattern = when {
-            ctx.expressionList() != null -> this.visitExpressionList(ctx.expressionList())
-            ctx.NULL_LITERAL() != null -> Expression().also { it.context = "java:NullLiteral" }
+            ctx.expressionList() != null -> Expression().also {
+                it.context = "java:ExpressionList"
+                it.addMetadata(ctx.expressionList())
+                it.addAll(this.visitExpressionList(ctx.expressionList()))
+            }
+            ctx.NULL_LITERAL() != null -> Expression().also {
+                it.context = "java:NullLiteral"
+                it.addMetadata(ctx.NULL_LITERAL())
+            }
             ctx.guardedPattern() != null -> this.visitGuardedPattern(ctx.guardedPattern())
             else -> null
         }
@@ -1091,7 +1052,7 @@ class JavaTransformer(override val inputFile: File) :
         if (ctx == null) return null
 
         val expression = when {
-            ctx.bop != null && ctx.bop.text == "." -> this.visitCallExpression(ctx)
+            ctx.bop != null && ctx.bop.text == "." -> this.visitAccessExpression(ctx)
             ctx.expression().size == 2 && ctx.text.contains("[") -> this.visitArrayAccessExpression(ctx)
             ctx.INSTANCEOF() != null && ctx.typeType() != null -> this.visitExpression(ctx.expression().firstOrNull())
             ctx.postfix != null || ctx.prefix != null -> this.visitUnaryExpression(ctx)
@@ -1120,9 +1081,9 @@ class JavaTransformer(override val inputFile: File) :
     override fun visitPrimary(ctx: JavaParser.PrimaryContext?): Expression? {
         return when {
             ctx == null -> null
-            ctx.identifier() != null -> ReferenceCall().also {
+            ctx.identifier() != null -> ReferenceAccess().also {
                 it.addMetadata(ctx)
-                it.referenceId = this.visitIdentifier(ctx.identifier())
+                it.declarableId = this.visitIdentifier(ctx.identifier())
                 it.context = "java:PrimaryIdentifier"
             }
 
@@ -1139,18 +1100,18 @@ class JavaTransformer(override val inputFile: File) :
         }
     }
 
-    private fun visitCallExpression(ctx: JavaParser.ExpressionContext): Call {
+    private fun visitAccessExpression(ctx: JavaParser.ExpressionContext): Access {
         val prefix = this.visitExpression(ctx.expression().first())
 
-        val call: Call = when {
-            ctx.identifier() != null -> ReferenceCall().also {
+        val access: Access = when {
+            ctx.identifier() != null -> ReferenceAccess().also {
                 it.context = "java:VariableAccessCall"
-                it.referenceId = this.visitIdentifier(ctx.identifier())
+                it.declarableId = this.visitIdentifier(ctx.identifier())
             }
 
-            ctx.THIS() != null -> ReferenceCall().also {
+            ctx.THIS() != null -> ReferenceAccess().also {
                 it.context = "java:ThisAccessCall"
-                it.referenceId = "this"
+                it.declarableId = "this"
             }
 
             ctx.methodCall() != null -> this.visitMethodCall(ctx.methodCall())
@@ -1159,7 +1120,7 @@ class JavaTransformer(override val inputFile: File) :
                 it.context = "java:ConstructorReference"
 
                 // TODO(Document: We change the call to 'constructor' and put the identifier in the nested scope)
-                it.referenceId = (prefix as? ReferenceCall)?.referenceId + ".constructor"
+                it.declarableId = (prefix as? ReferenceAccess)?.declarableId + ".constructor"
                 it.addAll(
                     this.createAnonymousClass(
                         ctx.innerCreator().classCreatorRest(),
@@ -1172,7 +1133,7 @@ class JavaTransformer(override val inputFile: File) :
             }
 
             ctx.SUPER() != null -> UnitCall().also {
-                it.referenceId = "super"
+                it.declarableId = "super"
                 it.context = "SuperCall"
                 // TODO(Document: We do not handle super suffix.)
             }
@@ -1183,10 +1144,10 @@ class JavaTransformer(override val inputFile: File) :
                 val obj = ctx.explicitGenericInvocation().explicitGenericInvocationSuffix()
                 if (obj.SUPER() != null) {
                     // TODO(Document: We do not handle superSuffix correctly, with the possibility of super.identifier(args) )
-                    it.referenceId = "super"
+                    it.declarableId = "super"
                     this.visitArguments(obj.superSuffix().arguments())?.let { args -> it.arguments.addAll(args) }
                 } else {
-                    it.referenceId = this.visitIdentifier(obj.identifier())
+                    it.declarableId = this.visitIdentifier(obj.identifier())
                     this.visitArguments(obj.arguments())?.let { args -> it.arguments.addAll(args) }
                 }
             }
@@ -1195,9 +1156,9 @@ class JavaTransformer(override val inputFile: File) :
         }.addMetadata(ctx)
 
         // TODO(Document: We chain the method call prefixes within the current UnitCall.)
-        call.add(prefix)
+        access.add(prefix)
 
-        return call
+        return access
     }
 
     private fun createAnonymousClass(
@@ -1210,14 +1171,12 @@ class JavaTransformer(override val inputFile: File) :
             scope = Expression()
 
             // Anonymous class // TODO(Document: how this anonymous class works)
-            scope!!.innerScope.add(LocalDeclaration().addMetadata(ctx).also { d ->
-                d.declaration = Module().also { m ->
-                    m.metadata = ctx?.let { getSourceMetadata(it) }
-                    // TODO(Document: we have unique names for anonymous classes.
-                    m.id = moduleReference + ctx?.start.hashCode()
-                    m.returnType = moduleReference
-                    m.members.addAll(members)
-                }
+            scope!!.innerScope.add(Module().also { m ->
+                m.metadata = ctx?.let { getSourceMetadata(it) }
+                // TODO(Document: we have unique names for anonymous classes.
+                m.id = moduleReference + ctx?.start.hashCode()
+                m.returnType = moduleReference
+                m.members.addAll(members)
             })
         }
 
@@ -1227,7 +1186,7 @@ class JavaTransformer(override val inputFile: File) :
     override fun visitMethodCall(ctx: JavaParser.MethodCallContext?): UnitCall {
         val call = UnitCall()
         call.context = "java:MethodCall"
-        call.referenceId = when {
+        call.declarableId = when {
             ctx?.identifier() != null -> this.visitIdentifier(ctx.identifier())
             ctx?.THIS() != null -> "this"
             ctx?.SUPER() != null -> "super"
@@ -1235,8 +1194,8 @@ class JavaTransformer(override val inputFile: File) :
         }
 
         this.visitExpressionList(ctx?.expressionList()).let {
-            it?.innerScope?.let { args ->
-                call.arguments.addAll(args)
+            it?.let { args ->
+                call.arguments.addAll(args.filterIsInstance<Expression>())
             }
         }
 
@@ -1251,23 +1210,23 @@ class JavaTransformer(override val inputFile: File) :
         }
     }
 
-    override fun visitCreator(ctx: JavaParser.CreatorContext?): ReferenceCall? {
-        val referenceCall = this.visitCreatedName(ctx?.createdName())
+    override fun visitCreator(ctx: JavaParser.CreatorContext?): ReferenceAccess? {
+        val referenceAccess = this.visitCreatedName(ctx?.createdName())
 
-        return referenceCall?.also {
+        return referenceAccess?.also {
             when {
                 ctx?.nonWildcardTypeArguments() != null || ctx?.classCreatorRest() != null -> {
-                    referenceCall.add(UnitCall().addMetadata(ctx).also { unit ->
+                    referenceAccess.add(UnitCall().addMetadata(ctx).also { unit ->
                         unit.context = "java:ClassCreator"
                         this.visitArguments(ctx.classCreatorRest().arguments())
                             ?.let { args -> unit.arguments.addAll(args) }
 
                         // TODO(document: we did the constructor reference again.)
-                        unit.referenceId = referenceCall.referenceId + ".constructor"
+                        unit.declarableId = referenceAccess.declarableId + ".constructor"
                         unit.addAll(
                             createAnonymousClass(
                                 ctx.classCreatorRest(),
-                                referenceCall.referenceId
+                                referenceAccess.declarableId
                             )?.innerScope
                         )
                     })
@@ -1304,12 +1263,12 @@ class JavaTransformer(override val inputFile: File) :
         }
     }
 
-    override fun visitCreatedName(ctx: JavaParser.CreatedNameContext?): ReferenceCall? {
+    override fun visitCreatedName(ctx: JavaParser.CreatedNameContext?): ReferenceAccess? {
         return ctx?.let {
-            ReferenceCall().also { call ->
-                call.addMetadata(ctx)
-                call.referenceId = ctx.identifier()?.mapNotNull { this.visitIdentifier(it) }?.joinToString(".")
-                call.context = "java:AnonymousClassReference"
+            ReferenceAccess().also { access ->
+                access.addMetadata(ctx)
+                access.declarableId = ctx.identifier()?.mapNotNull { this.visitIdentifier(it) }?.joinToString(".")
+                access.context = "java:AnonymousClassReference"
             }
         }
     }
@@ -1323,11 +1282,11 @@ class JavaTransformer(override val inputFile: File) :
 
     private fun visitUnaryExpression(ctx: JavaParser.ExpressionContext): Expression? {
         return if (ctx.postfix?.text == "++" || ctx.postfix?.text == "--" || ctx.prefix?.text == "--" || ctx.prefix?.text == "++") {
-            (this.visitExpression(ctx.expression().first()) as? ReferenceCall)?.also {
+            (this.visitExpression(ctx.expression().first()) as? ReferenceAccess)?.also {
                 Assignment().also { assign ->
                     ctx.postfix?.also { t -> assign.addMetadata(t) }
                     ctx.prefix?.also { t -> assign.addMetadata(t) }
-                    assign.propertyId = it.referenceId
+                    assign.declarableId = it.declarableId
                 }
             }
         } else {
@@ -1346,10 +1305,10 @@ class JavaTransformer(override val inputFile: File) :
         val rightSide = this.visitExpression(ctx.expression().last())
 
         return when (ctx.bop?.text) {
-            "=", "+=", "-=", "*=", "/=", "&=", "|=", "^=", ">>=", ">>>=", "<<=", "%=" -> (leftSide as? ReferenceCall)
-                ?.also { call ->
-                    call.add(Assignment().also {
-                        it.propertyId = leftSide.referenceId
+            "=", "+=", "-=", "*=", "/=", "&=", "|=", "^=", ">>=", ">>>=", "<<=", "%=" -> (leftSide as? ReferenceAccess)
+                ?.also { access ->
+                    access.add(Assignment().also {
+                        it.declarableId = leftSide.declarableId
                         it.value = rightSide
                         it.context = "java:Assignment"
                         it.addMetadata(ctx)
@@ -1397,9 +1356,16 @@ class JavaTransformer(override val inputFile: File) :
     }
 
     override fun visitLambdaExpression(ctx: JavaParser.LambdaExpressionContext?): Lambda {
-        val lambda = Lambda().addMetadata(ctx).also { it.context = "java:LambdaExpression" }
-        this.visitLambdaParameters(ctx?.lambdaParameters()).let { lambda.addParameters(it) }
-        this.visitLambdaBody(ctx?.lambdaBody()).let { lambda.add(it) }
+        val lambda = Lambda().addMetadata(ctx).also {
+            it.context = "java:LambdaExpression"
+            it.unit = Unit().also { u ->
+                u.addMetadata(ctx)
+                u.id = it.getUniqueName(currentModuleRoot)
+            }
+        }
+
+        this.visitLambdaParameters(ctx?.lambdaParameters()).let { lambda.unit.addParameters(it) }
+        this.visitLambdaBody(ctx?.lambdaBody()).let { lambda.unit.body = it }
 
         return lambda
     }
@@ -1452,23 +1418,25 @@ class JavaTransformer(override val inputFile: File) :
         return lambdaBody
     }
 
+    // FIXME: Update method references as ReferenceAccess instead of Lambda.
     private fun visitMethodReference(ctx: JavaParser.ExpressionContext): Expression {
         // TODO(Document: How method references are handled.)
         return Lambda().also {
             it.context = "java:LambdaExpression"
             it.addMetadata(ctx)
+            it.unit = Unit().also { u -> u.addMetadata(ctx) }
             it.add((when {
                 // TODO (Document: How we handle references )
                 ctx.expression() != null -> this.visitExpression(
                     ctx.expression().firstOrNull()
-                ) as? ReferenceCall // TODO Check if comes through correctly.
-                ctx.typeType()?.isNotEmpty() == true -> ReferenceCall().also { rf ->
-                    rf.referenceId = ctx.typeType().first().text
+                ) as? ReferenceAccess // TODO Check if comes through correctly.
+                ctx.typeType()?.isNotEmpty() == true -> ReferenceAccess().also { rf ->
+                    rf.declarableId = ctx.typeType().first().text
                     rf.addMetadata(ctx.typeType().first())
                 }
 
-                ctx.classType() != null -> ReferenceCall().also { rf ->
-                    rf.referenceId = this.visitIdentifier(ctx.classType().identifier())
+                ctx.classType() != null -> ReferenceAccess().also { rf ->
+                    rf.declarableId = this.visitIdentifier(ctx.classType().identifier())
                     rf.addMetadata(ctx.classType())
                 }
 
@@ -1476,32 +1444,23 @@ class JavaTransformer(override val inputFile: File) :
             })?.also { rf ->
                 rf.context = "java:MethodReference"
                 rf.add(UnitCall().addMetadata(ctx).also { uc ->
-                    uc.referenceId =
-                        if (ctx.NEW() == null) this.visitIdentifier(ctx.identifier()) else rf.referenceId + ".constructor"
+                    uc.declarableId =
+                        if (ctx.NEW() == null) this.visitIdentifier(ctx.identifier()) else rf.declarableId + ".constructor"
                 })
             })
         }
     }
 
-    override fun visitExpressionList(ctx: JavaParser.ExpressionListContext?): Expression? {
+    override fun visitExpressionList(ctx: JavaParser.ExpressionListContext?): List<SourceElement>? {
         if (ctx == null) {
             return null
         }
 
-        val expr = Expression().also {
-            it.addMetadata(ctx)
-            it.context = "java:ExpressionList"
-        }
-
-        ctx.expression()
-            ?.mapNotNull { this.visitExpression(it) }
-            ?.let { expr.addAll(it) }
-
-        return expr
+        return ctx.expression()?.mapNotNull { this.visitExpression(it) }
     }
 
     override fun visitArguments(ctx: JavaParser.ArgumentsContext?): List<Expression>? {
-        return this.visitExpressionList(ctx?.expressionList())?.innerScope
+        return this.visitExpressionList(ctx?.expressionList())?.filterIsInstance<Expression>()
     }
 
     private fun <T : SourceElement> T.addMetadata(ctx: ParserRuleContext?): T {
@@ -1516,12 +1475,12 @@ class JavaTransformer(override val inputFile: File) :
         return if (token != null) this.also { metadata = getSourceMetadata(token) } else this
     }
 
-    private fun Expression.add(expression: Expression?) {
-        this.addAll(listOf(expression))
+    private fun Expression.add(element: SourceElement?) {
+        this.addAll(listOf(element))
     }
 
-    private fun Expression.addAll(exprList: List<Expression?>?) {
-        exprList?.filterNotNull()?.let {
+    private fun Expression.addAll(elements: List<SourceElement?>?) {
+        elements?.filterNotNull()?.let {
             if (it.isNotEmpty()) {
                 this.innerScope.addAll(it)
             }
@@ -1529,14 +1488,6 @@ class JavaTransformer(override val inputFile: File) :
     }
 
     private fun Unit.addParameters(properties: List<Property?>?) {
-        properties?.filterNotNull()?.let {
-            if (it.isNotEmpty()) {
-                this.parameters.addAll(it.filter { p -> p.id != null })
-            }
-        }
-    }
-
-    private fun Lambda.addParameters(properties: List<Property?>?) {
         properties?.filterNotNull()?.let {
             if (it.isNotEmpty()) {
                 this.parameters.addAll(it.filter { p -> p.id != null })

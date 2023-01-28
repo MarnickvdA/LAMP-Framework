@@ -1,4 +1,4 @@
-# Semantic Modelling 
+# Symbol Extraction
 The Semantic Tree is the same as our Metamodel, but it contains some specialized information for retrieving the right 
 semantic information from the elements within our metamodel. As you might already know, the metamodel is saved as 1 
 folder containing all files required for our parser to import the whole project. The tree structure of the project looks

@@ -8,7 +8,7 @@ class UnitLinesOfCode : LinesOfCodeVisitor() {
 
     private var currentUnit: Unit? = null
 
-    override fun getTag(): String = "LOC"
+    override fun getTag(): String = "ULOC"
 
     override fun visitUnit(unit: Unit?) {
         if (unit == null) return
@@ -23,14 +23,10 @@ class UnitLinesOfCode : LinesOfCodeVisitor() {
 
         super.visitUnit(unit)
 
-        metricResults.add(Pair(unit.getUniqueName(moduleRoot), curLinesCovered.size))
+        if (!unit.id.startsWith("Lambda"))
+            metricResults.add(Pair(unit.getUniqueName(moduleRoot), curLinesCovered.size))
 
         curLinesCovered.addAll(parentLines)
         currentUnit = parentUnit
-    }
-
-    override fun reset() {
-        currentUnit = null
-        super.reset()
     }
 }

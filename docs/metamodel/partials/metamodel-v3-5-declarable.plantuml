@@ -1,0 +1,28 @@
+@startuml
+skinparam dpi 300
+left to right direction
+
+class Module
+class Unit
+class Property
+abstract class Declarable
+
+enum ModifierType {
+    PUBLIC
+    PROTECTED
+    PRIVATE
+    STATIC
+    FINAL
+    ABSTRACT
+    OVERRIDE
+}
+
+Declarable : # id: String
+Declarable : # returnType : String?
+Declarable *-- "*" ModifierType : modifiers >
+
+Declarable <|-- Module
+Declarable <|-- Unit
+Declarable <|-- Property
+
+@enduml

@@ -68,7 +68,7 @@ class SymbolVisitor : MetamodelVisitor<kotlin.Unit>() {
         if (expression == null) return
 
         when(expression) {
-            is Assignment, is Call -> {
+            is Access -> {
                 super.visitExpression(expression)
             }
             else -> {
@@ -89,7 +89,7 @@ class SymbolVisitor : MetamodelVisitor<kotlin.Unit>() {
 
     override fun visitAssignment(assignment: Assignment?) {
         if (assignment == null) return
-        val symbol = PropertyAccessSymbol(assignment.propertyId, currentSymbol!!, assignment)
+        val symbol = ReferenceAccessSymbol(assignment.declarableId, currentSymbol!!, assignment)
         currentSymbol!!.add(symbol)
         currentSymbol = symbol
 
@@ -98,20 +98,20 @@ class SymbolVisitor : MetamodelVisitor<kotlin.Unit>() {
         currentSymbol = currentSymbol!!.parent
     }
 
-    override fun visitReferenceCall(referenceCall: ReferenceCall?) {
-        if (referenceCall == null) return
-        val symbol = CallSymbol(referenceCall, currentSymbol!!)
+    override fun visitReferenceAccess(referenceAccess: ReferenceAccess?) {
+        if (referenceAccess == null) return
+        val symbol = AccessSymbol(referenceAccess, currentSymbol!!)
         currentSymbol!!.add(symbol)
         currentSymbol = symbol
 
-        super.visitReferenceCall(referenceCall)
+        super.visitReferenceAccess(referenceAccess)
 
         currentSymbol = currentSymbol!!.parent
     }
 
     override fun visitUnitCall(unitCall: UnitCall?) {
         if (unitCall == null) return
-        val symbol = CallSymbol(unitCall, currentSymbol!!)
+        val symbol = AccessSymbol(unitCall, currentSymbol!!)
         currentSymbol!!.add(symbol)
         currentSymbol = symbol
 

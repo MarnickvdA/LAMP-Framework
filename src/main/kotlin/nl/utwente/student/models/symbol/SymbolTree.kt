@@ -1,8 +1,6 @@
 package nl.utwente.student.models.symbol
 
 import nl.utwente.student.metamodel.v3.ModuleRoot
-import nl.utwente.student.metamodel.v3.ReferenceCall
-import nl.utwente.student.metamodel.v3.UnitCall
 import nl.utwente.student.utils.getUniqueName
 
 class SymbolTree {

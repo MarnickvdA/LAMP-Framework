@@ -1,0 +1,11 @@
+@startuml
+left to right direction
+skinparam dpi 300
+
+class Conditional
+
+Conditional *-- "1" Expression : # ifExpr >
+Conditional *-- "*" Expression : # elseIfExpr >
+Conditional *-- "0..1" Expression : # elseExpr >
+
+@enduml

@@ -11,16 +11,17 @@ class CognitiveComplexity : UnitVisitor() {
     private var currentNestingLevel = 0
     private var currentComplexity = 0
 
-    override fun visitUnit(unit: Unit?) {
-        // Reset the current nesting level to calculate the whole
-        this.currentNestingLevel = 0
-        this.currentComplexity = 0
+    override fun visitModuleRoot(moduleRoot: ModuleRoot?) {
+        this.moduleRoot = moduleRoot
 
-        // Traverse the children of unit
-        super.visitUnit(unit)
+        moduleRoot?.module?.members?.filterIsInstance<Unit>()?.forEach {
+            // Reset the current nesting level to calculate the whole
+            this.currentNestingLevel = 0
+            this.currentComplexity = 0
 
-        if (unit != null) {
-            metricResults.add(Pair(unit.getUniqueName(moduleRoot), this.currentComplexity))
+            this.visitUnit(it)
+
+            metricResults.add(Pair(it.getUniqueName(moduleRoot), this.currentComplexity))
         }
     }
 
@@ -79,17 +80,6 @@ class CognitiveComplexity : UnitVisitor() {
         currentNestingLevel++
         this.visitInnerScope(loop?.innerScope)
         currentNestingLevel--
-    }
-
-    override fun visitLocalDeclaration(declaration: LocalDeclaration?) {
-        when (val d = declaration?.declaration) {
-            is Unit -> {
-                currentNestingLevel++
-                this.visitUnit(d) // TODO(Document: whitepaper touches upon decorator functions, we do not detect them here. (because we do not use Python.)
-                currentNestingLevel--
-            }
-            else -> super.visitLocalDeclaration(declaration)
-        }
     }
 
     override fun visitJump(jump: Jump?) {

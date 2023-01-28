@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 class CognitiveComplexityTest : UnitMetricTest(CognitiveComplexity(), "java/ComplexityTests.java") {
     @Test
     fun testLogicalSequenceExample1() {
-        val result = testByReference(module!!, "logicalSequenceExample1")
+        val result = testByReference("logicalSequenceExample1")
         assertEquals(4, result.second)
     }
 

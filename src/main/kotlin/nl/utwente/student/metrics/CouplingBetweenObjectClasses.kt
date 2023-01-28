@@ -1,9 +1,6 @@
 package nl.utwente.student.metrics
 
-import nl.utwente.student.metamodel.v3.Call
-import nl.utwente.student.metamodel.v3.ModuleRoot
-import nl.utwente.student.metamodel.v3.ReferenceCall
-import nl.utwente.student.metamodel.v3.UnitCall
+import nl.utwente.student.metamodel.v3.*
 import nl.utwente.student.models.symbol.SymbolTree
 import nl.utwente.student.models.metrics.SymbolMetric
 import nl.utwente.student.visitors.SourceElementFinder.findAllInModule
@@ -28,20 +25,24 @@ class CouplingBetweenObjectClasses : SymbolMetric {
 
 //        symbolTree.print()
 
-        val outgoingReferences = mutableMapOf<String, Set<Call>>() // ReferenceCall, Set<Declarable>
+        val outgoingReferences = mutableMapOf<String, Set<Access>>() // ReferenceCall, Set<Declarable>
+
+
 
         for (moduleRoot in modules) {
             val module = moduleRoot.module
 
+
+
 //            println("Module = ${module.id}")
 
-            val callsInModule = findAllInModule<Call>(module) { it is Call }
+            val callsInModule = findAllInModule<Access>(module) { it is Access }
 //            println("[${module.id}] Calls in module: ${callsInModule.joinToString(", ") { it.referenceId }}")
 
             val outgoingCalls = callsInModule
                 .filter {
                     val reference = it.innerScope.firstOrNull()
-                    reference is ReferenceCall && reference.referenceId != module.id
+                    reference is Access && reference.declarableId != module.id
                 }
                 .also {
 //                    println("[${module.id}] (external) refs: ${it.joinToString(", ") { c -> (c.innerScope.firstOrNull() as ReferenceCall).referenceId }}")
@@ -72,7 +73,7 @@ class CouplingBetweenObjectClasses : SymbolMetric {
                 classCoupling[moduleId] = classCoupling[moduleId]!! + 1
 
                 // TODO Check the referenceId, is it a class or a property? Need to find it in the scope using the symbol tree.
-                val moduleRef = (reference.innerScope.first() as ReferenceCall).referenceId
+                val moduleRef = (reference.innerScope.first() as Access).declarableId
                 classCoupling[moduleRef] =
                     if (classCoupling.containsKey(moduleRef)) classCoupling[moduleRef]!! + 1 else 1
             }

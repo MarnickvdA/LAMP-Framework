@@ -2,7 +2,7 @@ package nl.utwente.student.app
 
 import nl.utwente.student.io.GitEngine
 import nl.utwente.student.io.MetricsEngine
-import nl.utwente.student.io.ParserEngine
+import nl.utwente.student.io.TransformEngine
 import nl.utwente.student.io.WriterEngine
 import nl.utwente.student.utils.getFile
 import java.io.File
@@ -67,7 +67,7 @@ object App {
             return null
         }
 
-        return ParserEngine.parse(inputFile)?.let { WriterEngine.write(it, outputFile) }
+        return TransformEngine.transform(inputFile)?.let { WriterEngine.write(it, outputFile) }
     }
 
     private fun evaluate(input: String?, output: String?): File? {
@@ -91,7 +91,7 @@ object App {
             return null
         }
 
-        val modules = ParserEngine.parse(inputFile)
+        val modules = TransformEngine.transform(inputFile)
 
         if (modules == null) {
             printWarning("No modules to evaluate.")

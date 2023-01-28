@@ -1,0 +1,14 @@
+@startuml
+skinparam dpi 300
+left to right direction
+
+class ModuleRoot
+class Module
+
+ModuleRoot : # filePath: String
+ModuleRoot : # fileName: String
+ModuleRoot : # componentName: String?
+ModuleRoot : # imports: List<String>
+ModuleRoot *-- "1" Module : # module >
+
+@enduml

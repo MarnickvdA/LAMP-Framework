@@ -6,13 +6,13 @@ import nl.utwente.student.transformers.JavaTransformer
 import nl.utwente.student.transformers.MetamodelTransformer
 import java.io.File
 
-object ParserEngine {
+object TransformEngine {
 
-    fun parse(input: File): List<ModuleRoot>? {
-        println("Parsing file(s) located in ${input.absolutePath}.")
+    fun transform(input: File): List<ModuleRoot>? {
+        println("Transforming file(s) located in ${input.absolutePath}.")
         return when {
-            input.isDirectory -> parseDirectory(input)
-            isValidFile(input) -> parseFile(input)
+            input.isDirectory -> transformDirectory(input)
+            isValidFile(input) -> transformFile(input)
             else -> null
         }
     }
@@ -26,7 +26,7 @@ object ParserEngine {
         }
     }
 
-    private fun parseFile(file: File): List<ModuleRoot>? {
+    private fun transformFile(file: File): List<ModuleRoot>? {
         if (!isValidFile(file)) return emptyList()
 
         return when (file.extension) {
@@ -36,9 +36,9 @@ object ParserEngine {
         }?.transform()
     }
 
-    private fun parseDirectory(directory: File): List<ModuleRoot> {
+    private fun transformDirectory(directory: File): List<ModuleRoot> {
         return directory.walk()
-            .mapNotNull(this::parseFile)
+            .mapNotNull(this::transformFile)
             .flatten()
             .toList()
     }

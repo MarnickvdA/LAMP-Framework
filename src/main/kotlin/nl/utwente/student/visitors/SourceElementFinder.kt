@@ -37,9 +37,7 @@ object SourceElementFinder {
         if (property == null) return mutableListOf()
 
         return listOf(
-            findAllByExpressionType<T>(property.initializer, typeCheck),
-            findAllInUnit(property.getter, typeCheck),
-            findAllInUnit(property.setter, typeCheck)
+            findAllByExpressionType<T>(property.initializer, typeCheck)
         ).flatten().toMutableList()
     }
 
@@ -52,7 +50,6 @@ object SourceElementFinder {
             expressions.add(expression as T)
 
         when (expression) {
-            is LocalDeclaration -> return findAllInDeclarable(expression.declaration, typeCheck)
             is Assignment -> return listOf(
                 findAllByExpressionType<T>(expression.value, typeCheck)
             ).flatten().toMutableList()
@@ -61,7 +58,7 @@ object SourceElementFinder {
                 expressions.addAll(expression.arguments.map { findAllByExpressionType<T>(it, typeCheck) }.flatten())
             }
 
-            is Lambda -> expressions.addAll(expression.parameters.map { findAllInProperty<T>(it, typeCheck) }.flatten())
+            is Lambda -> expressions.addAll(findAllInUnit(expression.unit, typeCheck))
             is SwitchCase -> expressions.addAll(findAllByExpressionType(expression.pattern, typeCheck))
             is Switch -> expressions.addAll(findAllByExpressionType(expression.subject, typeCheck))
             is Loop -> expressions.addAll(expression.evaluations.map { findAllByExpressionType<T>(it, typeCheck) }.flatten())
@@ -82,7 +79,13 @@ object SourceElementFinder {
         }
 
         expression.innerScope
-            ?.map { findAllByExpressionType<T>(it, typeCheck) }
+            ?.mapNotNull {
+                when(it) {
+                    is Expression -> findAllByExpressionType<T>(it, typeCheck)
+                    is Declarable -> findAllInDeclarable(it, typeCheck)
+                    else -> null
+                }
+            }
             ?.flatten()
             ?.let { expressions.addAll(it) }
 

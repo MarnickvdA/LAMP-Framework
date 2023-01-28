@@ -4,12 +4,10 @@ import nl.utwente.student.metamodel.v3.ModuleRoot
 import nl.utwente.student.metrics.*
 import nl.utwente.student.models.symbol.SymbolTree
 import nl.utwente.student.models.metrics.*
-import nl.utwente.student.utils.getFile
 import nl.utwente.student.visitors.ModuleVisitor
 import nl.utwente.student.visitors.SymbolVisitor
 import nl.utwente.student.visitors.UnitVisitor
 import java.io.File
-import java.io.Writer
 
 typealias MetricResult = MutableMap<String, Pair<String, Int>>
 typealias MetricResults = MutableMap<String, MutableList<Pair<String, Int>>>
@@ -25,6 +23,7 @@ object MetricsEngine {
             ResponseForAClass(),
             LackOfCohesionInMethods(),
             ModuleLinesOfCode(),
+            NumberOfUnits(),
 
             // Symbolic relationship metrics
             DepthOfInheritanceTree(),
@@ -34,11 +33,9 @@ object MetricsEngine {
             // Unit metrics
             CyclomaticComplexity(),
             CognitiveComplexity(),
-            NumberOfParameters(),
+            ParameterCount(),
             UnitLinesOfCode(),
-
-            // Expression metrics
-            LinesOfLambda(),
+            LambdaLinesOfCode(),
         )
     }
 

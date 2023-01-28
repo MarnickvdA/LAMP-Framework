@@ -18,9 +18,4 @@ abstract class LinesOfCodeVisitor : UnitVisitor() {
 
         super.visitExpression(expression)
     }
-
-    override fun reset() {
-        curLinesCovered = mutableSetOf()
-        super.reset()
-    }
 }

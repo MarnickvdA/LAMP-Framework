@@ -1,0 +1,20 @@
+@startuml
+left to right direction
+skinparam dpi 300
+
+class Module
+abstract class Declarable
+
+enum ModuleType {
+    CLASS
+    ENUM
+    INTERFACE
+    RECORD
+}
+
+Module : # extends: List<String>
+Module : # implements: List<String>
+Module *-- "1" ModuleType : moduleType >
+Module *-- "*" Declarable : members >
+
+@enduml

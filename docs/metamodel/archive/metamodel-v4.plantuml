@@ -1,0 +1,100 @@
+@startuml
+class ModuleRoot
+abstract class SourceElement
+class Module
+class Unit
+class Property
+class Expression
+abstract class Declarable
+
+class Lambda
+abstract class Access
+class PropertyRead
+class PropertyWrite
+class UnitCall
+
+enum ModuleType {
+    CLASS
+    ENUM
+    INTERFACE
+    RECORD
+}
+
+enum ModifierType {
+    PUBLIC
+    PROTECTED
+    PRIVATE
+    STATIC
+    FINAL
+    OPEN
+    SEALED
+    ABSTRACT
+    DEFAULT
+}
+
+enum SemanticContext {
+    IF
+    ELSEIF
+    ELSE
+    TERNARY
+    LOOP
+    LOGICAL_SEQUENCE
+    JUMP
+    LABELED_JUMP
+    CATCH
+    SWITCH
+    SWITCH_CASE
+}
+
+ModuleRoot : # filePath: String
+ModuleRoot : # fileName: String
+ModuleRoot : # componentId: String?
+ModuleRoot : # imports: List<String>
+ModuleRoot *-- Module: # module >
+
+SourceElement : # startLine: Int
+SourceElement : # endLine: Int
+SourceElement : # startOffset: Int
+SourceElement : # endOffset: Int
+SourceElement : # syntaxCtx: String?
+
+SourceElement <|-- Declarable
+SourceElement <|-- Expression
+
+Declarable : # id: String
+Declarable : # type: String?
+Declarable *-- "*" ModifierType : # modifiers >
+
+Declarable <|-- Module
+Declarable <|-- Unit
+Declarable <|-- Property
+
+Module : # extends: List<String>
+Module : # implements: List<String>
+Module : # members: List<Declarable>
+Module *-- ModuleType : # moduleType >
+
+Unit : # parameters: List<Property>
+Unit : # body: Expression
+
+Property : # initializer: Expression?
+Property : # getter: Unit?
+Property : # setter: Unit?
+
+Expression *-- "0..1" SemanticContext: # semanticCtx >
+Expression : # innerScope: List<SourceElement>
+
+Expression <|-- Lambda
+Expression <|-- Access
+
+Access : # declarableId: String
+
+Access <|-- UnitCall
+Access <|-- PropertyRead
+Access <|-- PropertyWrite
+
+UnitCall : # arguments: List<Expression>
+
+Lambda : # parameters: List<Property>
+
+@enduml

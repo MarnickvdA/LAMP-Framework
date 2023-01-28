@@ -1,0 +1,9 @@
+@startuml
+left to right direction
+skinparam dpi 300
+
+class Jump
+
+Jump : # label: String?
+
+@enduml

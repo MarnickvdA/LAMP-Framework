@@ -8,7 +8,7 @@ class ModuleLinesOfCode: ModuleVisitor() {
     override var result: Int? = 0
     private var curLinesCovered = mutableSetOf<Int>()
 
-    override fun getTag(): String = "LOC"
+    override fun getTag(): String = "MLOC"
 
     override fun getResult(): Pair<String, Int> {
         result = curLinesCovered.size

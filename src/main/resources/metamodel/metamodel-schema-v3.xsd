@@ -82,9 +82,7 @@
         <xs:complexContent>
             <xs:extension base="Declarable">
                 <xs:sequence>
-                    <xs:element minOccurs="0" name="Initializer" type="Assignment"/>
-                    <xs:element minOccurs="0" name="Getter" type="Unit"/>
-                    <xs:element minOccurs="0" name="Setter" type="Unit"/>
+                    <xs:element minOccurs="0" name="Initializer" type="Expression"/>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
@@ -102,7 +100,7 @@
                 <xs:sequence>
                     <!-- Simple expressions do not have an inner scope -->
                     <xs:sequence id="innerScope" minOccurs="0" maxOccurs="unbounded">
-                        <xs:element name="Expression" type="Expression"/>
+                        <xs:element name="Element" type="SourceElement"/>
                     </xs:sequence>
                 </xs:sequence>
 
@@ -190,11 +188,38 @@
         </xs:complexContent>
     </xs:complexType>
 
-    <xs:complexType name="LocalDeclaration">
+    <xs:complexType name="Lambda">
         <xs:complexContent>
             <xs:extension base="Expression">
                 <xs:sequence>
-                    <xs:element name="Declaration" type="Declarable"/>
+                    <xs:element name="Unit" type="Unit"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="Access" abstract="true">
+        <xs:complexContent>
+            <xs:extension base="Expression">
+                <xs:attribute name="declarableId" type="xs:string"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="ReferenceAccess">
+        <xs:complexContent>
+            <xs:extension base="Access">
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="UnitCall">
+        <xs:complexContent>
+            <xs:extension base="Access">
+                <xs:sequence>
+                    <xs:sequence minOccurs="0" maxOccurs="unbounded" id="unitCallArgs">
+                        <xs:element name="Argument" type="Expression"/>
+                    </xs:sequence>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
@@ -203,49 +228,9 @@
     <!-- Assignment on an existing object in code, seen as a mutation -->
     <xs:complexType name="Assignment">
         <xs:complexContent>
-            <xs:extension base="Expression">
+            <xs:extension base="Access">
                 <xs:sequence>
                     <xs:element minOccurs="0" name="Value" type="Expression"/>
-                </xs:sequence>
-                <xs:attribute name="propertyId" type="xs:string"/>
-            </xs:extension>
-        </xs:complexContent>
-    </xs:complexType>
-
-    <xs:complexType name="Lambda">
-        <xs:complexContent>
-            <xs:extension base="Expression">
-                <xs:sequence>
-                    <xs:sequence minOccurs="0" maxOccurs="unbounded" id="lambdaParams">
-                        <xs:element name="Parameter" type="Property"/>
-                    </xs:sequence>
-                </xs:sequence>
-            </xs:extension>
-        </xs:complexContent>
-    </xs:complexType>
-
-    <xs:complexType name="Call" abstract="true">
-        <xs:complexContent>
-            <xs:extension base="Expression">
-                <xs:attribute name="referenceId" type="xs:string"/>
-            </xs:extension>
-        </xs:complexContent>
-    </xs:complexType>
-
-    <xs:complexType name="ReferenceCall">
-        <xs:complexContent>
-            <xs:extension base="Call">
-            </xs:extension>
-        </xs:complexContent>
-    </xs:complexType>
-
-    <xs:complexType name="UnitCall">
-        <xs:complexContent>
-            <xs:extension base="Call">
-                <xs:sequence>
-                    <xs:sequence minOccurs="0" maxOccurs="unbounded" id="unitCallArgs">
-                        <xs:element name="Argument" type="Expression"/>
-                    </xs:sequence>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
@@ -273,10 +258,8 @@
             <xs:enumeration value="private"/>
             <xs:enumeration value="static"/>
             <xs:enumeration value="final"/>
-            <xs:enumeration value="open"/>
-            <xs:enumeration value="sealed"/>
             <xs:enumeration value="abstract"/>
-            <xs:enumeration value="default"/>
+            <xs:enumeration value="override"/>
         </xs:restriction>
     </xs:simpleType>
 </xs:schema>

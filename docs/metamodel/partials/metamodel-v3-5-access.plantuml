@@ -1,0 +1,17 @@
+@startuml
+left to right direction
+skinparam dpi 300
+
+abstract class Access
+class ReferenceAccess
+class UnitCall
+class Assignment
+
+
+Access : # declarableId: String
+
+Access <|-- UnitCall
+Access <|-- ReferenceAccess
+Access <|-- Assignment
+
+@enduml
