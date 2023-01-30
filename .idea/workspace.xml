@@ -5,75 +5,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d630933d-6250-4de4-bc33-fb5f4db8d499" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/archive/metamodel-v4-1.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/archive/metamodel-v4.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/metamodel-v3-5.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-access.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-assignment.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-catch.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-conditional.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-declarable.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-expressions.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-jump.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-lambda.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-logicalsequence.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-loop.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-module.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-moduleroot.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-property.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-propertyaccess.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-sourceelement.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-switch.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-switchcase.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-unit.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-unitcall.plantuml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/ParameterCount.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/evaluation/lottie-android.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/ckjm.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LAMP-Framework.iml" beforeDir="false" afterPath="$PROJECT_DIR$/LAMP-Framework.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/inheritance.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/metamodel/metamodel-v3-1.plantuml" beforeDir="false" afterPath="$PROJECT_DIR$/docs/metamodel/archive/metamodel-v3-1.plantuml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/metamodel/metamodel-v3-1.png" beforeDir="false" afterPath="$PROJECT_DIR$/docs/metamodel/archive/metamodel-v3-1.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/metamodel/metamodel-v3-2.png" beforeDir="false" afterPath="$PROJECT_DIR$/docs/metamodel/archive/metamodel-v3-2.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/metamodel/metamodel-v3-3.png" beforeDir="false" afterPath="$PROJECT_DIR$/docs/metamodel/archive/metamodel-v3-3.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/metamodel/metamodel-v3-4.png" beforeDir="false" afterPath="$PROJECT_DIR$/docs/metamodel/archive/metamodel-v3-4.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/metamodel/metamodel-v3.plantuml" beforeDir="false" afterPath="$PROJECT_DIR$/docs/metamodel/archive/metamodel-v3.plantuml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/metamodel/metamodel-v3.png" beforeDir="false" afterPath="$PROJECT_DIR$/docs/metamodel/archive/metamodel-v3.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-elements.plantuml" beforeDir="false" afterPath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-5-elements.plantuml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-elements.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-expressions.plantuml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/metamodel/partials/metamodel-v3-expressions.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/metrics.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/semantics.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/symbols.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/app/App.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/app/App.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/io/MetricsEngine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/io/MetricsEngine.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/io/ParserEngine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/io/TransformEngine.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/io/WriterEngine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/io/WriterEngine.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CognitiveComplexity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CognitiveComplexity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CouplingBetweenObjectClasses.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CouplingBetweenObjectClasses.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CyclomaticComplexity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CyclomaticComplexity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/LackOfCohesionInMethods.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/LackOfCohesionInMethods.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/LengthOfMessageChain.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/LengthOfMessageChain.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/LinesOfLambda.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/LambdaLinesOfCode.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/ModuleLinesOfCode.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/ModuleLinesOfCode.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/NumberOfParameters.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/NumberOfUnits.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/ResponseForAClass.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/ResponseForAClass.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CognitivelyWeightedMethodPerClass.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CognitivelyWeightedMethodPerClass.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/LambdaLinesOfCode.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/LambdaLinesOfCode.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/ParameterCount.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/ParameterCount.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/UnitLinesOfCode.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/UnitLinesOfCode.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/models/symbol/CallSymbol.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/models/symbol/AccessSymbol.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/models/symbol/PropertyAccessSymbol.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/models/symbol/ReferenceAccessSymbol.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/models/symbol/SymbolTree.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/models/symbol/SymbolTree.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/WeightedMethodPerClass.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/WeightedMethodPerClass.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformer.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/utils/Utils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/utils/Utils.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/visitors/LinesOfCodeVisitor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/visitors/LinesOfCodeVisitor.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/MetamodelTransformer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/MetamodelTransformer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/visitors/LinesOfCodeVisitor.kt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/visitors/MetamodelVisitor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/visitors/MetamodelVisitor.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/visitors/SourceElementFinder.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/visitors/SourceElementFinder.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/visitors/SymbolVisitor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/visitors/SymbolVisitor.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/metamodel/metamodel-bindings.xjb" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/metamodel/metamodel-bindings.xjb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/metamodel/metamodel-schema-v3.xsd" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/metamodel/metamodel-schema-v3.xsd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/nl/utwente/student/app/metrics/CognitiveComplexityTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/nl/utwente/student/app/metrics/CognitiveComplexityTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/nl/utwente/student/app/metrics/CyclomaticComplexityTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/nl/utwente/student/app/metrics/CyclomaticComplexityTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/nl/utwente/student/app/metrics/DepthOfInheritanceTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/nl/utwente/student/app/metrics/DepthOfInheritanceTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/nl/utwente/student/app/metrics/NumberOfChildrenTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/nl/utwente/student/app/metrics/NumberOfChildrenTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/nl/utwente/student/app/metrics/UnitMetricTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/nl/utwente/student/app/metrics/UnitMetricTest.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -89,6 +41,8 @@
         <option value="Kotlin Class" />
         <option value="Kotlin Interface" />
         <option value="Kotlin Data Class" />
+        <option value="Kotlin Jupyter Notebook" />
+        <option value="Jupyter Notebook" />
       </list>
     </option>
   </component>
@@ -104,6 +58,9 @@
         <option name="useMavenConfig" value="true" />
       </MavenGeneralSettings>
     </option>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="ProjectErrors" />
   </component>
   <component name="ProjectId" id="2IDMjJJi0qdmBsuqoxGwcGmix3D" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -124,7 +81,7 @@
     &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary&quot;: &quot;JUnit5&quot;,
     &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5&quot;: &quot;&quot;,
     &quot;last_directory_selection&quot;: &quot;/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/src/test/kotlin/nl/utwente/student/app&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/docs/metamodel&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/lib&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -134,7 +91,7 @@
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;
   }
 }</component>
   <component name="ReadonlyStatusHandler">
@@ -142,21 +99,21 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/lib" />
+      <recent name="$PROJECT_DIR$/results/designite-lottie" />
       <recent name="$PROJECT_DIR$/docs/metamodel" />
       <recent name="$PROJECT_DIR$/src/test/resources/java" />
       <recent name="$PROJECT_DIR$/input" />
-      <recent name="$PROJECT_DIR$/src/main/resources/archive.v2" />
-      <recent name="$PROJECT_DIR$/docs" />
     </key>
     <key name="CreateTestDialog.Recents.Supers">
       <recent name="" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/analysis" />
+      <recent name="$PROJECT_DIR$/results/lamp-lottie" />
       <recent name="$PROJECT_DIR$/out/metrics" />
       <recent name="$PROJECT_DIR$/docs/metamodel/partials" />
       <recent name="$PROJECT_DIR$/docs/metamodel/archive" />
-      <recent name="$PROJECT_DIR$/input" />
-      <recent name="$PROJECT_DIR$/src/test/resources/java/dependencyTests/nl/utwente" />
     </key>
     <key name="MoveKotlinTopLevelDeclarationsDialog.RECENTS_KEY">
       <recent name="nl.utwente.student.models.metrics" />
@@ -178,7 +135,7 @@
       <recent name="nl.utwente.student.parsers" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.Run all tests">
+  <component name="RunManager" selected="Kotlin.Run TUI">
     <configuration name="Run all tests" type="JUnit" factoryName="JUnit">
       <module name="LAMP-Framework" />
       <option name="PACKAGE_NAME" value="" />
@@ -234,7 +191,9 @@
       <workItem from="1674047213575" duration="3154000" />
       <workItem from="1674050984337" duration="16079000" />
       <workItem from="1674747468177" duration="8746000" />
-      <workItem from="1674911920056" duration="8607000" />
+      <workItem from="1674911920056" duration="9844000" />
+      <workItem from="1674923545388" duration="3563000" />
+      <workItem from="1675078248481" duration="1139000" />
     </task>
     <servers />
   </component>

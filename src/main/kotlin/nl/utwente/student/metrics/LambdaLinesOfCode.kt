@@ -5,10 +5,10 @@ import nl.utwente.student.metamodel.v3.Lambda
 import nl.utwente.student.metamodel.v3.ModuleRoot
 import nl.utwente.student.metamodel.v3.Unit
 import nl.utwente.student.utils.getUniqueName
-import nl.utwente.student.visitors.LinesOfCodeVisitor
+import nl.utwente.student.visitors.UnitVisitor
 
-class LambdaLinesOfCode: LinesOfCodeVisitor() {
-
+class LambdaLinesOfCode: UnitVisitor() {
+    private var curLinesCovered = mutableSetOf<Int>()
     private var currentLambda: Lambda? = null
     override fun getTag(): String = "LLOC"
 
@@ -23,8 +23,13 @@ class LambdaLinesOfCode: LinesOfCodeVisitor() {
     }
 
     override fun visitExpression(expression: Expression?) {
-        if (currentLambda == null && expression !is Lambda)
+        if (expression == null)
             return
+
+        if (currentLambda != null) {
+            curLinesCovered.add(expression.metadata.startLine.toInt())
+            curLinesCovered.add(expression.metadata.endLine.toInt())
+        }
 
         super.visitExpression(expression)
     }

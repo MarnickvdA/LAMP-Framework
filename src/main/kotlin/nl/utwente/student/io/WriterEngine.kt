@@ -27,12 +27,12 @@ object WriterEngine {
         fun writeMetricResults(toFile: File, results: MetricResults, metrics: Array<String>) {
             FileOutputStream(toFile).apply {
                 val writer = bufferedWriter()
-                writer.write(""""DeclarableId";${metrics.joinToString(";") { "\"${it}\"" }}""")
+                writer.write(""""DeclarableId",${metrics.joinToString(",") { "\"${it}\"" }}""")
                 writer.newLine()
                 results.forEach { (moduleId, results) ->
                     writer.write(
-                        "\"${moduleId}\";${
-                            metrics.map { results.find { p -> p.first == it }?.second ?: 0 }.joinToString(";")
+                        "\"${moduleId}\",${
+                            metrics.map { results.find { p -> p.first == it }?.second ?: 0 }.joinToString(",")
                         }"
                     )
                     writer.newLine()

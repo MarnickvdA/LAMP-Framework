@@ -36,7 +36,7 @@ The final version of this framework and thesis is still a work in progress.
 **Intellij plugins**:
 - Jakarta EE (requires IDEA Ultimate)
 - PlantUML
-
+- Jupyter
 
 ### Metamodel development (with XSD)
 The metamodel is created using the XML Schema Definition (XSD) language.

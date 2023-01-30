@@ -3,11 +3,13 @@ package nl.utwente.student.visitors
 import nl.utwente.student.metamodel.v3.*
 import nl.utwente.student.metamodel.v3.Unit
 import nl.utwente.student.models.symbol.*
+import nl.utwente.student.utils.getUniqueName
 import nl.utwente.student.utils.getUniquePosition
 
 class SymbolVisitor : MetamodelVisitor<kotlin.Unit>() {
     private var symbolTree = SymbolTree()
     private var currentSymbol: SourceSymbol? = null
+    private var currentModuleRoot: ModuleRoot? = null
 
     /**
      * @return a map of Inheritance Tree relationships, indexed by Module reference
@@ -26,6 +28,7 @@ class SymbolVisitor : MetamodelVisitor<kotlin.Unit>() {
     override fun visitModuleRoot(moduleRoot: ModuleRoot?) {
         if (moduleRoot == null) return // TODO (Document that we are excluding interfaces)
         currentSymbol = ModuleSymbol(moduleRoot)
+        currentModuleRoot = moduleRoot
         symbolTree.add(currentSymbol as ModuleSymbol)
 
         moduleRoot.module.members.forEach(this::visitDeclarable)
@@ -100,6 +103,8 @@ class SymbolVisitor : MetamodelVisitor<kotlin.Unit>() {
 
     override fun visitReferenceAccess(referenceAccess: ReferenceAccess?) {
         if (referenceAccess == null) return
+        if (referenceAccess.declarableId == null)
+            println("RefAccess id is null. ${ (currentSymbol!!.sourceElement!! as Property).getUniqueName(currentModuleRoot) }")
         val symbol = AccessSymbol(referenceAccess, currentSymbol!!)
         currentSymbol!!.add(symbol)
         currentSymbol = symbol

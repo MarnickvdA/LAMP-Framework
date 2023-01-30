@@ -101,7 +101,7 @@ object App {
         println("Starting evaluation of ${modules.size} module(s).")
 
         return MetricsEngine.run(modules, outputFile)?.let { file ->
-            println("Transformed ${modules.size} file(s), now located in ${file.absolutePath}")
+            println("Evaluated ${modules.size} file(s), now located in ${file.absolutePath}")
             file
         }
     }

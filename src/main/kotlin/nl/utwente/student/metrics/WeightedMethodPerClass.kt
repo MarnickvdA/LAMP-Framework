@@ -14,12 +14,9 @@ class WeightedMethodPerClass : ModuleVisitor() {
         if (moduleRoot == null) throw VisitorException("Module is null")
         moduleName = moduleRoot.getUniqueName(false)
 
-        val coco = CyclomaticComplexity()
+        val cc = CyclomaticComplexity()
+        cc.visitModuleRoot(moduleRoot)
 
-        moduleRoot.module.members
-            .filterIsInstance<Unit>()
-            .forEach { coco.visitUnit(it) }
-
-        result = coco.getResult().sumOf { it.second }
+        result = cc.getResult().sumOf { it.second }
     }
 }

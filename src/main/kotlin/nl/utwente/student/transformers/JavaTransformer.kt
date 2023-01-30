@@ -143,6 +143,7 @@ class JavaTransformer(override val inputFile: File) :
 
     override fun visitClassDeclaration(ctx: JavaParser.ClassDeclarationContext?): Module {
         val module = Module()
+        val parent = currentModule
         currentModule = module
         module.metadata = ctx?.let { getSourceMetadata(it) }
         module.id = this.visitIdentifier(ctx?.identifier())
@@ -160,11 +161,13 @@ class JavaTransformer(override val inputFile: File) :
         this.visitClassBodyDeclarations(ctx?.classBody()?.classBodyDeclaration())
             ?.let { module.members.addAll(it) }
 
+        currentModule = parent
         return module
     }
 
     override fun visitRecordDeclaration(ctx: JavaParser.RecordDeclarationContext?): Module {
         val module = Module()
+        val parent = currentModule
         currentModule = module
         module.metadata = ctx?.let { getSourceMetadata(it) }
         module.id = this.visitIdentifier(ctx?.identifier())
@@ -187,12 +190,15 @@ class JavaTransformer(override val inputFile: File) :
         this.visitClassBodyDeclarations(ctx?.recordBody()?.classBodyDeclaration())
             ?.let { module.members.addAll(it) }
 
+        currentModule = parent
         return module
     }
 
     override fun visitInterfaceDeclaration(ctx: JavaParser.InterfaceDeclarationContext?): Module {
         val module = Module()
+        val parent = currentModule
         currentModule = module
+
         module.metadata = ctx?.let { getSourceMetadata(it) }
         module.id = this.visitIdentifier(ctx?.identifier())
         module.returnType = module.id
@@ -205,12 +211,15 @@ class JavaTransformer(override val inputFile: File) :
         this.visitInterfaceBodyDeclarations(ctx?.interfaceBody()?.interfaceBodyDeclaration())
             ?.let { module.members.addAll(it) }
 
+        currentModule = parent
         return module
     }
 
     override fun visitEnumDeclaration(ctx: JavaParser.EnumDeclarationContext?): Module {
         val module = Module()
+        val parent = currentModule
         currentModule = module
+
         module.metadata = ctx?.let { getSourceMetadata(it) }
         module.id = this.visitIdentifier(ctx?.identifier())
         module.returnType = module.id
@@ -228,6 +237,7 @@ class JavaTransformer(override val inputFile: File) :
         this.visitClassBodyDeclarations(ctx?.enumBodyDeclarations()?.classBodyDeclaration())
             ?.let { module.members.addAll(it) }
 
+        currentModule = parent
         return module
     }
 
@@ -1081,6 +1091,14 @@ class JavaTransformer(override val inputFile: File) :
     override fun visitPrimary(ctx: JavaParser.PrimaryContext?): Expression? {
         return when {
             ctx == null -> null
+            ctx.THIS() != null -> ReferenceAccess().also {
+                it.declarableId = "this"
+                it.addMetadata(ctx.THIS())
+            }
+            ctx.SUPER() != null -> ReferenceAccess().also {
+                it.declarableId = "super"
+                it.addMetadata(ctx.SUPER())
+            }
             ctx.identifier() != null -> ReferenceAccess().also {
                 it.addMetadata(ctx)
                 it.declarableId = this.visitIdentifier(ctx.identifier())
@@ -1421,33 +1439,20 @@ class JavaTransformer(override val inputFile: File) :
     // FIXME: Update method references as ReferenceAccess instead of Lambda.
     private fun visitMethodReference(ctx: JavaParser.ExpressionContext): Expression {
         // TODO(Document: How method references are handled.)
-        return Lambda().also {
-            it.context = "java:LambdaExpression"
+        return ReferenceAccess().also {
+            it.context = "java:MethodReference"
             it.addMetadata(ctx)
-            it.unit = Unit().also { u -> u.addMetadata(ctx) }
-            it.add((when {
+            it.declarableId = when {
                 // TODO (Document: How we handle references )
-                ctx.expression() != null -> this.visitExpression(
+                ctx.expression() != null -> (this.visitExpression(
                     ctx.expression().firstOrNull()
-                ) as? ReferenceAccess // TODO Check if comes through correctly.
-                ctx.typeType()?.isNotEmpty() == true -> ReferenceAccess().also { rf ->
-                    rf.declarableId = ctx.typeType().first().text
-                    rf.addMetadata(ctx.typeType().first())
-                }
-
-                ctx.classType() != null -> ReferenceAccess().also { rf ->
-                    rf.declarableId = this.visitIdentifier(ctx.classType().identifier())
-                    rf.addMetadata(ctx.classType())
-                }
-
-                else -> null
-            })?.also { rf ->
-                rf.context = "java:MethodReference"
-                rf.add(UnitCall().addMetadata(ctx).also { uc ->
-                    uc.declarableId =
-                        if (ctx.NEW() == null) this.visitIdentifier(ctx.identifier()) else rf.declarableId + ".constructor"
-                })
-            })
+                ) as? ReferenceAccess)?.declarableId
+                ctx.typeType()?.isNotEmpty() == true -> ctx.typeType().first().text
+                ctx.classType() != null -> this.visitIdentifier(ctx.classType().identifier())
+                else -> ""
+            }?.let { id ->
+                id + "::" + (this.visitIdentifier(ctx.identifier()) ?: "constructor")
+            }
         }
     }
 

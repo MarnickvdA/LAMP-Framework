@@ -15,7 +15,8 @@ class MetamodelTransformer(override val inputFile: File) : Transformer {
 
     override fun transform(): List<ModuleRoot> {
         return try {
-            (jaxbMarshaller.unmarshal(inputFile) as? ModuleRoot)?.let { listOf(it) }
+            (jaxbMarshaller.unmarshal(inputFile) as? ModuleRoot)
+                ?.let { listOf(it) }
         } catch (e: JAXBException) {
             System.err.println("Reading from ${inputFile.name} failed!")
             e.printStackTrace()

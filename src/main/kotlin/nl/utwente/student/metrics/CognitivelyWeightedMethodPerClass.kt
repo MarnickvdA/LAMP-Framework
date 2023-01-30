@@ -15,10 +15,7 @@ class CognitivelyWeightedMethodPerClass: ModuleVisitor() {
         moduleName = moduleRoot.getUniqueName(false)
 
         val coco = CognitiveComplexity()
-
-        moduleRoot.module.members
-            .filterIsInstance<Unit>()
-            .forEach { coco.visitUnit(it) }
+        coco.visitModuleRoot(moduleRoot)
 
         result = coco.getResult().sumOf { it.second }
     }

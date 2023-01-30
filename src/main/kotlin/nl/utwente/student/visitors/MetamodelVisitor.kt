@@ -120,9 +120,9 @@ abstract class MetamodelVisitor<T>: BaseVisitor<T, VisitorException>() {
         return super.visitUnitCall(unitCall)
     }
 
-    override fun visitReferenceAccess(referenceCall: ReferenceAccess?): T {
-        this.visitInnerScope(referenceCall?.innerScope)
-        return super.visitReferenceAccess(referenceCall)
+    override fun visitReferenceAccess(referenceAccess: ReferenceAccess?): T {
+        this.visitInnerScope(referenceAccess?.innerScope)
+        return super.visitReferenceAccess(referenceAccess)
     }
 
     override fun visitMetadata(metadata: Metadata?): T {
