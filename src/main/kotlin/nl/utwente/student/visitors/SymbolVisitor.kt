@@ -37,6 +37,9 @@ class SymbolVisitor : MetamodelVisitor<kotlin.Unit>() {
     private fun visitDeclarable(declarable: Declarable?) {
         if (declarable == null) return
 
+        if (declarable.id == null)
+            println("${currentModuleRoot?.getUniqueName()} ${getUniquePosition(declarable)}")
+
         val symbol = SourceSymbol(declarable.id, currentSymbol, declarable)
         currentSymbol!!.add(symbol)
         currentSymbol = symbol
@@ -104,7 +107,7 @@ class SymbolVisitor : MetamodelVisitor<kotlin.Unit>() {
     override fun visitReferenceAccess(referenceAccess: ReferenceAccess?) {
         if (referenceAccess == null) return
         if (referenceAccess.declarableId == null)
-            println("RefAccess id is null. ${ (currentSymbol!!.sourceElement!! as Property).getUniqueName(currentModuleRoot) }")
+            println("RefAccess id is null. ${ currentModuleRoot?.getUniqueName() } ${ currentSymbol?.id }")
         val symbol = AccessSymbol(referenceAccess, currentSymbol!!)
         currentSymbol!!.add(symbol)
         currentSymbol = symbol

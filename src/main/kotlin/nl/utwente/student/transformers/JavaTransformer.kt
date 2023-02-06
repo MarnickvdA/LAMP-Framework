@@ -8,6 +8,7 @@ import nl.utwente.student.utils.getDepth
 import nl.utwente.student.utils.getUniqueName
 import nl.utwente.student.visitor.java.JavaLexer
 import nl.utwente.student.visitor.java.JavaParser
+import nl.utwente.student.visitor.java.JavaParser.PrimaryContext
 import nl.utwente.student.visitor.java.JavaParserBaseVisitor
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
@@ -313,6 +314,13 @@ class JavaTransformer(override val inputFile: File) :
         }
 
         return list
+    }
+
+    override fun visitClassType(ctx: JavaParser.ClassTypeContext?): String {
+        return listOfNotNull(
+            this.visitClassOrInterfaceType(ctx?.classOrInterfaceType()),
+            this.visitIdentifier(ctx?.identifier())
+        ).joinToString(".")
     }
 
     override fun visitTypeType(ctx: JavaParser.TypeTypeContext?): String? {
@@ -841,24 +849,31 @@ class JavaTransformer(override val inputFile: File) :
         return tryWithResources
     }
 
-    override fun visitResourceSpecification(ctx: JavaParser.ResourceSpecificationContext?): List<Property>? {
+    override fun visitResourceSpecification(ctx: JavaParser.ResourceSpecificationContext?): List<SourceElement>? {
         return this.visitResources(ctx?.resources())
     }
 
-    override fun visitResources(ctx: JavaParser.ResourcesContext?): List<Property>? {
+    override fun visitResources(ctx: JavaParser.ResourcesContext?): List<SourceElement>? {
         return ctx?.resource()?.mapNotNull(this::visitResource)
     }
 
-    override fun visitResource(ctx: JavaParser.ResourceContext?): Property {
-        val property = Property().addMetadata(ctx)
-        this.visitModifiers(ctx?.variableModifier())?.let { property.modifiers.addAll(it) }
+    override fun visitResource(ctx: JavaParser.ResourceContext?): SourceElement {
+        if(ctx?.expression() != null) {
+            val property = Property().addMetadata(ctx)
+            this.visitModifiers(ctx.variableModifier())?.let { property.modifiers.addAll(it) }
 
-        property.id = this.visitVariableDeclaratorId(ctx?.variableDeclaratorId())
-            ?: this.visitIdentifier(ctx?.identifier())
-        property.id = this.visitClassOrInterfaceType(ctx?.classOrInterfaceType()) // FIXME: Inferred types here applicable.
-        property.initializer = this.visitExpression(ctx?.expression())
+            property.id = this.visitVariableDeclaratorId(ctx.variableDeclaratorId())
+                ?: this.visitIdentifier(ctx.identifier())
+            property.returnType = this.visitClassOrInterfaceType(ctx.classOrInterfaceType()) // FIXME: Inferred types here applicable.
+            property.initializer = this.visitExpression(ctx.expression())
 
-        return property
+            return property
+        } else {
+            return ReferenceAccess().also {
+                it.addMetadata(ctx?.identifier())
+                it.declarableId = this.visitIdentifier(ctx?.identifier())
+            }
+        }
     }
 
     private fun visitSwitchStatement(ctx: JavaParser.StatementContext): Switch {
@@ -1444,14 +1459,12 @@ class JavaTransformer(override val inputFile: File) :
             it.addMetadata(ctx)
             it.declarableId = when {
                 // TODO (Document: How we handle references )
-                ctx.expression() != null -> (this.visitExpression(
-                    ctx.expression().firstOrNull()
-                ) as? ReferenceAccess)?.declarableId
-                ctx.typeType()?.isNotEmpty() == true -> ctx.typeType().first().text
-                ctx.classType() != null -> this.visitIdentifier(ctx.classType().identifier())
+                ctx.typeType()?.isNotEmpty() == true -> this.visitTypeType(ctx.typeType().first())
+                ctx.classType() != null -> this.visitClassType(ctx.classType())
+                ctx.expression() != null -> ctx.expression().first().text
                 else -> ""
             }?.let { id ->
-                id + "::" + (this.visitIdentifier(ctx.identifier()) ?: "constructor")
+                id + "::" + (this.visitIdentifier(ctx.identifier()) ?: id)
             }
         }
     }

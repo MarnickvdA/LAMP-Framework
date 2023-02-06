@@ -40,6 +40,15 @@ fun ModuleRoot.getUniqueName(withLocation: Boolean = true): String {
     return this.module.getUniqueName(this.componentName, withLocation)
 }
 
+fun <T: Declarable> T.getUniqueName(moduleRoot: ModuleRoot?): String {
+    return when(this) {
+        is Module -> this.getUniqueName(moduleRoot?.componentName)
+        is Property -> this.getUniqueName(moduleRoot)
+        is Unit -> this.getUniqueName(moduleRoot)
+        else -> ""
+    }
+}
+
 fun Module.getUniqueName(componentName: String?, withLocation: Boolean = true): String {
     return listOfNotNull(
         componentName,
