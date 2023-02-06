@@ -5,20 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d630933d-6250-4de4-bc33-fb5f4db8d499" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/evaluation/data/designite-gson/MethodMetrics.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/evaluation/data/designite-gson/TypeMetrics.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/evaluation/data/designite-spring/MethodMetrics.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/evaluation/data/designite-spring/TypeMetrics.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/evaluation/elasticsearch.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/evaluation/gson.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/evaluation/spring-framework.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/data/lamp-lottie/modules.csv" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/data/lamp-lottie/modules.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/images/lottie-metrics.png" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/images/lottie-metrics.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/evaluation/lottie-android.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/lottie-android.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/io/MetricsEngine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/io/MetricsEngine.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformer.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/utils/Utils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/utils/Utils.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/visitors/SymbolVisitor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/visitors/SymbolVisitor.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,11 +72,11 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
+    "project.structure.last.edited": "SDKs",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
     "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
+    "settings.editor.selected.configurable": "org.jetbrains.plugins.notebooks.jupyter.connections.configuration.JupyterServerConfigurable"
   }
 }]]></component>
   <component name="ReadonlyStatusHandler">
@@ -187,7 +179,7 @@
       <workItem from="1674911920056" duration="9844000" />
       <workItem from="1674923545388" duration="3563000" />
       <workItem from="1675078248481" duration="16853000" />
-      <workItem from="1675697105722" duration="1308000" />
+      <workItem from="1675697105722" duration="19233000" />
     </task>
     <servers />
   </component>

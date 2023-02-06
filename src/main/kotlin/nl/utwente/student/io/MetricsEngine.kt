@@ -45,7 +45,7 @@ object MetricsEngine {
         else this[result.key]?.addAll(result.value)
     }
 
-    fun run(modules: List<ModuleRoot>, output: File): File {
+    fun run(modules: List<ModuleRoot>, output: File?): File {
         val metrics = getMetrics()
 
         val moduleResults: MetricResults = mutableMapOf()
@@ -66,15 +66,17 @@ object MetricsEngine {
             unitResults = calculateMetrics(metrics.filterIsInstance<UnitMetric>(), it)
         }
 
-        println("\n==== MODULE METRICS ====")
-        moduleResults.forEach { metric -> printModuleMetrics(metric.key, metric.value) }
+        if (output == null) {
+            println("\n==== MODULE METRICS ====")
+            moduleResults.forEach { metric -> printModuleMetrics(metric.key, metric.value) }
 
-        println("\n==== SOURCE ELEMENT METRICS ====")
-        unitResults.forEach { metric -> printUnitMetrics(metric.key, metric.value) }
+            println("\n==== SOURCE ELEMENT METRICS ====")
+            unitResults.forEach { metric -> printUnitMetrics(metric.key, metric.value) }
+        } else {
+            WriterEngine.writeToCSV(output, moduleResults, unitResults)
+        }
 
-        WriterEngine.writeToCSV(output, moduleResults, unitResults)
-
-        return output
+        return output!!
     }
 
     private fun printUnitMetrics(unitId: String, metrics: List<Pair<String, Int>>) {

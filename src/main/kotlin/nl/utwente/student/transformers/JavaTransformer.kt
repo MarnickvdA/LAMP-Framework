@@ -335,11 +335,18 @@ class JavaTransformer(override val inputFile: File) :
         return ctx?.typeType()?.let { this.visitTypeType(it) }
     }
 
-    override fun visitClassOrInterfaceType(ctx: JavaParser.ClassOrInterfaceTypeContext?): String? {
-        return ctx?.text
+    override fun visitClassOrInterfaceType(ctx: JavaParser.ClassOrInterfaceTypeContext?): String {
+        return listOfNotNull(
+            ctx?.identifier()?.mapNotNull { this.visitIdentifier(it) }?.joinToString("."),
+            this.visitTypeIdentifier(ctx?.typeIdentifier())
+        ).filter { it != "" }.joinToString(".")
     }
 
     override fun visitPrimitiveType(ctx: JavaParser.PrimitiveTypeContext?): String? {
+        return ctx?.text
+    }
+
+    override fun visitTypeIdentifier(ctx: JavaParser.TypeIdentifierContext?): String? {
         return ctx?.text
     }
 
@@ -356,6 +363,7 @@ class JavaTransformer(override val inputFile: File) :
     private fun visitInterfaceBodyDeclarations(ctxList: List<JavaParser.InterfaceBodyDeclarationContext>?): Collection<Declarable>? {
         return ctxList
             ?.mapNotNull(this::visitInterfaceBodyDeclaration)
+            ?.flatten()
     }
 
     override fun visitClassBodyDeclaration(ctx: JavaParser.ClassBodyDeclarationContext?): List<Declarable>? {
@@ -385,18 +393,21 @@ class JavaTransformer(override val inputFile: File) :
         }
     }
 
-    override fun visitInterfaceBodyDeclaration(ctx: JavaParser.InterfaceBodyDeclarationContext?): Declarable? {
+    override fun visitInterfaceBodyDeclaration(ctx: JavaParser.InterfaceBodyDeclarationContext?): List<Declarable>? {
         return if (ctx?.interfaceMemberDeclaration() == null) null else {
-            val scope: Declarable? =
-                this.visitInterfaceMemberDeclaration(ctx.interfaceMemberDeclaration()) as? Declarable
-            // TODO(Check if this is valid, seeing how property objects are returned in field declarations.)
-
-            val modifiers = this.visitModifiers(ctx.modifier())
-            if (modifiers?.isEmpty() == true) {
-                scope?.modifiers?.addAll(modifiers)
+            val members = when (val member = super.visitInterfaceBodyDeclaration(ctx)) {
+                is List<*> -> member.filterIsInstance<Declarable>()
+                is Declarable -> listOf(member)
+                else -> null
             }
 
-            scope
+            this.visitModifiers(ctx.modifier())?.let {
+                members?.forEach { d ->
+                    d.modifiers.addAll(it)
+                }
+            }
+
+            members
         }
     }
 
