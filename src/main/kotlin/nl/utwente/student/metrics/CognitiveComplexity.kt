@@ -61,7 +61,7 @@ class CognitiveComplexity : UnitVisitor() {
     override fun visitSwitch(switch: Switch?) {
         if (switch == null) return
 
-        currentComplexity += 1
+        currentComplexity += currentNestingLevel + 1
 
         // TODO Document that we count the subject outside of the nesting level of switch, this is not clear in the whitepaper of Sonarsource.
         this.visitExpression(switch.subject)
@@ -72,13 +72,15 @@ class CognitiveComplexity : UnitVisitor() {
     }
 
     override fun visitLoop(loop: Loop?) {
+        if (loop == null) return
+
         currentComplexity += currentNestingLevel + 1
         logCount(loop, currentNestingLevel + 1)
 
-        loop?.evaluations?.forEach(this::visitExpression)
+        loop.evaluations?.forEach(this::visitExpression)
 
         currentNestingLevel++
-        this.visitInnerScope(loop?.innerScope)
+        this.visitInnerScope(loop.innerScope)
         currentNestingLevel--
     }
 

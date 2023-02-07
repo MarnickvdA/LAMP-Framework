@@ -5,11 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d630933d-6250-4de4-bc33-fb5f4db8d499" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/test/kotlin/nl/utwente/student/app/evaluation/CognitiveComplexityTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/resources/java/ShapeStrokeParser.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/evaluation/data/lamp-lottie/modules.csv" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/data/lamp-lottie/modules.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/data/lamp-lottie/units.csv" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/data/lamp-lottie/units.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/images/lottie-distributions.png" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/images/lottie-distributions.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/evaluation/images/lottie-metrics.png" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/images/lottie-metrics.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/evaluation/lottie-android.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/lottie-android.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/io/MetricsEngine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/io/MetricsEngine.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CognitiveComplexity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CognitiveComplexity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformer.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -23,11 +27,11 @@
         <option value="JUnit5 Test Class" />
         <option value="Kotlin Enum" />
         <option value="Class" />
-        <option value="Kotlin Class" />
         <option value="Kotlin Interface" />
         <option value="Kotlin Data Class" />
         <option value="Kotlin Jupyter Notebook" />
         <option value="Jupyter Notebook" />
+        <option value="Kotlin Class" />
       </list>
     </option>
   </component>
@@ -66,7 +70,7 @@
     "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
     "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
     "last_directory_selection": "/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/src/test/kotlin/nl/utwente/student/app",
-    "last_opened_file_path": "/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/evaluation/data/designite-gson",
+    "last_opened_file_path": "/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/src/test/resources/java",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -84,11 +88,11 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/test/resources/java" />
       <recent name="$PROJECT_DIR$/evaluation/data/designite-gson" />
       <recent name="$PROJECT_DIR$/evaluation" />
       <recent name="$PROJECT_DIR$/evaluation/data/designite-spring" />
       <recent name="$PROJECT_DIR$/lib" />
-      <recent name="$PROJECT_DIR$/results/designite-lottie" />
     </key>
     <key name="CreateTestDialog.Recents.Supers">
       <recent name="" />
@@ -120,7 +124,22 @@
       <recent name="nl.utwente.student.parsers" />
     </key>
   </component>
-  <component name="RunManager" selected="Kotlin.Run TUI">
+  <component name="RunManager" selected="JUnit.CognitiveComplexityTest">
+    <configuration name="CognitiveComplexityTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="LAMP-Framework" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="nl.utwente.student.app.evaluation.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="nl.utwente.student.app.evaluation" />
+      <option name="MAIN_CLASS_NAME" value="nl.utwente.student.app.evaluation.CognitiveComplexityTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Run all tests" type="JUnit" factoryName="JUnit">
       <module name="LAMP-Framework" />
       <option name="PACKAGE_NAME" value="" />
@@ -142,8 +161,14 @@
     </configuration>
     <list>
       <item itemvalue="JUnit.Run all tests" />
+      <item itemvalue="JUnit.CognitiveComplexityTest" />
       <item itemvalue="Kotlin.Run TUI" />
     </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.CognitiveComplexityTest" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
@@ -179,7 +204,8 @@
       <workItem from="1674911920056" duration="9844000" />
       <workItem from="1674923545388" duration="3563000" />
       <workItem from="1675078248481" duration="16853000" />
-      <workItem from="1675697105722" duration="19233000" />
+      <workItem from="1675697105722" duration="19819000" />
+      <workItem from="1675759335829" duration="7212000" />
     </task>
     <servers />
   </component>

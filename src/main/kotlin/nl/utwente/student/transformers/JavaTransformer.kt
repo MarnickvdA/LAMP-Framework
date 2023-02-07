@@ -893,28 +893,33 @@ class JavaTransformer(override val inputFile: File) :
 
         ctx.switchBlockStatementGroup()
             .map { this.visitSwitchBlockStatementGroup(it) }
-            .forEach { switch.cases.addAll(it) }
+            .forEach { switch.cases.add(it) }
 
         return switch
     }
 
-    override fun visitSwitchBlockStatementGroup(ctx: JavaParser.SwitchBlockStatementGroupContext?): List<SwitchCase> {
-        val cases = mutableListOf<SwitchCase>()
+    override fun visitSwitchBlockStatementGroup(ctx: JavaParser.SwitchBlockStatementGroupContext?): SwitchCase {
+        val case = SwitchCase().addMetadata(ctx)
 
-        ctx?.switchLabel()?.forEachIndexed { i, l ->
-            this.visitSwitchLabel(l).also {
-                it?.addAll(this.visitBlockStatement(ctx.blockStatement(i)))
-            }?.let { cases.add(it) }
+        if ((ctx?.switchLabel()?.size ?: 0) > 1) {
+            case.pattern = Expression().also {
+                it.context = "java:MultiLabelCase"
+                it.addMetadata(ctx?.switchLabel()?.first())
+                ctx?.switchLabel()?.map(this::visitSwitchLabel)?.let { c -> it.innerScope.addAll(c) }
+            }
+        } else {
+            case.pattern = this.visitSwitchLabel(ctx?.switchLabel()?.first())
         }
 
-        return cases
+        ctx?.blockStatement()?.mapNotNull(this::visitBlockStatement)?.flatten()?.let { case.innerScope.addAll(it) }
+
+        return case
     }
 
-    override fun visitSwitchLabel(ctx: JavaParser.SwitchLabelContext?): SwitchCase? {
+    override fun visitSwitchLabel(ctx: JavaParser.SwitchLabelContext?): Expression? {
         if (ctx == null) return null
 
-        val switchCase = SwitchCase().addMetadata(ctx).also { it.context = "java:SwitchCase" }
-        switchCase.pattern = when {
+        val pattern = when {
             ctx.constantExpression != null -> this.visitExpression(ctx.constantExpression)
                 .also { it?.context = "java:ConstantSwitchLabel" }
 
@@ -931,14 +936,13 @@ class JavaTransformer(override val inputFile: File) :
                 })
             }
 
-            else -> {
-                switchCase.addMetadata(ctx.DEFAULT())
-                switchCase.context = "java:DefaultSwitchCase"
-                null
+            else -> Expression().also {
+                it.addMetadata(ctx.DEFAULT())
+                it.context = "java:DefaultSwitchCase"
             }
         }
 
-        return switchCase
+        return pattern
     }
 
     override fun visitSwitchExpression(ctx: JavaParser.SwitchExpressionContext?): Switch {
