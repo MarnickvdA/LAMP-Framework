@@ -5,16 +5,36 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d630933d-6250-4de4-bc33-fb5f4db8d499" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/test/kotlin/nl/utwente/student/app/evaluation/CognitiveComplexityTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/resources/java/ShapeStrokeParser.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/evaluation/antlr.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/evaluation/data/designite-antlr/MethodMetrics.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/evaluation/data/designite-antlr/TypeMetrics.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/evaluation/data/designite-jenkins/MethodMetrics.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/evaluation/data/designite-jenkins/TypeMetrics.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/evaluation/data/designite-mockito/MethodMetrics.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/evaluation/data/designite-mockito/TypeMetrics.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/evaluation/data/designite-rxjava/MethodMetrics.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/evaluation/data/designite-rxjava/TypeMetrics.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/evaluation/jenkins.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/evaluation/mockito.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/evaluation/rxjava.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/evaluation/data/lamp-lottie/modules.csv" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/data/lamp-lottie/modules.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/evaluation/data/lamp-lottie/units.csv" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/data/lamp-lottie/units.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/evaluation/images/lottie-distributions.png" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/images/lottie-distributions.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/evaluation/images/lottie-metrics.png" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/images/lottie-metrics.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/data/designite-gson/MethodMetrics.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/data/designite-gson/TypeMetrics.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/data/designite-spring/MethodMetrics.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/data/designite-spring/TypeMetrics.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/data/lamp-elasticsearch/modules.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/data/lamp-elasticsearch/units.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/data/lamp-gson/modules.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/data/lamp-gson/units.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/data/lamp-spring/modules.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/data/lamp-spring/units.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/elasticsearch.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/gson.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/images/gson-metrics.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/images/lottie-metrics.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/images/spring-metrics.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/evaluation/lottie-android.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/evaluation/lottie-android.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CognitiveComplexity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/metrics/CognitiveComplexity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/nl/utwente/student/transformers/JavaTransformer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/evaluation/spring-framework.ipynb" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,8 +89,10 @@
     "WebServerToolWindowFactoryState": "false",
     "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
     "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
+    "database.data.extractors.current.export.id": "SQL Updates",
+    "database.data.extractors.current.id": "SQL Updates",
     "last_directory_selection": "/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/src/test/kotlin/nl/utwente/student/app",
-    "last_opened_file_path": "/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/src/test/resources/java",
+    "last_opened_file_path": "/Users/marnickvanderarend/IdeaProjects/LAMP-Framework/evaluation/data/designite-mockito",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -88,11 +110,11 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/src/test/resources/java" />
-      <recent name="$PROJECT_DIR$/evaluation/data/designite-gson" />
+      <recent name="$PROJECT_DIR$/evaluation/data/designite-mockito" />
       <recent name="$PROJECT_DIR$/evaluation" />
-      <recent name="$PROJECT_DIR$/evaluation/data/designite-spring" />
-      <recent name="$PROJECT_DIR$/lib" />
+      <recent name="$PROJECT_DIR$/evaluation/data/designite-jenkins" />
+      <recent name="$PROJECT_DIR$/evaluation/data/designite-rxjava" />
+      <recent name="$PROJECT_DIR$/evaluation/data/designite-antlr" />
     </key>
     <key name="CreateTestDialog.Recents.Supers">
       <recent name="" />
@@ -124,7 +146,7 @@
       <recent name="nl.utwente.student.parsers" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.CognitiveComplexityTest">
+  <component name="RunManager" selected="Kotlin.Run TUI">
     <configuration name="CognitiveComplexityTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="LAMP-Framework" />
       <extension name="coverage">
@@ -206,6 +228,9 @@
       <workItem from="1675078248481" duration="16853000" />
       <workItem from="1675697105722" duration="19819000" />
       <workItem from="1675759335829" duration="7212000" />
+      <workItem from="1675784953394" duration="66000" />
+      <workItem from="1677491142072" duration="2126000" />
+      <workItem from="1677500343438" duration="8544000" />
     </task>
     <servers />
   </component>
